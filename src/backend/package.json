@@ -1,0 +1,32 @@
+{
+  "name": "website_go_vap_motel",
+  "version": "1.0.0",
+  "description": "website go vap motel",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "nodemon ./app.js",
+    "client": "../frontend/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/decoutkhanqindev/website_go_vap_motel.git"
+  },
+  "author": "decoutkhanqindev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/decoutkhanqindev/website_go_vap_motel/issues"
+  },
+  "homepage": "https://github.com/decoutkhanqindev/website_go_vap_motel#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-fileupload": "^1.5.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.10.1",
+    "nodemon": "^3.1.9"
+  }
+}
