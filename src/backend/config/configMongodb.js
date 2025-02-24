@@ -11,7 +11,7 @@ const configMongodb = (URI) => {
       console.log("\n### Database connected successful");
     })
     .catch((error) => {
-      console.log(`\n### Database connection have error:\n${error}`);
+      console.error(`\n### Database connection have error:\n${error}`);
       throw error;
     });
 };
