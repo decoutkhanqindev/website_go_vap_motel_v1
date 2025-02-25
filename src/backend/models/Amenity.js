@@ -3,10 +3,11 @@ const Schema = mongoose.Schema;
 
 const amenitySchema = new Schema(
   {
-    amenityName: {
+    name: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
       enum: [
         "bed",
         "refrigerator",

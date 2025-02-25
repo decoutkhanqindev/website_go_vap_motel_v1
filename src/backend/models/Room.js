@@ -14,13 +14,15 @@ const roomSchema = new Schema(
     status: {
       type: String,
       required: true,
+      trim: true,
       enum: ["vacant", "occupied", "unavailable"],
       default: "vacant"
       // ex: occupied
     },
     address: {
       type: String,
-      required: true
+      required: true,
+      trim: true
       // note: landlord can have more than one property/area
       // ex: Floor 3, 12 Nguyen Van Bao, ...; Floor 3, 9 Phan Huy Ich, ...
     },
@@ -33,7 +35,8 @@ const roomSchema = new Schema(
     },
     area: {
       type: String,
-      required: true
+      required: true,
+      trim: true
       // ex: 12m x 7m
     },
     maxOccupants: {
