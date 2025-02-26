@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
-const configMongoDB = require("../backend/config/configMongodb");
+const connectMongoDB = require("./config/database");
+const logger = require("./config/logger");
 
 const app = express();
 const env = process.env;
@@ -8,8 +9,7 @@ const PORT = env.PORT || 8080;
 const MONGO_DB_URI = env.MONGO_DB_URI;
 
 app.listen(PORT, () => {
-  console.log(`\n### Server is running at [http://localhost:${PORT}]`);
+  logger.info(`Server is running at [http://localhost:${PORT}]`);
 });
 
-// connect to database
-configMongoDB(MONGO_DB_URI);
+connectMongoDB(MONGO_DB_URI)
