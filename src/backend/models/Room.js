@@ -31,7 +31,7 @@ const roomSchema = new Schema(
       required: true,
       min: 0,
       default: 0
-      // ex: 2.500.000 VND
+      // ex: 2.500.000 VND / month
     },
     area: {
       type: String,
@@ -68,13 +68,15 @@ const roomSchema = new Schema(
         type: ObjectId,
         ref: "Amenity"
       }
+      // note: only first month 
       // ex: [refrigerator, bed, ...]
     ],
-    services: [
+    utilities: [
       {
         type: ObjectId,
-        ref: "Service"
+        ref: "Utility"
       }
+      // note: every month
       // ex: [Wifi, parking, ...]
     ],
     description: {
@@ -92,16 +94,16 @@ const roomSchema = new Schema(
   }
 );
 
-// index for roomNumber for faster lookups (if you query by room number often)
+// index or faster lookups rooms by roomNumber (if you query by room number often)
 roomSchema.index({ roomNumber: 1 });
 
-// index for status for filtering rooms by status (ex: find all vacant rooms)
+// index filtering rooms by status (ex: find all vacant rooms)
 roomSchema.index({ status: 1 });
 
-// index for address for filtering rooms by address (ex: find all rooms at 12 Nguyen Van Bao)
+// index for filtering rooms by address (ex: find all rooms at 12 Nguyen Van Bao)
 roomSchema.index({ address: 1 });
 
-// index for address for filtering rooms by rentPrice (ex: find all rooms within a price range)
+// index for filtering rooms by rentPrice (ex: find all rooms within a price range)
 roomSchema.index({ rentPrice: 1 });
 
 // compound index for status and rentPrice (ex: find vacant rooms within a price range)
