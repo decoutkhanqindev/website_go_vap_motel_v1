@@ -1,2 +1,3 @@
 PORT = 8386
 MONGO_DB_URI = "mongodb+srv://<username>:<password></password>@websitegovapmotel.qi9xu.mongodb.net/?retryWrites=true&w=majority&appName=WebsiteGoVapMotel" 
+NODE_ENV = "development"
