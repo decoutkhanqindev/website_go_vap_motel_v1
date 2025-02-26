@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const roomServiceSchema = new Schema(
+const utilitySchema = new Schema(
   {
     name: {
       type: String,
@@ -16,7 +16,7 @@ const roomServiceSchema = new Schema(
       required: false,
       trim: true,
       default: ""
-      // ex: each service will be paid monthly.
+      // ex: each utility will be paid monthly.
     },
     price: {
       type: Number,
@@ -26,12 +26,12 @@ const roomServiceSchema = new Schema(
     }
   },
   {
-    collection: "roomServices",
+    collection: "utilities",
     versionKey: false,
     timestamps: true // create createdAt and updatedAt automatically
   }
 );
 
-const RoomService = mongoose.model("RoomService", roomServiceSchema);
+const Utility = mongoose.model("Utility", utilitySchema);
 
-module.exports = RoomService;
+module.exports = Utility;

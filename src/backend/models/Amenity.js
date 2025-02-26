@@ -16,7 +16,6 @@ const amenitySchema = new Schema(
         "table and chairs",
         "electric stove",
         "gas stove",
-        "fan"
       ]
       // ex: refrigerator, bed, ...
     },
@@ -31,7 +30,7 @@ const amenitySchema = new Schema(
       type: Number,
       required: true,
       min: 0
-      // note: when the user chooses to add amenities, the price will be added to the rent price.
+      // note: when the user chooses to add amenities, the price will be added to the rent price  (only first month).
       // ex: 500.000 VND
     }
   },
