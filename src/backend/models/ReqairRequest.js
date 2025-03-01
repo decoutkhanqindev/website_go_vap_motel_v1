@@ -6,8 +6,14 @@ const reqairRequestSchema = new Schema(
   {
     roomId: {
       type: ObjectId,
-      required: true
+      required: true,
+      ref: "Room"
       // ex: 101
+    },
+    tenantId: {
+      type: ObjectId,
+      required: true,
+      ref: "User"
     },
     requestDate: {
       type: Date,

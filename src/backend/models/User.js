@@ -27,48 +27,6 @@ const userSchema = new Schema(
       required: false,
       trim: true
       // ex: 08xxxxxxxx
-    },
-    fullName: {
-      type: String,
-      required: false,
-      trim: true
-      // ex: nguyen van a
-    },
-    cccd: {
-      type: String,
-      required: false,
-      trim: true
-      // CCCD/CMND (cho người thuê)
-    },
-    cccdImages: {
-      type: [String],
-      trim: true,
-      validate: {
-        validator: (url) => {
-          if (!url) return true;
-          return /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(
-            url
-          );
-        },
-        message: (props) => `${props.value} is not a valid URL!`
-      }
-    },
-    emergencyContact: {
-      name: {
-        type: String,
-        required: false,
-        trim: true
-      },
-      phone: {
-        type: String,
-        required: false,
-        trim: true
-      },
-      relationship: {
-        type: String,
-        required: false,
-        trim: true
-      }
     }
   },
   {
