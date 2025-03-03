@@ -3,6 +3,13 @@ const Schema = mongoose.Schema;
 
 const amenitySchema = new Schema(
   {
+    // amenityCode: {
+    //   // Business Key (ví dụ: "BED-001", "REF-002", "AC-003"...)
+    //   type: String,
+    //   required: true,
+    //   unique: true,
+    //   trim: true
+    // },
     name: {
       type: String,
       required: true,
@@ -11,33 +18,29 @@ const amenitySchema = new Schema(
       enum: [
         "bed",
         "refrigerator",
-        "air conditioner",
-        "water heater",
-        "table and chairs",
-        "electric stove",
-        "gas stove",
+        "air_conditioner",
+        "water_heater",
+        "table_and_chairs",
+        "electric_stove",
+        "gas_stove"
       ]
-      // ex: refrigerator, bed, ...
     },
     description: {
       type: String,
       required: false,
       trim: true,
       default: ""
-      // ex: bed have 1m6 x 2m
     },
     price: {
       type: Number,
       required: true,
       min: 0
-      // note: when the user chooses to add amenities, the price will be added to the rent price  (only first month).
-      // ex: 500.000 VND
     }
   },
   {
     collection: "amenities",
     versionKey: false,
-    timestamps: true // create createdAt and updatedAt automatically
+    timestamps: true
   }
 );
 

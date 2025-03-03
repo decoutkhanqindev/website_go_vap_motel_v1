@@ -1,14 +1,21 @@
+// Notification.js (Đã cải thiện)
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
 const notificationSchema = new Schema(
   {
+    // notificationCode: {
+    //   // Business Key (ví dụ: "NOTIF-PAYMENT-001", "REPAIR-REQ-123"...)
+    //   type: String,
+    //   required: true,
+    //   unique: true,
+    //   trim: true
+    // },
     userId: {
       type: ObjectId,
-      ref: "User",
-      required: true
-      // ex: user201
+      required: true,
+      ref: "User"
     },
     type: {
       type: String,
@@ -21,18 +28,19 @@ const notificationSchema = new Schema(
         "room_vacancy",
         "general_notification"
       ]
-      // ex: general_notification
     },
     message: {
       type: String,
       required: true,
       trim: true
-      // ex: loss water at 29/02/2025
+    },
+    relatedDocumentId: {
+      type: ObjectId, // ObjectId tham chiếu đến document liên quan (ví dụ: invoiceId, contractId, roomId, ...)
+      required: true
     },
     isRead: {
       type: Boolean,
       default: false
-      // ex: true
     },
     readAt: {
       type: Date,
@@ -42,14 +50,9 @@ const notificationSchema = new Schema(
   {
     collection: "notifications",
     versionKey: false,
-    timestamps: true // create createdAt and updatedAt automatically
+    timestamps: true
   }
 );
-
-// Indexes for efficient querying
-notificationSchema.index({ userId: 1 }); // Index for userId to quickly find notifications for a user
-notificationSchema.index({ isRead: 1 }); // Index for isRead status to filter read/unread notifications
-notificationSchema.index({ userId: 1, isRead: 1 }); // Compound index for common queries like "unread notifications for a user"
 
 const Notification = mongoose.model("Notification", notificationSchema);
 

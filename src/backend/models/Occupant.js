@@ -1,8 +1,21 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
 
 const occupantSchema = new Schema(
   {
+    // occupantCode: {
+    //   // Business Key (ví dụ: "OCC-2023-001", "TENANT-SUB-001"...)
+    //   type: String,
+    //   required: true,
+    //   unique: true,
+    //   trim: true
+    // },
+    roomId: {
+      type: ObjectId,
+      required: true,
+      ref: "Room"
+    },
     fullName: {
       type: String,
       required: true
@@ -26,6 +39,7 @@ const occupantSchema = new Schema(
     cccdImages: {
       type: [String],
       trim: true,
+      required: false,
       validate: {
         validator: (url) => {
           if (!url) return true;
@@ -40,6 +54,10 @@ const occupantSchema = new Schema(
   {
     collection: "occupants",
     versionKey: false,
-    timestamps: true // create createdAt and updatedAt automatically
+    timestamps: true
   }
 );
+
+const Occupant = mongoose.model("Occupant", occupantSchema);
+
+module.exports = Occupant;
