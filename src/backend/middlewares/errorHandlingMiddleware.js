@@ -1,4 +1,5 @@
 const StatusCodes = require("http-status-codes");
+const logger = require("../utils/logger");
 
 const errorHandlingMiddleware = (err, req, res, next) => {
   // if not modify status code, default is 500
@@ -8,6 +9,9 @@ const errorHandlingMiddleware = (err, req, res, next) => {
     message: err.message || StatusCodes[err.statusCode],
     stack: err.stack
   };
+
+  logger.error(err.stack);
+
   res.status(responseError.statusCode).json(responseError);
 };
 
