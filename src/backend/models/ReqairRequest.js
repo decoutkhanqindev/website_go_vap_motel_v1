@@ -16,11 +16,11 @@ const reqairRequestSchema = new Schema(
       required: true,
       ref: "Room"
     },
-    // tenantId: {
-    //   type: ObjectId,
-    //   required: true,
-    //   ref: "User"
-    // },
+    tenantId: {
+      type: ObjectId,
+      required: true,
+      ref: "User"
+    },
     requestDate: {
       type: Date,
       required: true
@@ -30,21 +30,12 @@ const reqairRequestSchema = new Schema(
       required: false,
       default: ""
     },
-    images: {
-      type: [String],
-      required: true,
-      validate: {
-        validator: (v) => {
-          if (!v) return true;
-          return v.every((url) =>
-            /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(
-              url
-            )
-          );
-        },
-        message: (props) => `${props.value} contains invalid URLs!`
+    images: [
+      {
+        type: ObjectId,
+        ref: "RepairRequestImage"
       }
-    },
+    ],
     status: {
       type: String,
       required: true,

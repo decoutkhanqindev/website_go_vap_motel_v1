@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
 
 const amenitySchema = new Schema(
   {
@@ -35,7 +36,13 @@ const amenitySchema = new Schema(
       type: Number,
       required: true,
       min: 0
-    }
+    },
+    images: [
+      {
+        type: ObjectId,
+        ref: "AmenityImage"
+      }
+    ]
   },
   {
     collection: "amenities",

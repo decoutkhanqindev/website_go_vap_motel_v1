@@ -39,28 +39,19 @@ const roomSchema = new Schema(
       required: true,
       trim: true
     },
-    maxOccupants: {
+    occupantsNumber: {
       type: Number,
-      required: false,
+      required: true,
       min: 1,
       integer: true,
       default: 1
     },
-    images: {
-      type: [String],
-      required: true,
-      validate: {
-        validator: (v) => {
-          if (!v) return true;
-          return v.every((url) =>
-            /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(
-              url
-            )
-          );
-        },
-        message: (props) => `${props.value} contains invalid URLs!`
+    images: [
+      {
+        type: ObjectId,
+        ref: "RoomImage"
       }
-    },
+    ],
     amenities: [
       {
         type: ObjectId,

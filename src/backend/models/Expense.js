@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
 
 const expenseSchema = new Schema(
   {
@@ -33,18 +34,8 @@ const expenseSchema = new Schema(
     },
     receiptImages: [
       {
-        type: String,
-        required: true,
-        trim: true,
-        validate: {
-          validator: (url) => {
-            if (!url) return true;
-            return /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(
-              url
-            );
-          },
-          message: (props) => `${props.value} is not a valid URL!`
-        }
+        type: ObjectId,
+        ref: "ExpenseImage"
       }
     ],
     notes: {
