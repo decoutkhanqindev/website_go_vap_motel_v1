@@ -36,20 +36,12 @@ const occupantSchema = new Schema(
       type: String,
       required: true
     },
-    cccdImages: {
-      type: [String],
-      trim: true,
-      required: false,
-      validate: {
-        validator: (url) => {
-          if (!url) return true;
-          return /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(
-            url
-          );
-        },
-        message: (props) => `${props.value} is not a valid URL!`
+    cccdImages: [
+      {
+        type: ObjectId,
+        ref: "OccupantImage"
       }
-    }
+    ]
   },
   {
     collection: "occupants",
