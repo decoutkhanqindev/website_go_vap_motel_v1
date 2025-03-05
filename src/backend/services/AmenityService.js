@@ -2,7 +2,6 @@ const logger = require("../utils/logger");
 const ApiError = require("../utils/ApiError");
 const Amenity = require("../models/Amenity");
 const AmenityImage = require("../models/AmenityImage");
-const Utility = require("../models/Utility");
 
 class AmenityService {
   static async getAllAmentities() {
@@ -24,7 +23,7 @@ class AmenityService {
       logger.info(`AmenityService.getAmentityById() is called.`);
       const amenity = await Amenity.findById(id);
       if (!amenity) {
-        throw new ApiError(404, `Not amenity found matching id ${id}.`);
+        throw new ApiError(404, `No amenity found matching id ${id}.`);
       }
       return amenity;
     } catch (error) {
@@ -50,7 +49,7 @@ class AmenityService {
       logger.info(`AmenityService.getAmenityImageById() is called.`);
       const amenityImage = await AmenityImage.findById(id);
       if (!amenityImage) {
-        throw new ApiError(404, `Not amenity image found matching id ${id}.`);
+        throw new ApiError(404, `No amenity image found matching id ${id}.`);
       }
       return amenityImage;
     } catch (error) {
