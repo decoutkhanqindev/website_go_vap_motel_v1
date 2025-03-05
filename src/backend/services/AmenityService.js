@@ -2,16 +2,19 @@ const logger = require("../utils/logger");
 const ApiError = require("../utils/ApiError");
 const Amenity = require("../models/Amenity");
 const AmenityImage = require("../models/AmenityImage");
+const Utility = require("../models/Utility");
 
 class AmenityService {
   static async getAllAmentities() {
     try {
       logger.info(`AmenityService.getAllAmentities() is called.`);
       const amenities = await Amenity.find();
-      if (!amenities.length) throw new ApiError(404, `No amenities found.`);
+      if (!amenities.length) {
+        throw new ApiError(404, `No amenities found.`);
+      }
       return amenities;
     } catch (error) {
-      logger.error(`AmenityService.getAllRooms()  have error:\n${error}`);
+      logger.error(`AmenityService.getAllAmentities()  have error:\n${error}`);
       throw error;
     }
   }
@@ -20,8 +23,9 @@ class AmenityService {
     try {
       logger.info(`AmenityService.getAmentityById() is called.`);
       const amenity = await Amenity.findById(id);
-      if (!amenity)
+      if (!amenity) {
         throw new ApiError(404, `Not amenity found matching id ${id}.`);
+      }
       return amenity;
     } catch (error) {
       logger.error(`AmenityService.getAmentityById()  have error:\n${error}`);
@@ -29,14 +33,14 @@ class AmenityService {
     }
   }
 
-  static async isExits(name) {
+  static async isExists(name) {
     try {
-      logger.info("AmenityService.isExits() is called.");
+      logger.info("AmenityService.isExists() is called.");
       const amenity = await Amenity.findOne({ name: name });
       if (amenity) return true;
       return false;
     } catch (error) {
-      logger.error(`AmenityService.isExits() have error:\n${error}`);
+      logger.error(`AmenityService.isExists() have error:\n${error}`);
       throw error;
     }
   }
@@ -45,8 +49,9 @@ class AmenityService {
     try {
       logger.info(`AmenityService.getAmenityImageById() is called.`);
       const amenityImage = await AmenityImage.findById(id);
-      if (!amenityImage)
+      if (!amenityImage) {
         throw new ApiError(404, `Not amenity image found matching id ${id}.`);
+      }
       return amenityImage;
     } catch (error) {
       logger.error(
@@ -59,9 +64,12 @@ class AmenityService {
   static async addNewAmenityImage(data) {
     try {
       logger.info("AmenityService.addNewAmenityImage() is called.");
-      const newAmenitymage = new AmenityImage(data);
-      const addedAmenitymage = await newAmenitymage.save();
-      return addedAmenitymage;
+      const newAmenityImage = new AmenityImage(data);
+      const addedAmenityImage = await newAmenityImage.save();
+      if (!addedAmenityImage) {
+        throw new ApiError(400, "Can not add new amenity image.");
+      }
+      return addedAmenityImage;
     } catch (error) {
       logger.error(`AmenityService.addNewAmenityImage() have error:\n${error}`);
       throw error;
@@ -71,8 +79,11 @@ class AmenityService {
   static async deleteAmenityImage(id) {
     try {
       logger.info("AmenityService.deleteAmenityImage() is called.");
-      const deletedAmenitymage = await AmenityImage.findByIdAndDelete(id);
-      return deletedAmenitymage;
+      const deletedAmenityImage = await AmenityImage.findByIdAndDelete(id);
+      if (!deletedAmenityImage) {
+        throw new ApiError(400, "Can not delete amenity image.");
+      }
+      return deletedAmenityImage;
     } catch (error) {
       logger.error(`AmenityService.deleteAmenityImage() have error:\n${error}`);
       throw error;
@@ -82,22 +93,30 @@ class AmenityService {
   static async addImagesToAmenity(id, imageFiles) {
     try {
       logger.info("AmenityService.addImagesToAmenity() is called.");
-      const amenity = await AmenityService.getAmenityById(id);
-      let copyAmenityImages = [...amenity.images];
-
+      let newImages = [];
       for (const file of imageFiles) {
         const data = {
-          amenityId: amenity._id,
+          amenityId: id,
           data: file.buffer,
           contentType: file.mimetype
         };
         const addedAmenityImage = await AmenityService.addNewAmenityImage(data);
-        copyAmenityImages.push(addedAmenityImage._id);
+        newImages.push(addedAmenityImage._id);
       }
 
-      amenity.images = copyAmenityImages;
-
-      const updatedAmenity = await amenity.save();
+      const updatedAmenity = await Amenity.findByIdAndUpdate(
+        id,
+        {
+          $push: { images: { $each: newImages } }
+        },
+        { new: true }
+      );
+      if (!updatedAmenity) {
+        throw new ApiError(
+          400,
+          `Can not add images for amenity with id ${id}.`
+        );
+      }
       return updatedAmenity;
     } catch (error) {
       logger.error(`AmenityService.addImagesToAmenity() have error:\n${error}`);
@@ -108,18 +127,20 @@ class AmenityService {
   static async deleteImageForAmenity(id, imageId) {
     try {
       logger.info("AmenityService.deleteImageForAmenity() is called.");
-      const amenity = await AmenityService.getAmenityById(id);
-      let copyAmenityImages = [...amenity.images];
-      const imageIndex = copyAmenityImages.findIndex((id) =>
-        id.equals(imageId)
+      const updatedAmenity = await Amenity.findByIdAndUpdate(
+        id,
+        {
+          $pull: { images: imageId }
+        },
+        { new: true }
       );
-
-      copyAmenityImages.splice(imageIndex, 1);
-      amenity.images = copyAmenityImages;
-
-      const updatedAmenity = await amenity.save();
+      if (!updatedAmenity) {
+        throw new ApiError(
+          400,
+          `Can not delete image for amenity with id ${id}.`
+        );
+      }
       await AmenityService.deleteAmenityImage(imageId);
-
       return updatedAmenity;
     } catch (error) {
       logger.error(
@@ -134,11 +155,16 @@ class AmenityService {
       logger.info("AmenityService.addNewAmenity() is called.");
       const { name } = data;
 
-      const isExits = await AmenityService.isExits(name);
-      if (isExits) throw new ApiError(409, "This amenity already exists.");
+      const isExits = await AmenityService.isExists(name);
+      if (isExits) {
+        throw new ApiError(409, "This amenity already exists.");
+      }
 
       let newAmenity = new Amenity(data);
       const addedAmenity = await newAmenity.save();
+      if (!addedAmenity) {
+        throw new ApiError(400, `Can not add new amenity.`);
+      }
 
       if (imageFiles && Array.isArray(imageFiles) && imageFiles.length > 0) {
         newAmenity = await AmenityService.addImagesToAmenity(
@@ -147,7 +173,9 @@ class AmenityService {
         );
       }
 
-      const updatedAmentiy = await AmenityService.getAmenityById(addedAmenity);
+      const updatedAmentiy = await AmenityService.getAmenityById(
+        addedAmenity._id
+      );
       return updatedAmentiy;
     } catch (error) {
       logger.error(`AmenityService.addNewAmenity() have error:\n${error}`);
@@ -161,6 +189,9 @@ class AmenityService {
       const updatedAmenity = await Amenity.findByIdAndUpdate(id, data, {
         new: true
       });
+      if (!updatedAmenity) {
+        throw new ApiError(400, `Can not update amenity with id ${id}.`);
+      }
       return updatedAmenity;
     } catch (error) {
       logger.error(`AmenityService.updateAmenity() have error:\n${error}`);
@@ -172,12 +203,17 @@ class AmenityService {
     try {
       logger.info("AmenityService.deleteAmenity() is called.");
       const deletedAmenity = await Amenity.findByIdAndDelete(id);
+      if (!deletedAmenity) {
+        throw new ApiError(400, `Can not delete amenity with id ${id}..`);
+      }
+
       let copyAmenityImages = [...deletedAmenity.images];
       if (copyAmenityImages.length > 0) {
         for (const imageId of copyAmenityImages) {
           await AmenityService.deleteAmenityImage(imageId);
         }
       }
+
       return deletedAmenity;
     } catch (error) {
       logger.error(`AmenityService.deleteAmenity() have error:\n${error}`);
