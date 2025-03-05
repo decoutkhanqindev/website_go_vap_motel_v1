@@ -75,7 +75,7 @@ class UtilityController {
 
   static async deleteImageForUtility(req, res, next) {
     try {
-      logger.info("UtilityController.deleteImagesToUtility() is called.");
+      logger.info("UtilityController.deleteImageForAmenity() is called.");
       const { id, imageId } = req.params;
       if (!id || !imageId) {
         return next(new ApiError(400, "Params must be provided."));
@@ -87,7 +87,7 @@ class UtilityController {
       res.status(201).json(updatedUtility);
     } catch (error) {
       logger.error(
-        `UtilityController.deleteImagesToUtility() have error:\n${error}`
+        `UtilityController.deleteImageForAmenity() have error:\n${error}`
       );
       next(error);
     }
@@ -98,7 +98,7 @@ class UtilityController {
       logger.info("UtilityController.addNewUtility() is called.");
       const data = req.body;
       const imageFiles = req.files;
-      if (!data.name && !data.price) {
+      if (!data.name || !data.price) {
         return next(new ApiError(400, "No form data found."));
       }
       const addedUtility = await UtilityService.addNewUtility(data, imageFiles);

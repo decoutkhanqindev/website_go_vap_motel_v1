@@ -73,9 +73,9 @@ class AmenityController {
     }
   }
 
-  static async deleteImagesToAmenity(req, res, next) {
+  static async deleteImageForAmenity(req, res, next) {
     try {
-      logger.info("AmenityController.deleteImagesToAmenity() is called.");
+      logger.info("AmenityController.deleteImageForAmenity() is called.");
       const { id, imageId } = req.params;
       if (!id || !imageId) {
         return next(new ApiError(400, "Params must be provided."));
@@ -87,7 +87,7 @@ class AmenityController {
       res.status(201).json(updatedAmenity);
     } catch (error) {
       logger.error(
-        `AmenityController.deleteImagesToAmenity() have error:\n${error}`
+        `AmenityController.deleteImageForAmenity() have error:\n${error}`
       );
       next(error);
     }
@@ -98,7 +98,7 @@ class AmenityController {
       logger.info("AmenityController.addNewAmenity() is called.");
       const data = req.body;
       const imageFiles = req.files;
-      if (!data.name && !data.price) {
+      if (!data.name || !data.price) {
         return next(new ApiError(400, "No form data found."));
       }
       const addedAmenity = await AmenityService.addNewAmenity(data, imageFiles);
