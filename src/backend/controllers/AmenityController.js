@@ -18,6 +18,9 @@ class AmenityController {
     try {
       logger.info("AmenityController.getAmenityById() is called.");
       const id = req.params.id;
+      if (!id) {
+        return next(new ApiError(400, "Param must be provided."));
+      }
       const amenity = await AmenityService.getAmenityById(id);
       res.status(200).json(amenity);
     } catch (error) {
@@ -30,6 +33,9 @@ class AmenityController {
     try {
       logger.info("AmenityController.getAmenityImageById() is called.");
       const id = req.params.id;
+      if (!id) {
+        return next(new ApiError(400, "Param must be provided."));
+      }
       const amenityImage = await AmenityService.getAmenityImageById(id);
       res.status(200).json(amenityImage);
     } catch (error) {
@@ -46,14 +52,19 @@ class AmenityController {
       const id = req.params.id;
       const imageFiles = req.files;
 
-      if (imageFiles && imageFiles.length === 0)
+      if (!id) {
+        return next(new ApiError(400, "Param must be provided."));
+      }
+
+      if (imageFiles && imageFiles.length === 0) {
         return next(new ApiError(400, "At least one image must be added."));
+      }
 
       const updatedAmenity = await AmenityService.addImagesToAmenity(
         id,
         imageFiles
       );
-      return updatedAmenity;
+      res.status(201).json(updatedAmenity);
     } catch (error) {
       logger.error(
         `AmenityController.addImagesToAmenity() have error:\n${error}`
@@ -66,12 +77,14 @@ class AmenityController {
     try {
       logger.info("AmenityController.deleteImagesToAmenity() is called.");
       const { id, imageId } = req.params;
-
+      if (!id || !imageId) {
+        return next(new ApiError(400, "Params must be provided."));
+      }
       const updatedAmenity = await AmenityService.deleteImageForAmenity(
         id,
         imageId
       );
-      return updatedAmenity;
+      res.status(201).json(updatedAmenity);
     } catch (error) {
       logger.error(
         `AmenityController.deleteImagesToAmenity() have error:\n${error}`
@@ -85,14 +98,9 @@ class AmenityController {
       logger.info("AmenityController.addNewAmenity() is called.");
       const data = req.body;
       const imageFiles = req.files;
-
-      if (!data.name && !data.price)
+      if (!data.name && !data.price) {
         return next(new ApiError(400, "No form data found."));
-
-      // if (!imageFiles || imageFiles.length === 0) {
-      //   return next(new ApiError(400, "At least one image is required."));
-      // }
-
+      }
       const addedAmenity = await AmenityService.addNewAmenity(data, imageFiles);
       res.status(201).json(addedAmenity);
     } catch (error) {
@@ -107,8 +115,13 @@ class AmenityController {
       const id = req.params.id;
       const data = req.body;
 
-      if (!data.name && !data.price)
+      if (!id) {
+        return next(new ApiError(400, "Param must be provided."));
+      }
+
+      if (!data.name && !data.price) {
         return next(new ApiError(400, "At least one field must be updated."));
+      }
 
       const updatedAmenity = await AmenityService.updateAmenity(id, data);
       res.status(200).json(updatedAmenity);
@@ -122,6 +135,9 @@ class AmenityController {
     try {
       logger.info("AmenityController.deleteAmenity() is called.");
       const id = req.params.id;
+      if (!id) {
+        return next(new ApiError(400, "Param must be provided."));
+      }
       const deletedAmenity = await AmenityService.deleteAmenity(id);
       res.status(200).json(deletedAmenity);
     } catch (error) {
