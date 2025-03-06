@@ -14,8 +14,8 @@ router.patch(
   AmenityController.addImagesToAmenity
 );
 router.delete(
-  "/amenity/:id/image/:imageId",
-  AmenityController.deleteImageForAmenity
+  "/amenity/:id/images",
+  AmenityController.deleteImagesForAmenity
 );
 router.post(
   "/amenity",
@@ -37,8 +37,8 @@ router.patch(
   UtilityController.addImagesToUtility
 );
 router.delete(
-  "/utility/:id/image/:imageId",
-  UtilityController.deleteImageForUtility
+  "/utility/:id/images",
+  UtilityController.deleteImagesForUtility
 );
 router.post(
   "/utility",
@@ -53,23 +53,17 @@ router.delete("/utility/:id", UtilityController.deleteUtility);
 // room routes
 router.get("/rooms", RoomController.getAllRooms);
 router.get("/room/:id", RoomController.getRoomById);
-router.get("/room/image/:imageId", RoomController.getRoomImageById);
+router.get("/room/image/:id", RoomController.getRoomImageById);
 router.patch(
   "/room/:id/images",
   upload.array("images", 5),
   RoomController.addImagesToRoom
 );
-router.delete("/room/:id/image/:imageId", RoomController.deleteImageForRoom);
+router.delete("/room/:id/images", RoomController.deleteImagesForRoom);
 router.patch("/room/:id/amenities", RoomController.addAmenitiesToRoom);
-router.delete(
-  "/room/:id/amenity/:amenityId",
-  RoomController.deleteAmenityForRoom
-);
+router.delete("/room/:id/amenities", RoomController.deleteAmenitiesForRoom);
 router.patch("/room/:id/utilities", RoomController.addUtilitiesToRoom);
-router.delete(
-  "/room/:id/utility/:utilityId",
-  RoomController.deleteUtilityForRoom
-);
+router.delete("/room/:id/utilities", RoomController.deleteUtilitiesForRoom);
 router.post("/room", upload.array("images", 5), RoomController.addNewRoom);
 router.put("/room/:id", RoomController.updateRoom);
 router.delete("/room/:id", RoomController.deleteRoom);
