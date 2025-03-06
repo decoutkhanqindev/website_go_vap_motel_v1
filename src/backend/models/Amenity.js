@@ -16,6 +16,7 @@ const amenitySchema = new Schema(
       required: true,
       unique: true,
       trim: true,
+      index: true,
       enum: [
         "bed",
         "refrigerator",

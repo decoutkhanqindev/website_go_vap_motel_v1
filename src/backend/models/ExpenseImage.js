@@ -7,7 +7,8 @@ const expenseImageSchema = new Schema(
     expenseId: {
       type: ObjectId,
       ref: "Expense",
-      required: true
+      required: true,
+      index: true
     },
     data: {
       type: buffer,

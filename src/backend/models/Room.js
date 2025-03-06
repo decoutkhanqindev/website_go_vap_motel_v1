@@ -14,19 +14,22 @@ const roomSchema = new Schema(
     roomNumber: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      index: true
     },
     status: {
       type: String,
       required: true,
       trim: true,
+      index: true,
       enum: ["vacant", "occupied", "unavailable"],
       default: "vacant"
     },
     address: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
+      index: true
     },
     rentPrice: {
       type: Number,

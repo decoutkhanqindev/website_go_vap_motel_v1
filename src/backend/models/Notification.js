@@ -15,12 +15,14 @@ const notificationSchema = new Schema(
     userId: {
       type: ObjectId,
       required: true,
-      ref: "User"
+      ref: "User",
+      index: true
     },
     type: {
       type: String,
       required: true,
       trim: true,
+      index: true,
       enum: [
         "payment_reminder",
         "contract_renewal",

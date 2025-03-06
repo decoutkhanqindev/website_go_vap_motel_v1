@@ -9,15 +9,16 @@ const invoiceSchema = new Schema(
       type: String,
       required: true,
       unique: true,
-      trim: true
+      trim: true,
+      index: true
     },
     roomId: {
       type: ObjectId,
       required: true,
       ref: "Room"
     },
-    contractId: {
-      type: ObjectId,
+    contractCode: {
+      type: String,
       required: true,
       ref: "Contract"
     },
@@ -68,11 +69,13 @@ const invoiceSchema = new Schema(
     paymentStatus: {
       type: String,
       required: true,
+      index: true,
       enum: ["pending", "paid", "overdue"]
     },
     paymentMethod: {
       type: String,
       required: true,
+      index: true,
       enum: ["cash", "bank transfer"]
     },
     paymentDate: {

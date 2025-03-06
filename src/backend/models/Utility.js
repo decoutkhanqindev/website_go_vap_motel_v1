@@ -16,7 +16,8 @@ const utilitySchema = new Schema(
       required: true,
       unique: true,
       trim: true,
-      enum: ["wifi", "parking", "cleaning"]
+      enum: ["wifi", "parking", "cleaning"],
+      index: true
     },
     description: {
       type: String,

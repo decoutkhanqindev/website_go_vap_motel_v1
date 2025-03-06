@@ -14,7 +14,14 @@ const occupantSchema = new Schema(
     roomId: {
       type: ObjectId,
       required: true,
-      ref: "Room"
+      ref: "Room",
+      index: true
+    },
+    contractCode: {
+      type: String,
+      required: true,
+      ref: "Contract",
+      index: true
     },
     fullName: {
       type: String,

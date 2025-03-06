@@ -9,12 +9,14 @@ const contractSchema = new Schema(
       type: String,
       required: true,
       unique: true,
-      trim: true
+      trim: true,
+      index: true
     },
     roomId: {
       type: ObjectId,
       required: true,
-      ref: "Room"
+      ref: "Room",
+      index: true
     },
     // tenantId: {
     //   type: ObjectId,
@@ -50,6 +52,7 @@ const contractSchema = new Schema(
     status: {
       type: String,
       required: true,
+      index: true,
       enum: ["active", "expired", "terminated"]
     }
   },

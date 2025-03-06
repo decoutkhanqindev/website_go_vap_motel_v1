@@ -9,7 +9,8 @@ const expenseSchema = new Schema(
       type: String,
       required: true,
       unique: true,
-      trim: true
+      trim: true,
+      index: true
     },
     expenseDate: {
       type: Date,
@@ -19,6 +20,7 @@ const expenseSchema = new Schema(
       type: String,
       required: true,
       trim: true,
+      index: true,
       enum: ["repair", "maintenance", "purchase"]
     },
     amount: {

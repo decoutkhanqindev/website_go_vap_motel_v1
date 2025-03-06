@@ -7,7 +7,8 @@ const utilityImageSchema = new Schema(
     utilityId: {
       type: ObjectId,
       ref: "Utility",
-      required: true
+      required: true,
+      index: true
     },
     data: {
       type: Buffer,

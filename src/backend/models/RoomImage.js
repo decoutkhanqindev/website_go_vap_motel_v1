@@ -7,7 +7,8 @@ const roomImageSchema = new Schema(
     roomId: {
       type: ObjectId,
       ref: "Room",
-      required: true
+      required: true,
+      index: true
     },
     data: {
       type: Buffer,

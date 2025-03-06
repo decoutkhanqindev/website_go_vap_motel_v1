@@ -7,7 +7,8 @@ const repairRequestImageSchema = new Schema(
     repairRequestId: {
       type: ObjectId,
       ref: "RepairRequest",
-      required: true
+      required: true,
+      index: true
     },
     data: {
       type: Buffer,

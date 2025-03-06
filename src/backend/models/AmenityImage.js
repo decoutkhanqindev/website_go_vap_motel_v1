@@ -7,7 +7,8 @@ const amenityImageSchema = new Schema(
     amenityId: {
       type: ObjectId,
       ref: "Amenity",
-      required: true
+      required: true,
+      index: true 
     },
     data: {
       type: Buffer,
