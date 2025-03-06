@@ -73,21 +73,28 @@ class AmenityController {
     }
   }
 
-  static async deleteImageForAmenity(req, res, next) {
+  static async deleteImagesForAmenity(req, res, next) {
     try {
-      logger.info("AmenityController.deleteImageForAmenity() is called.");
-      const { id, imageId } = req.params;
-      if (!id || !imageId) {
+      logger.info("AmenityController.deleteImagesForAmenity() is called.");
+      const id = req.params.id;
+      const imageIds = req.body.iamges;
+
+      if (!id) {
         return next(new ApiError(400, "Params must be provided."));
       }
-      const updatedAmenity = await AmenityService.deleteImageForAmenity(
+
+      if (imageIds && imageIds.length === 0) {
+        return next(new ApiError(400, "At least one image must be deleted."));
+      }
+
+      const updatedAmenity = await AmenityService.deleteImagesForAmenity(
         id,
-        imageId
+        imageIds
       );
       res.status(201).json(updatedAmenity);
     } catch (error) {
       logger.error(
-        `AmenityController.deleteImageForAmenity() have error:\n${error}`
+        `AmenityController.deleteImagesForAmenity() have error:\n${error}`
       );
       next(error);
     }
