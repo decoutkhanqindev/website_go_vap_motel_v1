@@ -1,7 +1,6 @@
 const ApiError = require("../utils/ApiError");
 const logger = require("../utils/logger");
 const RoomService = require("../services/RoomService");
-const { default: mongoose } = require("mongoose");
 
 class RoomController {
   static async getAllRooms(req, res, next) {
