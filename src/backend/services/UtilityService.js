@@ -80,7 +80,10 @@ class UtilityService {
       logger.info("UtilityService.deleteUtilityImage() is called.");
       const deletedUtilityImage = await UtilityImage.findByIdAndDelete(id);
       if (!deletedUtilityImage) {
-        throw new ApiError(400, "Can not delete Utility image.");
+        throw new ApiError(
+          400,
+          `Can not delete utility image matching with ${id}.`
+        );
       }
       return deletedUtilityImage;
     } catch (error) {
@@ -123,32 +126,36 @@ class UtilityService {
     }
   }
 
-  static async deleteImageForUtility(id, imageId) {
+  static async deleteImagesForUtility(id, imageIds) {
     try {
-      logger.info("UtilityService.deleteImageForUtility() is called.");
+      logger.info("UtilityService.deleteImagesForUtility() is called.");
       const updatedUtility = await Utility.findByIdAndUpdate(
         id,
         {
-          $pull: { images: imageId }
+          $pull: { images: { $in: imageIds } }
         },
         { new: true }
       );
+
       if (!updatedUtility) {
         throw new ApiError(
           400,
-          `Can not delete image for utility with id ${id}.`
+          `Can not delete images for utility with id ${id}.`
         );
       }
-      await UtilityService.deleteUtilityImage(imageId);
+
+      for (const imageId of imageIds) {
+        await UtilityService.deleteUtilityImage(imageId);
+      }
+
       return updatedUtility;
     } catch (error) {
       logger.error(
-        `UtilityService.deleteImageForUtility() have error:\n${error}`
+        `UtilityService.deleteImagesForUtility() have error:\n${error}`
       );
       throw error;
     }
   }
-
   static async addNewUtility(data, imageFiles) {
     try {
       logger.info("UtilityService.addNewUtility() is called.");

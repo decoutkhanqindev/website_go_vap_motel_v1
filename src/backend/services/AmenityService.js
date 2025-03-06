@@ -80,7 +80,7 @@ class AmenityService {
       logger.info("AmenityService.deleteAmenityImage() is called.");
       const deletedAmenityImage = await AmenityImage.findByIdAndDelete(id);
       if (!deletedAmenityImage) {
-        throw new ApiError(400, "Can not delete amenity image.");
+        throw new ApiError(400, `Can not delete amenity image matching ${id}.`);
       }
       return deletedAmenityImage;
     } catch (error) {
@@ -123,27 +123,32 @@ class AmenityService {
     }
   }
 
-  static async deleteImageForAmenity(id, imageId) {
+  static async deleteImagesForAmenity(id, imageIds) {
     try {
-      logger.info("AmenityService.deleteImageForAmenity() is called.");
+      logger.info("AmenityService.deleteImagesForAmenity() is called.");
       const updatedAmenity = await Amenity.findByIdAndUpdate(
         id,
         {
-          $pull: { images: imageId }
+          $pull: { images: { $in: imageIds } }
         },
         { new: true }
       );
+
       if (!updatedAmenity) {
         throw new ApiError(
           400,
-          `Can not delete image for amenity with id ${id}.`
+          `Can not delete images for amenity with id ${id}.`
         );
       }
-      await AmenityService.deleteAmenityImage(imageId);
+
+      for (const imageId of imageIds) {
+        await AmenityService.deleteAmenityImage(imageId);
+      }
+
       return updatedAmenity;
     } catch (error) {
       logger.error(
-        `AmenityService.deleteImageForAmenity() have error:\n${error}`
+        `AmenityService.deleteImagesForAmenity() have error:\n${error}`
       );
       throw error;
     }
