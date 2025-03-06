@@ -34,11 +34,11 @@ const roomSchema = new Schema(
       min: 0,
       default: 0
     },
-    area: {
-      type: String,
-      required: true,
-      trim: true
-    },
+    // area: {
+    //   type: String,
+    //   required: true,
+    //   trim: true
+    // },
     occupantsNumber: {
       type: Number,
       required: true,
