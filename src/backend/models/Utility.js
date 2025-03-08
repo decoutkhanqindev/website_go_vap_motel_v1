@@ -4,6 +4,13 @@ const ObjectId = Schema.Types.ObjectId;
 
 const utilitySchema = new Schema(
   {
+    // utilityCode: {
+    //   // Business Key (ví dụ: "WIFI-001", "PARK-001"...)
+    //   type: String,
+    //   required: true,
+    //   unique: true,
+    //   trim: true
+    // },
     name: {
       type: String,
       required: true,

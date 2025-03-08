@@ -5,6 +5,7 @@ const ObjectId = Schema.Types.ObjectId;
 const expenseSchema = new Schema(
   {
     expenseCode: {
+      // Business Key (ví dụ: "EXP-2023-001", "REPAIR-123"...)
       type: String,
       required: true,
       unique: true,

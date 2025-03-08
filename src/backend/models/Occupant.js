@@ -4,6 +4,13 @@ const ObjectId = Schema.Types.ObjectId;
 
 const occupantSchema = new Schema(
   {
+    // occupantCode: {
+    //   // Business Key (ví dụ: "OCC-2023-001", "TENANT-SUB-001"...)
+    //   type: String,
+    //   required: true,
+    //   unique: true,
+    //   trim: true
+    // },
     roomId: {
       type: ObjectId,
       required: true,
@@ -16,7 +23,7 @@ const occupantSchema = new Schema(
       ref: "Contract",
       index: true
     },
-    fullname: {
+    fullName: {
       type: String,
       required: true
     },
