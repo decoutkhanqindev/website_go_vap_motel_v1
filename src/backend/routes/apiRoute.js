@@ -4,6 +4,7 @@ const upload = require("../config/uploadConfig");
 const AmenityController = require("../controllers/AmenityController");
 const UtilityController = require("../controllers/UtilityController");
 const RoomController = require("../controllers/RoomController");
+const OccupantController = require("../controllers/OccupantController");
 
 router.get("/amenities", AmenityController.getAllAmenities);
 router.get("/amenity/:id", AmenityController.getAmenityById);
@@ -13,10 +14,7 @@ router.patch(
   upload.array("images", 5),
   AmenityController.addImagesToAmenity
 );
-router.delete(
-  "/amenity/:id/images",
-  AmenityController.deleteImagesForAmenity
-);
+router.delete("/amenity/:id/images", AmenityController.deleteImagesForAmenity);
 router.post(
   "/amenity",
   upload.array("images", 5),
@@ -36,10 +34,7 @@ router.patch(
   upload.array("images", 5),
   UtilityController.addImagesToUtility
 );
-router.delete(
-  "/utility/:id/images",
-  UtilityController.deleteImagesForUtility
-);
+router.delete("/utility/:id/images", UtilityController.deleteImagesForUtility);
 router.post(
   "/utility",
   upload.array("images", 5),
@@ -67,5 +62,31 @@ router.delete("/room/:id/utilities", RoomController.deleteUtilitiesForRoom);
 router.post("/room", upload.array("images", 5), RoomController.addNewRoom);
 router.put("/room/:id", RoomController.updateRoom);
 router.delete("/room/:id", RoomController.deleteRoom);
+
+// ___________________________________________________________________________________________________
+
+// occupant routes
+router.get("/occupants", OccupantController.getAllOccupants);
+router.get("/occupant/:id", OccupantController.getOccupantById);
+router.get(
+  "/occupant/cccdImage/:id",
+  OccupantController.getOccupantCccdImageById
+);
+router.patch(
+  "/occupant/:id/cccdImages",
+  upload.array("cccdImages", 5),
+  OccupantController.addCccdImagesToOccupant
+);
+router.delete(
+  "/occupant/:id/cccdImages",
+  OccupantController.deleteCccdImagesForOccupant
+);
+router.post(
+  "/occupant",
+  upload.array("cccdImages", 5),
+  OccupantController.addNewOccupant
+);
+router.put("/occupant/:id", OccupantController.updateOccupant);
+router.delete("/occupant/:id", OccupantController.deleteOccupant);
 
 module.exports = router;
