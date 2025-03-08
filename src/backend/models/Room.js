@@ -4,13 +4,6 @@ const ObjectId = Schema.Types.ObjectId;
 
 const roomSchema = new Schema(
   {
-    // roomCode: {
-    //   // Business Key (ví dụ: "RM-101", "ROOM-A-001"...)
-    //   type: String,
-    //   required: true,
-    //   unique: true,
-    //   trim: true
-    // },
     roomNumber: {
       type: String,
       required: true,
@@ -37,11 +30,6 @@ const roomSchema = new Schema(
       min: 0,
       default: 0
     },
-    // area: {
-    //   type: String,
-    //   required: true,
-    //   trim: true
-    // },
     occupantsNumber: {
       type: Number,
       required: true,

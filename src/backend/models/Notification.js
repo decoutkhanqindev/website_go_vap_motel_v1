@@ -1,17 +1,9 @@
-// Notification.js (Đã cải thiện)
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
 const notificationSchema = new Schema(
   {
-    // notificationCode: {
-    //   // Business Key (ví dụ: "NOTIF-PAYMENT-001", "REPAIR-REQ-123"...)
-    //   type: String,
-    //   required: true,
-    //   unique: true,
-    //   trim: true
-    // },
     userId: {
       type: ObjectId,
       required: true,
@@ -37,7 +29,7 @@ const notificationSchema = new Schema(
       trim: true
     },
     relatedDocumentId: {
-      type: ObjectId, // ObjectId tham chiếu đến document liên quan (ví dụ: invoiceId, contractId, roomId, ...)
+      type: ObjectId, // ObjectId will reference to related (ex: invoiceId, contractCode, roomId, ...)
       required: true
     },
     isRead: {

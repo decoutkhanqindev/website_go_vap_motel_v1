@@ -4,13 +4,6 @@ const ObjectId = Schema.Types.ObjectId;
 
 const reqairRequestSchema = new Schema(
   {
-    // repairRequestCode: {
-    //   // Business Key (ví dụ: "REQ-2023-001", "RR-12345"...)
-    //   type: String,
-    //   required: true,
-    //   unique: true,
-    //   trim: true
-    // },
     roomId: {
       type: ObjectId,
       required: true,

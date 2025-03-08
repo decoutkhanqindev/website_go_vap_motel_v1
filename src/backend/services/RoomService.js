@@ -308,7 +308,7 @@ class RoomService {
       }
       return updatedRoom;
     } catch (error) {
-      logger.error(`RoomService.updateAmenity() have error:\n${error}`);
+      logger.error(`RoomService.updateRoom() have error:\n${error}`);
       throw error;
     }
   }

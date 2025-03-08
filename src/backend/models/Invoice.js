@@ -5,7 +5,6 @@ const ObjectId = Schema.Types.ObjectId;
 const invoiceSchema = new Schema(
   {
     invoiceCode: {
-      // Business Key (ví dụ: "INV-2023-10-001", "INVOICE-12345"...)
       type: String,
       required: true,
       unique: true,
