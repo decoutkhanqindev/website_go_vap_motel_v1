@@ -5,13 +5,6 @@ const ObjectId = Schema.Types.ObjectId;
 
 const notificationSchema = new Schema(
   {
-    // notificationCode: {
-    //   // Business Key (ví dụ: "NOTIF-PAYMENT-001", "REPAIR-REQ-123"...)
-    //   type: String,
-    //   required: true,
-    //   unique: true,
-    //   trim: true
-    // },
     userId: {
       type: ObjectId,
       required: true,

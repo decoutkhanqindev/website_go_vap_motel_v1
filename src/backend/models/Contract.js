@@ -5,7 +5,6 @@ const ObjectId = Schema.Types.ObjectId;
 const contractSchema = new Schema(
   {
     contractCode: {
-      // Business Key (ví dụ: "CONTRACT-2023-001", "CT-231027-002"...)
       type: String,
       required: true,
       unique: true,

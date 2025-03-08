@@ -4,13 +4,6 @@ const ObjectId = Schema.Types.ObjectId;
 
 const amenitySchema = new Schema(
   {
-    // amenityCode: {
-    //   // Business Key (ví dụ: "BED-001", "REF-002", "AC-003"...)
-    //   type: String,
-    //   required: true,
-    //   unique: true,
-    //   trim: true
-    // },
     name: {
       type: String,
       required: true,

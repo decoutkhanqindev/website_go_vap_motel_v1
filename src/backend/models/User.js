@@ -3,13 +3,6 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema(
   {
-    // userCode: {
-    //   // Business Key (ví dụ: "LANDLORD-001", "TENANT-001"...)
-    //   type: String,
-    //   required: true,
-    //   unique: true,
-    //   trim: true
-    // },
     role: {
       type: String,
       required: true,
