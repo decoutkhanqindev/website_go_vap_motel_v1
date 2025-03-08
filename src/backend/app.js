@@ -1,5 +1,7 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const connectMongoDB = require("./config/databaseConfig");
 const logger = require("./utils/logger");
 const requestLoggingMiddleware = require("./middlewares/requestLoggingMiddleware");
@@ -13,6 +15,8 @@ const MONGO_DB_URI = env.MONGO_DB_URI;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+app.use(cookieParser());
 app.use(requestLoggingMiddleware); // middleware handle request Logging
 app.use("/api", router);
 app.use(errorHandlingMiddleware); // middleware handle common error
