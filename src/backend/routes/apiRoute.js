@@ -1,10 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../config/uploadConfig");
+const formatDateMiddleware = require("../middlewares/formatDateMiddleware");
 const AmenityController = require("../controllers/AmenityController");
 const UtilityController = require("../controllers/UtilityController");
 const RoomController = require("../controllers/RoomController");
 const OccupantController = require("../controllers/OccupantController");
+const ContractController = require("../controllers/ContractController");
 
 router.get("/amenities", AmenityController.getAllAmenities);
 router.get("/amenity/:id", AmenityController.getAmenityById);
@@ -83,10 +85,38 @@ router.delete(
 );
 router.post(
   "/occupant",
+  formatDateMiddleware(["birthday"]),
   upload.array("cccdImages", 5),
   OccupantController.addNewOccupant
 );
-router.put("/occupant/:id", OccupantController.updateOccupant);
+router.put(
+  "/occupant/:id",
+  formatDateMiddleware(["birthday"]),
+  OccupantController.updateOccupant
+);
 router.delete("/occupant/:id", OccupantController.deleteOccupant);
+
+// ___________________________________________________________________________________________________
+
+// contract routes
+router.get(
+  "/contracts",
+  formatDateMiddleware(["startDate", "endDate"]),
+  ContractController.getAllContracts
+);
+router.get("/contract/:id", ContractController.getContractById);
+router.post(
+  "/contract",
+  formatDateMiddleware(["startDate", "endDate"]),
+  ContractController.addNewContract
+);
+router.delete("/contract/:id", ContractController.deleteContract);
+router.patch("/contract/:id/status", ContractController.updateContractStatus);
+router.patch(
+  "/contract/:id/extend",
+  formatDateMiddleware(["endDate"]),
+  ContractController.extendContract
+);
+router.patch("/contract/:id/terminate", ContractController.terminateContract);
 
 module.exports = router;
