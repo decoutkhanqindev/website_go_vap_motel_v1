@@ -35,7 +35,7 @@ class RoomController {
       logger.info("RoomController.getRoomById() is called.");
       const id = req.params.id;
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
       const room = await RoomService.getRoomById(id);
       res.status(200).json(room);
@@ -50,7 +50,7 @@ class RoomController {
       logger.info("RoomController.getRoomImageById() is called.");
       const id = req.params.id;
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
       const roomImage = await RoomService.getRoomImageById(id);
       res.status(200).json(roomImage);
@@ -67,7 +67,7 @@ class RoomController {
       const imageFiles = req.files;
 
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (imageFiles && imageFiles.length === 0) {
@@ -89,7 +89,7 @@ class RoomController {
       const imageIds = req.body.images;
 
       if (!id) {
-        return next(new ApiError(400, "Params must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (imageIds && imageIds.length === 0) {
@@ -113,7 +113,7 @@ class RoomController {
       const amenityIds = req.body.amenities;
 
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (amenityIds && amenityIds.length === 0) {
@@ -135,7 +135,7 @@ class RoomController {
       const amenityIds = req.body.amenities;
 
       if (!id) {
-        return next(new ApiError(400, "Params must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (amenityIds && amenityIds.length === 0) {
@@ -162,7 +162,7 @@ class RoomController {
       const utilityIds = req.body.utilities;
 
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (utilityIds && utilityIds.length === 0) {
@@ -184,7 +184,7 @@ class RoomController {
       const utilityIds = req.body.utilities;
 
       if (!id) {
-        return next(new ApiError(400, "Params must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (utilityIds && utilityIds.length === 0) {
@@ -235,7 +235,7 @@ class RoomController {
       const data = req.body;
 
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (
@@ -261,7 +261,7 @@ class RoomController {
       logger.info("RoomController.deleteRoom() is called.");
       const id = req.params.id;
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
       const deletedRoom = await RoomService.deleteRoom(id);
       res.status(200).json(deletedRoom);

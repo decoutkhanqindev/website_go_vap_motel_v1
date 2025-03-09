@@ -28,7 +28,7 @@ class OccupantController {
       logger.info("OccupantController.getOccupantById() is called.");
       const id = req.params.id;
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
       const occupant = await OccupantService.getOccupantById(id);
       res.status(200).json(occupant);
@@ -45,7 +45,7 @@ class OccupantController {
       logger.info("OccupantController.getOccupantCccdImageById() is called.");
       const id = req.params.id;
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
       const occupantCccdImage = await OccupantService.getOccupantCccdImageById(
         id
@@ -66,7 +66,7 @@ class OccupantController {
       const imageFiles = req.files;
 
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (imageFiles && imageFiles.length === 0) {
@@ -97,7 +97,7 @@ class OccupantController {
       const cccdImageIds = req.body.cccdImages;
 
       if (!id) {
-        return next(new ApiError(400, "Params must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (cccdImageIds && cccdImageIds.length === 0) {
@@ -126,7 +126,7 @@ class OccupantController {
       if (
         !data.roomId ||
         !data.contractCode ||
-        !data.fullname ||
+        !data.fullName ||
         !data.birthday ||
         !data.address ||
         !data.phone ||
@@ -157,7 +157,7 @@ class OccupantController {
       const data = req.body;
 
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (
@@ -185,7 +185,7 @@ class OccupantController {
       logger.info("OccupantController.deleteOccupant() is called.");
       const id = req.params.id;
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
       const deletedOccupant = await OccupantService.deleteOccupant(id);
       res.status(200).json(deletedOccupant);

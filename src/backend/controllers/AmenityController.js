@@ -19,7 +19,7 @@ class AmenityController {
       logger.info("AmenityController.getAmenityById() is called.");
       const id = req.params.id;
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
       const amenity = await AmenityService.getAmenityById(id);
       res.status(200).json(amenity);
@@ -34,7 +34,7 @@ class AmenityController {
       logger.info("AmenityController.getAmenityImageById() is called.");
       const id = req.params.id;
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
       const amenityImage = await AmenityService.getAmenityImageById(id);
       res.status(200).json(amenityImage);
@@ -53,7 +53,7 @@ class AmenityController {
       const imageFiles = req.files;
 
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (imageFiles && imageFiles.length === 0) {
@@ -77,10 +77,10 @@ class AmenityController {
     try {
       logger.info("AmenityController.deleteImagesForAmenity() is called.");
       const id = req.params.id;
-      const imageIds = req.body.iamges;
+      const imageIds = req.body.images;
 
       if (!id) {
-        return next(new ApiError(400, "Params must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (imageIds && imageIds.length === 0) {
@@ -123,7 +123,7 @@ class AmenityController {
       const data = req.body;
 
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
 
       if (!data.name && !data.price) {
@@ -143,7 +143,7 @@ class AmenityController {
       logger.info("AmenityController.deleteAmenity() is called.");
       const id = req.params.id;
       if (!id) {
-        return next(new ApiError(400, "Param must be provided."));
+        return next(new ApiError(400, "Param id must be provided."));
       }
       const deletedAmenity = await AmenityService.deleteAmenity(id);
       res.status(200).json(deletedAmenity);
