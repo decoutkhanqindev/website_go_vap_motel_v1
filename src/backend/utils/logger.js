@@ -19,11 +19,11 @@ const level = () => {
 };
 
 winston.addColors({
-  error: "red",
-  warn: "yellow",
+  error: "brightRed",
+  warn: "brightYellow",
   info: "green",
-  http: "magenta",
-  debug: "white"
+  http: "brightBlue",
+  debug: "cyan"
 });
 
 const consoleLogFormat = winston.format.combine(
