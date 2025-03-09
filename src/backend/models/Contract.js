@@ -1,3 +1,4 @@
+const moment = require("moment-timezone");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
@@ -6,9 +7,7 @@ const contractSchema = new Schema(
   {
     contractCode: {
       type: String,
-      required: true,
-      unique: true,
-      trim: true,
+      required: false,
       index: true
     },
     roomId: {
@@ -22,12 +21,12 @@ const contractSchema = new Schema(
     //   required: true,
     //   ref: "User"
     // },
-    occupants: [
-      {
-        type: ObjectId,
-        ref: "Occupant"
-      }
-    ],
+    // occupants: [
+    //   {
+    //     type: ObjectId,
+    //     ref: "Occupant"
+    //   }
+    // ],
     startDate: {
       type: Date,
       required: true
@@ -44,10 +43,10 @@ const contractSchema = new Schema(
       type: Number,
       required: true
     },
-    term: {
-      type: String,
-      required: true
-    },
+    // term: {
+    //   type: String,
+    //   required: true
+    // },
     status: {
       type: String,
       required: true,
