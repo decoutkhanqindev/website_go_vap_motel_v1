@@ -65,9 +65,6 @@ class UtilityService {
       logger.info("UtilityService.addNewUtilityImage() is called.");
       const newUtilityImage = new UtilityImage(data);
       const addedUtilityImage = await newUtilityImage.save();
-      if (!addedUtilityImage) {
-        throw new ApiError(400, "Can not add new utility image.");
-      }
       return addedUtilityImage;
     } catch (error) {
       logger.error(`UtilityService.addNewUtilityImage() have error:\n${error}`);
@@ -80,10 +77,7 @@ class UtilityService {
       logger.info("UtilityService.deleteUtilityImage() is called.");
       const deletedUtilityImage = await UtilityImage.findByIdAndDelete(id);
       if (!deletedUtilityImage) {
-        throw new ApiError(
-          400,
-          `Can not delete utility image matching with ${id}.`
-        );
+        throw new ApiError(400, `No utility image found matching id ${id}.`);
       }
       return deletedUtilityImage;
     } catch (error) {
@@ -95,6 +89,11 @@ class UtilityService {
   static async addImagesToUtility(id, imageFiles) {
     try {
       logger.info("UtilityService.addImagesToUtility() is called.");
+      const utility = await Utility.findById(id);
+      if (!utility) {
+        throw new ApiError(404, `No utility found matching id ${id}.`);
+      }
+
       let newImages = [];
       for (const file of imageFiles) {
         const data = {
@@ -114,10 +113,7 @@ class UtilityService {
         { new: true }
       );
       if (!updatedUtility) {
-        throw new ApiError(
-          400,
-          `Can not add images for utility with id ${id}.`
-        );
+        throw new ApiError(400, `No utility found matching id ${id}.`);
       }
       return updatedUtility;
     } catch (error) {
@@ -138,10 +134,7 @@ class UtilityService {
       );
 
       if (!updatedUtility) {
-        throw new ApiError(
-          400,
-          `Can not delete images for utility with id ${id}.`
-        );
+        throw new ApiError(400, `No utility images found matching id ${id}.`);
       }
 
       for (const imageId of imageIds) {
@@ -162,15 +155,10 @@ class UtilityService {
       const { name } = data;
 
       const isExits = await UtilityService.isExists(name);
-      if (isExits) {
-        throw new ApiError(409, "This utility already exists.");
-      }
+      if (isExits) throw new ApiError(409, "This utility already exists.");
 
       let newUtility = new Utility(data);
       const addedUtility = await newUtility.save();
-      if (!addedUtility) {
-        throw new ApiError(400, `Can not add new Utility.`);
-      }
 
       if (imageFiles && Array.isArray(imageFiles) && imageFiles.length > 0) {
         newUtility = await UtilityService.addImagesToUtility(
@@ -196,7 +184,7 @@ class UtilityService {
         new: true
       });
       if (!updatedUtility) {
-        throw new ApiError(400, `Can not update Utility with id ${id}.`);
+        throw new ApiError(400, `No utility found matching id ${id}.`);
       }
       return updatedUtility;
     } catch (error) {
@@ -210,7 +198,7 @@ class UtilityService {
       logger.info("UtilityService.deleteUtility() is called.");
       const deletedUtility = await Utility.findByIdAndDelete(id);
       if (!deletedUtility) {
-        throw new ApiError(400, `Can not delete Utility with id ${id}..`);
+        throw new ApiError(400, `No utility found matching id ${id}.`);
       }
 
       let copyUtilityImages = [...deletedUtility.images];

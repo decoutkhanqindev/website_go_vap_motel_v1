@@ -9,15 +9,11 @@ class OccupantService {
       logger.info(`OccupantService.getAllOccupants() is called.`);
       let query = Occupant.find();
 
-      if (filter.roomId) {
-        query = query.where("roomId").equals(filter.roomId);
-      }
-      if (filter.contractCode) {
+      if (filter.roomId) query = query.where("roomId").equals(filter.roomId);
+      if (filter.contractCode)
         query = query.where("contractCode").equals(filter.contractCode);
-      }
-      if (filter.fullName) {
+      if (filter.fullName)
         query = query.where("fullName").equals(filter.fullName);
-      }
 
       const occupants = await query;
       if (!occupants.length) {
@@ -84,9 +80,6 @@ class OccupantService {
       logger.info("OccupantService.addNewOccupantCccdImage() is called.");
       const newOccupantImage = new OccupantImage(data);
       const addedOccupantImage = await newOccupantImage.save();
-      if (!addedOccupantImage) {
-        throw new ApiError(400, "Can not add new occupant cccd images.");
-      }
       return addedOccupantImage;
     } catch (error) {
       logger.error(
@@ -103,7 +96,7 @@ class OccupantService {
       if (!deletedOccupantImage) {
         throw new ApiError(
           400,
-          `Can not delete occupant image matching ${id}.`
+          `No occupant cccd image found matching id ${id}.`
         );
       }
       return deletedOccupantImage;
@@ -118,6 +111,11 @@ class OccupantService {
   static async addCccdImagesToOccupant(id, imageFiles) {
     try {
       logger.info("OccupanService.addCccdImagesToOccupant() is called.");
+      const occupant = await Occupant.findById(id);
+      if (!occupant) {
+        throw new ApiError(404, `No amenity found matching id ${id}.`);
+      }
+
       let newImages = [];
       for (const file of imageFiles) {
         const data = {
@@ -137,12 +135,6 @@ class OccupantService {
         },
         { new: true }
       );
-      if (!updatedOccupant) {
-        throw new ApiError(
-          400,
-          `Can not add cccd images for occupant with id ${id}.`
-        );
-      }
       return updatedOccupant;
     } catch (error) {
       logger.error(
@@ -164,10 +156,7 @@ class OccupantService {
       );
 
       if (!updatedOccupant) {
-        throw new ApiError(
-          400,
-          `Can not delete cccd images for occupant with id ${id}.`
-        );
+        throw new ApiError(400, `No occupant found matching id ${id}..`);
       }
 
       for (const cccdImageId of cccdImageIds) {
@@ -193,13 +182,10 @@ class OccupantService {
         contractCode,
         cccd
       );
-      if (isExits) throw new ApiError(409, "This room already exists.");
+      if (isExits) throw new ApiError(409, "This occupant already exists.");
 
       let newOccupant = new Occupant(data);
       const addedOccupant = await newOccupant.save();
-      if (!addedOccupant) {
-        throw new ApiError(400, `Can not add new occupant.`);
-      }
 
       if (imageFiles && Array.isArray(imageFiles) && imageFiles.length > 0) {
         newOccupant = await OccupantService.addCccdImagesToOccupant(
@@ -225,7 +211,7 @@ class OccupantService {
         new: true
       });
       if (!updatedOccupant) {
-        throw new ApiError(400, `Can not update occupant with id ${id}.`);
+        throw new ApiError(400, `No occupant found matching id ${id}.`);
       }
       return updatedOccupant;
     } catch (error) {
@@ -239,7 +225,7 @@ class OccupantService {
       logger.info("OccupantService.deleteOccupant() is called.");
       const deletedOccupant = await Occupant.findByIdAndDelete(id);
       if (!deletedOccupant) {
-        throw new ApiError(400, `Can not delete occupant with id ${id}..`);
+        throw new ApiError(400, `No occupant found matching id ${id}.`);
       }
 
       let copyOccupantCccdImages = [...deletedOccupant.cccdImages];
