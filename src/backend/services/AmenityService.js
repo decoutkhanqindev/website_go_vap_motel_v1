@@ -153,15 +153,10 @@ class AmenityService {
       const { name } = data;
 
       const isExits = await AmenityService.isExists(name);
-      if (isExits) {
-        throw new ApiError(409, "This amenity already exists.");
-      }
+      if (isExits) throw new ApiError(409, "This amenity already exists.");
 
       let newAmenity = new Amenity(data);
       const addedAmenity = await newAmenity.save();
-      if (!addedAmenity) {
-        throw new ApiError(400, `Can not add new amenity.`);
-      }
 
       if (imageFiles && Array.isArray(imageFiles) && imageFiles.length > 0) {
         newAmenity = await AmenityService.addImagesToAmenity(
