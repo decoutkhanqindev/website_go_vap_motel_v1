@@ -130,25 +130,6 @@ class ContractController {
       next(error);
     }
   }
-
-  static async terminateContract(req, res, next) {
-    try {
-      logger.info("ContractController.terminateContract() is called.");
-      const id = req.params.id;
-
-      if (!id) {
-        return next(new ApiError(400, "Param id must be provided."));
-      }
-
-      const updatedContract = await ContractService.terminateContract(id);
-      res.status(200).json(updatedContract);
-    } catch (error) {
-      logger.error(
-        `ContractController.terminateContract() have error:\n${error}`
-      );
-      next(error);
-    }
-  }
 }
 
 module.exports = ContractController;

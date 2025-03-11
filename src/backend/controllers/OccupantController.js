@@ -11,7 +11,7 @@ class OccupantController {
 
       if (query.roomId) filter.roomId = query.roomId;
       if (query.contractCode) filter.contractCode = query.contractCode;
-      if (query.fullname) filter.fullname = query.fullname;
+      if (query.fullName) filter.fullName = query.fullName;
 
       const occupants = await OccupantService.getAllOccupants(filter);
       res.status(200).json(occupants);
