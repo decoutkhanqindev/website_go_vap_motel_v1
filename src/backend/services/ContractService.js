@@ -2,6 +2,7 @@ const ApiError = require("../utils/ApiError");
 const logger = require("../utils/logger");
 const moment = require("moment-timezone");
 const Contract = require("../models/Contract");
+const RoomService = require("../services/RoomService");
 
 class ContractService {
   static async getAllContracts(filter) {
@@ -78,6 +79,35 @@ class ContractService {
     }
   }
 
+  static async generateContractCode(roomNumber, startDate, endDate) {
+    try {
+      logger.info(`InvoiceService.generateInvoiceCode() is called.`);
+      const formatStartDate = moment(startDate).format("YYYYMMDD");
+      const formatEndDate = moment(endDate).format("YYYYMMDD");
+
+      const lastContract = await Contract.findOne().sort({ _id: -1 });
+      if (!lastContract)
+        return `${formatStartDate}${formatEndDate}${roomNumber}1`;
+
+      const lastContractCode = lastContract.contractCode;
+      const lastContractNumber = parseInt(
+        lastContractCode.slice(
+          formatStartDate.length + formatEndDate.length + roomNumber.length
+        ),
+        10
+      );
+
+      const newContractNumber = lastContractNumber + 1;
+      const newContractCode = `${formatStartDate}${formatEndDate}${roomNumber}${newContractNumber}`;
+      return newContractCode;
+    } catch (error) {
+      logger.info(
+        `InvoiceService.generateInvoiceCode() has an error:\n${error}`
+      );
+      throw error;
+    }
+  }
+
   static async addNewContract(data) {
     try {
       logger.info("ContractService.addNewContract() is called.");
@@ -87,7 +117,10 @@ class ContractService {
       if (isExits) throw new ApiError(409, "This contract already exists.");
 
       if (!contractCode) {
+        const room = await RoomService.getRoomById(roomId);
+        const roomNumber = room.roomNumber;
         data.contractCode = await ContractService.generateContractCode(
+          roomNumber,
           startDate,
           endDate
         );
@@ -102,12 +135,28 @@ class ContractService {
     }
   }
 
+  static async updateContract(id, data) {
+    try {
+      logger.info("ContractService.deleteContract() is called.");
+      const updatedContract = await Contract.findByIdAndUpdate(id, data, {
+        new: true
+      });
+      if (!updatedContract) {
+        throw new ApiError(404, `No contract found matching id ${id}.`);
+      }
+      return updatedContract;
+    } catch (error) {
+      logger.error(`ContractService.deleteContract() have error:\n${error}`);
+      throw error;
+    }
+  }
+
   static async deleteContract(id) {
     try {
       logger.info("ContractService.deleteContract() is called.");
       const deletedContract = await Contract.findByIdAndDelete(id);
       if (!deletedContract) {
-        throw new ApiError(400, `No contract found matching id ${id}.`);
+        throw new ApiError(404, `No contract found matching id ${id}.`);
       }
       return deletedContract;
     } catch (error) {
@@ -134,22 +183,20 @@ class ContractService {
     }
   }
 
-  static async updateContractStatus(id, status) {
+  static async terminateContract(id) {
     try {
-      logger.info("ContractService.updateContractStatus() is called.");
+      logger.info("ContractService.terminateContract() is called.");
       const updatedContract = await Contract.findByIdAndUpdate(
         id,
-        { status: status },
+        { status: "terminated" },
         { new: true }
       );
       if (!updatedContract) {
-        throw new ApiError(400, `No contract found matching id ${id}.`);
+        throw new ApiError(404, `No contract found matching id ${id}.`);
       }
       return updatedContract;
     } catch (error) {
-      logger.error(
-        `ContractService.updateContractStatus() have error:\n${error}`
-      );
+      logger.error(`ContractService.terminateContract() have error:\n${error}`);
       throw error;
     }
   }

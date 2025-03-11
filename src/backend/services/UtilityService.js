@@ -36,8 +36,7 @@ class UtilityService {
     try {
       logger.info("UtilityService.isExists() is called.");
       const utility = await Utility.findOne({ name: name });
-      if (utility) return true;
-      return false;
+      return !!utility;
     } catch (error) {
       logger.error(`UtilityService.isExists() have error:\n${error}`);
       throw error;
@@ -77,7 +76,7 @@ class UtilityService {
       logger.info("UtilityService.deleteUtilityImage() is called.");
       const deletedUtilityImage = await UtilityImage.findByIdAndDelete(id);
       if (!deletedUtilityImage) {
-        throw new ApiError(400, `No utility image found matching id ${id}.`);
+        throw new ApiError(404, `No utility image found matching id ${id}.`);
       }
       return deletedUtilityImage;
     } catch (error) {
@@ -113,7 +112,7 @@ class UtilityService {
         { new: true }
       );
       if (!updatedUtility) {
-        throw new ApiError(400, `No utility found matching id ${id}.`);
+        throw new ApiError(404, `No utility found matching id ${id}.`);
       }
       return updatedUtility;
     } catch (error) {
@@ -134,7 +133,7 @@ class UtilityService {
       );
 
       if (!updatedUtility) {
-        throw new ApiError(400, `No utility images found matching id ${id}.`);
+        throw new ApiError(404, `No utility images found matching id ${id}.`);
       }
 
       for (const imageId of imageIds) {
@@ -184,7 +183,7 @@ class UtilityService {
         new: true
       });
       if (!updatedUtility) {
-        throw new ApiError(400, `No utility found matching id ${id}.`);
+        throw new ApiError(404, `No utility found matching id ${id}.`);
       }
       return updatedUtility;
     } catch (error) {
@@ -198,7 +197,7 @@ class UtilityService {
       logger.info("UtilityService.deleteUtility() is called.");
       const deletedUtility = await Utility.findByIdAndDelete(id);
       if (!deletedUtility) {
-        throw new ApiError(400, `No utility found matching id ${id}.`);
+        throw new ApiError(404, `No utility found matching id ${id}.`);
       }
 
       let copyUtilityImages = [...deletedUtility.images];

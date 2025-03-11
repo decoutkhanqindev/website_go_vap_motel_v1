@@ -66,6 +66,35 @@ class ContractController {
     }
   }
 
+  static async updateContract(req, res, next) {
+    try {
+      logger.info("ContractController.updateContract() is called.");
+      const id = req.params.id;
+      const data = req.body;
+
+      if (!id) {
+        return next(new ApiError(400, "Param id must be provided."));
+      }
+
+      if (
+        !data.roomId &&
+        !data.startDate &&
+        !data.endDate &&
+        !data.rentPrice &&
+        !data.deposit &&
+        !data.status
+      ) {
+        return next(new ApiError(400, "At least one field must be updated."));
+      }
+
+      const updatedContract = await ContractService.updateContract(id, data);
+      res.status(200).json(updatedContract);
+    } catch (error) {
+      logger.error(`ContractController.updateContract() have error:\n${error}`);
+      next(error);
+    }
+  }
+
   static async deleteContract(req, res, next) {
     try {
       logger.info("ContractController.deleteContract() is called.");
@@ -77,31 +106,6 @@ class ContractController {
       res.status(200).json(deletedContract);
     } catch (error) {
       logger.error(`ContractController.deleteContract() have error:\n${error}`);
-      next(error);
-    }
-  }
-
-  static async updateContractStatus(req, res, next) {
-    try {
-      logger.info("ContractController.updateContract() is called.");
-      const id = req.params.id;
-      const newStatus = req.body.status;
-
-      if (!id) {
-        return next(new ApiError(400, "Param id must be provided."));
-      }
-
-      if (!newStatus) {
-        return next(new ApiError(400, "New status must be provided."));
-      }
-
-      const updatedContract = await ContractService.updateContractStatus(
-        id,
-        newStatus
-      );
-      res.status(200).json(updatedContract);
-    } catch (error) {
-      logger.error(`ContractController.updateContract() have error:\n${error}`);
       next(error);
     }
   }
@@ -127,6 +131,25 @@ class ContractController {
       res.status(200).json(updatedContract);
     } catch (error) {
       logger.error(`ContractController.extendContract() have error:\n${error}`);
+      next(error);
+    }
+  }
+
+  static async terminateContract(req, res, next) {
+    try {
+      logger.info("ContractController.terminateContract() is called.");
+      const id = req.params.id;
+
+      if (!id) {
+        return next(new ApiError(400, "Param id must be provided."));
+      }
+
+      const updatedContract = await ContractService.terminateContract(id);
+      res.status(200).json(updatedContract);
+    } catch (error) {
+      logger.error(
+        `ContractController.terminateContract() have error:\n${error}`
+      );
       next(error);
     }
   }

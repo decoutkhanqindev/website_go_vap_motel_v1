@@ -58,17 +58,16 @@ class RoomService {
     }
   }
 
-  static async isExsits(roomNumber, address) {
+  static async isExists(roomNumber, address) {
     try {
-      logger.info("RoomService.isExsits() is called.");
+      logger.info("RoomService.isExists() is called.");
       const room = await Room.findOne({
         roomNumber: roomNumber,
         address: address
       });
-      if (room) return true;
-      return false;
+      return !!room;
     } catch (error) {
-      logger.error(`RoomService.isExsits() have error:\n${error}`);
+      logger.error(`RoomService.isExists() have error:\n${error}`);
       throw error;
     }
   }
@@ -104,7 +103,7 @@ class RoomService {
       logger.info("RoomService.deleteRoomImage() is called.");
       const deletedRoomImage = await RoomImage.findByIdAndDelete(id);
       if (!deletedRoomImage) {
-        throw new ApiError(400, `No room image found matching id ${id}.`);
+        throw new ApiError(404, `No room image found matching id ${id}.`);
       }
       return deletedRoomImage;
     } catch (error) {
@@ -158,7 +157,7 @@ class RoomService {
       );
 
       if (!updatedRoom) {
-        throw new ApiError(400, `No room found matching id ${id}.`);
+        throw new ApiError(404, `No room found matching id ${id}.`);
       }
 
       for (const imageId of imageIds) {
@@ -183,7 +182,7 @@ class RoomService {
         { new: true }
       );
       if (!updatedRoom) {
-        throw new ApiError(400, `No room found matching id ${id}.`);
+        throw new ApiError(404, `No room found matching id ${id}.`);
       }
       return updatedRoom;
     } catch (error) {
@@ -203,7 +202,7 @@ class RoomService {
         { new: true }
       );
       if (!updatedRoom) {
-        throw new ApiError(400, `No room found matching id ${id}.`);
+        throw new ApiError(404, `No room found matching id ${id}.`);
       }
       return updatedRoom;
     } catch (error) {
@@ -225,7 +224,7 @@ class RoomService {
         { new: true }
       );
       if (!updatedRoom) {
-        throw new ApiError(400, `No room found matching id ${id}.`);
+        throw new ApiError(404, `No room found matching id ${id}.`);
       }
       return updatedRoom;
     } catch (error) {
@@ -245,7 +244,7 @@ class RoomService {
         { new: true }
       );
       if (!updatedRoom) {
-        throw new ApiError(400, `No room found matching id ${id}.`);
+        throw new ApiError(404, `No room found matching id ${id}.`);
       }
       return updatedRoom;
     } catch (error) {
@@ -261,7 +260,7 @@ class RoomService {
       logger.info("RoomService.addNewRoom() is called.");
       const { roomNumber, address } = data;
 
-      const isExits = await RoomService.isExsits(roomNumber, address);
+      const isExits = await RoomService.isExists(roomNumber, address);
       if (isExits) throw new ApiError(409, "This room already exists.");
 
       let newRoom = new Room(data);
@@ -286,7 +285,7 @@ class RoomService {
         new: true
       });
       if (!updatedRoom) {
-        throw new ApiError(400, `No room found matching id ${id}.`);
+        throw new ApiError(404, `No room found matching id ${id}.`);
       }
       return updatedRoom;
     } catch (error) {
@@ -300,7 +299,7 @@ class RoomService {
       logger.info("RoomService.updateRoom() is called.");
       const deletedRoom = await Room.findByIdAndDelete(id);
       if (!deletedRoom) {
-        throw new ApiError(400, `No room found matching id ${id}.`);
+        throw new ApiError(404, `No room found matching id ${id}.`);
       }
 
       let copyRoomImages = [...deletedRoom.images];

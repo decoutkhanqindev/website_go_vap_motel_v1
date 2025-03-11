@@ -243,7 +243,8 @@ class RoomController {
         !data.status &&
         !data.address &&
         !data.rentPrice &&
-        !data.occupantsNumber
+        !data.occupantsNumber &&
+        !data.description
       ) {
         return next(new ApiError(400, "At least one field must be updated."));
       }

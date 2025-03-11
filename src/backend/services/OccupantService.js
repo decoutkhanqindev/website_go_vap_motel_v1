@@ -40,18 +40,17 @@ class OccupantService {
     }
   }
 
-  static async isExsits(roomId, contractCode, cccd) {
+  static async isExists(roomId, contractCode, cccd) {
     try {
-      logger.info(`OccupantService.isExsits() is called.`);
+      logger.info(`OccupantService.isExists() is called.`);
       const occupant = await Occupant.findOne({
         cccd: cccd,
         roomId: roomId,
         contractCode: contractCode
       });
-      if (!occupant) return false;
-      return true;
+      return !!occupant;
     } catch (error) {
-      logger.info(`OccupantService.isExsits() have error:\n${error}`);
+      logger.info(`OccupantService.isExists() have error:\n${error}`);
       throw error;
     }
   }
@@ -95,7 +94,7 @@ class OccupantService {
       const deletedOccupantImage = await OccupantImage.findByIdAndDelete(id);
       if (!deletedOccupantImage) {
         throw new ApiError(
-          400,
+          404,
           `No occupant cccd image found matching id ${id}.`
         );
       }
@@ -156,7 +155,7 @@ class OccupantService {
       );
 
       if (!updatedOccupant) {
-        throw new ApiError(400, `No occupant found matching id ${id}..`);
+        throw new ApiError(404, `No occupant found matching id ${id}..`);
       }
 
       for (const cccdImageId of cccdImageIds) {
@@ -177,7 +176,7 @@ class OccupantService {
       logger.info("OccupantService.addNewOccupant() is called.");
       const { roomId, contractCode, cccd } = data;
 
-      const isExits = await OccupantService.isExsits(
+      const isExits = await OccupantService.isExists(
         roomId,
         contractCode,
         cccd
@@ -211,7 +210,7 @@ class OccupantService {
         new: true
       });
       if (!updatedOccupant) {
-        throw new ApiError(400, `No occupant found matching id ${id}.`);
+        throw new ApiError(404, `No occupant found matching id ${id}.`);
       }
       return updatedOccupant;
     } catch (error) {
@@ -225,7 +224,7 @@ class OccupantService {
       logger.info("OccupantService.deleteOccupant() is called.");
       const deletedOccupant = await Occupant.findByIdAndDelete(id);
       if (!deletedOccupant) {
-        throw new ApiError(400, `No occupant found matching id ${id}.`);
+        throw new ApiError(404, `No occupant found matching id ${id}.`);
       }
 
       let copyOccupantCccdImages = [...deletedOccupant.cccdImages];

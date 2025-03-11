@@ -36,8 +36,7 @@ class AmenityService {
     try {
       logger.info("AmenityService.isExists() is called.");
       const amenity = await Amenity.findOne({ name: name });
-      if (amenity) return true;
-      return false;
+      return !!amenity;
     } catch (error) {
       logger.error(`AmenityService.isExists() have error:\n${error}`);
       throw error;
@@ -77,7 +76,7 @@ class AmenityService {
       logger.info("AmenityService.deleteAmenityImage() is called.");
       const deletedAmenityImage = await AmenityImage.findByIdAndDelete(id);
       if (!deletedAmenityImage) {
-        throw new ApiError(400, `No amenity image found matching id ${id}.`);
+        throw new ApiError(404, `No amenity image found matching id ${id}.`);
       }
       return deletedAmenityImage;
     } catch (error) {
@@ -131,7 +130,7 @@ class AmenityService {
       );
 
       if (!updatedAmenity) {
-        throw new ApiError(400, `No amenity found matching id ${id}`);
+        throw new ApiError(404, `No amenity found matching id ${id}`);
       }
 
       for (const imageId of imageIds) {
@@ -182,7 +181,7 @@ class AmenityService {
         new: true
       });
       if (!updatedAmenity) {
-        throw new ApiError(400, `No amenity found matching id ${id}`);
+        throw new ApiError(404, `No amenity found matching id ${id}`);
       }
       return updatedAmenity;
     } catch (error) {
@@ -196,7 +195,7 @@ class AmenityService {
       logger.info("AmenityService.deleteAmenity() is called.");
       const deletedAmenity = await Amenity.findByIdAndDelete(id);
       if (!deletedAmenity) {
-        throw new ApiError(400, `No amenity found matching id ${id}`);
+        throw new ApiError(404, `No amenity found matching id ${id}`);
       }
 
       let copyAmenityImages = [...deletedAmenity.images];
