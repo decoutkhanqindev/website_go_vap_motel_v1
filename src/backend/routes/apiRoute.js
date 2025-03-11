@@ -7,6 +7,7 @@ const UtilityController = require("../controllers/UtilityController");
 const RoomController = require("../controllers/RoomController");
 const OccupantController = require("../controllers/OccupantController");
 const ContractController = require("../controllers/ContractController");
+const InvoiceController = require("../controllers/InvoiceController");
 
 // amenity routes
 router.get("/amenities", AmenityController.getAllAmenities);
@@ -111,12 +112,27 @@ router.post(
   formatDateMiddleware(["startDate", "endDate"]),
   ContractController.addNewContract
 );
+router.put(
+  "/contract/:id",
+  formatDateMiddleware(["startDate", "endDate"]),
+  ContractController.updateContract
+);
 router.delete("/contract/:id", ContractController.deleteContract);
-router.patch("/contract/:id/status", ContractController.updateContractStatus);
 router.patch(
   "/contract/:id/extend",
   formatDateMiddleware(["endDate"]),
   ContractController.extendContract
 );
+router.patch("/contract/:id/terminate", ContractController.terminateContract);
+
+// ___________________________________________________________________________________________________
+
+// invoice routes
+router.get("/invoices", InvoiceController.getAllInvoices);
+router.get("/invoice/:id", InvoiceController.getInvoiceById);
+router.post("/invoice", InvoiceController.addNewInvoice);
+router.put("/invoice/:id", InvoiceController.updateInvoice);
+router.delete("/invoice/:id", InvoiceController.deleteInvoice);
+router.patch("/invoice/:id", InvoiceController.markInvoiceIsPaid);
 
 module.exports = router;
