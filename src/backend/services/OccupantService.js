@@ -4,7 +4,7 @@ const Occupant = require("../models/Occupant");
 const OccupantImage = require("../models/OccupantImage");
 
 class OccupantService {
-  static async getAllOccupants(filter) {
+  static async getAllOccupants(filter = {}) {
     try {
       logger.info(`OccupantService.getAllOccupants() is called.`);
       let query = Occupant.find();

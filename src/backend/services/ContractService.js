@@ -5,7 +5,7 @@ const Contract = require("../models/Contract");
 const RoomService = require("../services/RoomService");
 
 class ContractService {
-  static async getAllContracts(filter) {
+  static async getAllContracts(filter = {}) {
     try {
       logger.info(`ContractService.getAllContracts() is called.`);
       let query = Contract.find();

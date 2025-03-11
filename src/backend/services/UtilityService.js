@@ -1,5 +1,6 @@
 const logger = require("../utils/logger");
 const ApiError = require("../utils/ApiError");
+const RoomService = require("../services/RoomService");
 const Utility = require("../models/Utility");
 const UtilityImage = require("../models/UtilityImage");
 
@@ -20,14 +21,14 @@ class UtilityService {
 
   static async getUtilityById(id) {
     try {
-      logger.info(`UtilityService.getAmentityById() is called.`);
+      logger.info(`UtilityService.getUtilityById() is called.`);
       const utility = await Utility.findById(id);
       if (!utility) {
         throw new ApiError(404, `No utility found matching id ${id}.`);
       }
       return utility;
     } catch (error) {
-      logger.error(`UtilityService.getAmentityById()  have error:\n${error}`);
+      logger.error(`UtilityService.getUtilityById()  have error:\n${error}`);
       throw error;
     }
   }
@@ -195,6 +196,8 @@ class UtilityService {
   static async deleteUtility(id) {
     try {
       logger.info("UtilityService.deleteUtility() is called.");
+      const rooms = await RoomService.getAllRooms();
+
       const deletedUtility = await Utility.findByIdAndDelete(id);
       if (!deletedUtility) {
         throw new ApiError(404, `No utility found matching id ${id}.`);
@@ -205,6 +208,10 @@ class UtilityService {
         for (const imageId of copyUtilityImages) {
           await UtilityService.deleteUtilityImage(imageId);
         }
+      }
+
+      for (const room of rooms) {
+        await RoomService.deleteUtilitiesForRoom(room._id, [id]);
       }
 
       return deletedUtility;

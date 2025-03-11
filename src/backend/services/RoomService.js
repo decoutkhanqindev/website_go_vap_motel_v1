@@ -4,7 +4,7 @@ const Room = require("../models/Room");
 const RoomImage = require("../models/RoomImage");
 
 class RoomService {
-  static async getAllRooms(filter) {
+  static async getAllRooms(filter = {}) {
     try {
       logger.info(`RoomService.getAllRooms() is called.`);
       let query = Room.find();
@@ -258,7 +258,7 @@ class RoomService {
   static async addNewRoom(data, imageFiles) {
     try {
       logger.info("RoomService.addNewRoom() is called.");
-      const { roomNumber, address } = data;
+      const { roomNumber, address, amenities, utilities } = data;
 
       const isExits = await RoomService.isExists(roomNumber, address);
       if (isExits) throw new ApiError(409, "This room already exists.");
@@ -268,6 +268,12 @@ class RoomService {
 
       if (imageFiles && Array.isArray(imageFiles) && imageFiles.length > 0) {
         newRoom = await RoomService.addImagesToRoom(newRoom._id, imageFiles);
+      }
+      if (amenities && Array.isArray(amenities) && amenities.length > 0) {
+        newRoom = await RoomService.addAmenitiesToRoom(newRoom._id, amenities);
+      }
+      if (utilities && Array.isArray(imageFiles) && utilities.length > 0) {
+        newRoom = await RoomService.addUtilitiesToRoom(newRoom._id, utilities);
       }
 
       const updatedRoom = await RoomService.getRoomById(addedRoom._id);
