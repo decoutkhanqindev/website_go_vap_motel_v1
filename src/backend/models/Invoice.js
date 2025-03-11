@@ -14,19 +14,22 @@ const invoiceSchema = new Schema(
     roomId: {
       type: ObjectId,
       required: true,
+      index: true,
       ref: "Room"
     },
-    contractCode: {
-      type: String,
-      required: true,
-      ref: "Contract"
-    },
+    // contractCode: {
+    //   type: String,
+    //   required: true,
+    //   ref: "Contract"
+    // },
     issueDate: {
       type: Date,
+      index: true,
       required: true
     },
     dueDate: {
       type: Date,
+      index: true,
       required: true
     },
     rentAmount: {
@@ -79,7 +82,8 @@ const invoiceSchema = new Schema(
     },
     paymentDate: {
       type: Date,
-      required: false
+      required: false,
+      index: true
     },
     notes: {
       type: String,

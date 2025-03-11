@@ -51,7 +51,8 @@ const contractSchema = new Schema(
       type: String,
       required: true,
       index: true,
-      enum: ["active", "expired", "terminated"]
+      enum: ["active", "expired", "terminated"],
+      default: "active"
     }
   },
   {
