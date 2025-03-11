@@ -22,7 +22,8 @@ const notificationSchema = new Schema(
         "repair_request",
         "room_vacancy",
         "general_notification"
-      ]
+      ],
+      default: "payment_reminder"
     },
     message: {
       type: String,

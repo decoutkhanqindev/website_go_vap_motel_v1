@@ -2,6 +2,26 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
+const electricitySchema = new Schema(
+  {
+    oldIndex: { type: Number, min: 0, required: true },
+    newIndex: { type: Number, min: 0, required: true },
+    pricePerUnit: { type: Number, min: 0, required: true },
+    amount: { type: Number, min: 0, required: false }
+  },
+  { _id: false }
+);
+
+const waterSchema = new Schema(
+  {
+    oldIndex: { type: Number, min: 0, required: true },
+    newIndex: { type: Number, min: 0, required: true },
+    pricePerUnit: { type: Number, min: 0, required: true },
+    amount: { type: Number, min: 0, required: false }
+  },
+  { _id: false }
+);
+
 const invoiceSchema = new Schema(
   {
     invoiceCode: {
@@ -36,33 +56,19 @@ const invoiceSchema = new Schema(
       type: Number,
       required: true
     },
-    electricity: {
-      oldIndex: Number,
-      newIndex: Number,
-      pricePerUnit: Number,
-      amount: Number,
-      required: false,
-      min: 0
-    },
-    water: {
-      oldIndex: Number,
-      newIndex: Number,
-      pricePerUnit: Number,
-      amount: Number,
-      required: false,
-      min: 0
-    },
+    electricity: { type: electricitySchema, required: true },
+    water: { type: waterSchema, required: true },
     utilities: [
       {
         type: ObjectId,
         ref: "Utility"
       }
     ],
-    discount: {
-      type: Number,
-      required: false,
-      min: 0
-    },
+    // discount: {
+    //   type: Number,
+    //   required: false,
+    //   min: 0
+    // },
     totalAmount: {
       type: Number,
       required: false,
@@ -72,13 +78,15 @@ const invoiceSchema = new Schema(
       type: String,
       required: true,
       index: true,
-      enum: ["pending", "paid", "overdue"]
+      enum: ["pending", "paid", "overdue"],
+      default: "pending"
     },
     paymentMethod: {
       type: String,
-      required: true,
+      required: false,
       index: true,
-      enum: ["cash", "bank transfer"]
+      enum: ["cash", "bank transfer"],
+      default: "cash"
     },
     paymentDate: {
       type: Date,

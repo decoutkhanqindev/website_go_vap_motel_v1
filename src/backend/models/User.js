@@ -8,7 +8,8 @@ const userSchema = new Schema(
       required: true,
       trim: true,
       index: true,
-      enum: ["landlord", "tenant"]
+      enum: ["landlord", "tenant"],
+      default: "tenant"
     },
     username: {
       type: String,

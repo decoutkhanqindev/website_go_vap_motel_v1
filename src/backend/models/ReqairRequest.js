@@ -36,7 +36,8 @@ const reqairRequestSchema = new Schema(
       type: String,
       required: true,
       index: true,
-      enum: ["pending", "accepted", "rejected"]
+      enum: ["pending", "accepted", "rejected"],
+      default: "pending"
     }
   },
   {

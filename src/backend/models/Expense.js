@@ -20,7 +20,8 @@ const expenseSchema = new Schema(
       required: true,
       trim: true,
       index: true,
-      enum: ["repair", "maintenance", "purchase"]
+      enum: ["repair", "maintenance", "purchase"],
+      default: "repair"
     },
     amount: {
       type: Number,
