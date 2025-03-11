@@ -126,7 +126,7 @@ class AmenityController {
         return next(new ApiError(400, "Param id must be provided."));
       }
 
-      if (!data.name && !data.price && data.description) {
+      if (!data.name && !data.price && !data.description) {
         return next(new ApiError(400, "At least one field must be updated."));
       }
 
