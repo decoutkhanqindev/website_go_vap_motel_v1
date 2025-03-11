@@ -153,24 +153,6 @@ class ContractService {
       throw error;
     }
   }
-
-  static async terminateContract(id) {
-    try {
-      logger.info("ContractService.terminateContract() is called.");
-      const updatedContract = await Contract.findByIdAndUpdate(
-        id,
-        { status: "terminated" },
-        { new: true }
-      );
-      if (!updatedContract) {
-        throw new ApiError(404, `No contract found matching id ${id}.`);
-      }
-      return updatedContract;
-    } catch (error) {
-      logger.error(`ContractService.terminateContract() have error:\n${error}`);
-      throw error;
-    }
-  }
 }
 
 module.exports = ContractService;
