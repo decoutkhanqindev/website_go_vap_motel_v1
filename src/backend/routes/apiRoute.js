@@ -8,6 +8,7 @@ const RoomController = require("../controllers/RoomController");
 const OccupantController = require("../controllers/OccupantController");
 const ContractController = require("../controllers/ContractController");
 
+// amenity routes
 router.get("/amenities", AmenityController.getAllAmenities);
 router.get("/amenity/:id", AmenityController.getAmenityById);
 router.get("/amenity/image/:id", AmenityController.getAmenityImageById);
@@ -117,6 +118,5 @@ router.patch(
   formatDateMiddleware(["endDate"]),
   ContractController.extendContract
 );
-router.patch("/contract/:id/terminate", ContractController.terminateContract);
 
 module.exports = router;
