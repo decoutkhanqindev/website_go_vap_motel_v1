@@ -194,8 +194,6 @@ class AmenityService {
   static async deleteAmenity(id) {
     try {
       logger.info("AmenityService.deleteAmenity() is called.");
-      const rooms = await RoomService.getAllRooms();
-
       const deletedAmenity = await Amenity.findByIdAndDelete(id);
       if (!deletedAmenity) {
         throw new ApiError(404, `No amenity found matching id ${id}`);
@@ -208,6 +206,7 @@ class AmenityService {
         }
       }
 
+      const rooms = await RoomService.getAllRooms({ amenities: id });
       for (const room of rooms) {
         await RoomService.deleteAmenitiesForRoom(room._id, [id]);
       }

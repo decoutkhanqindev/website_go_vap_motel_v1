@@ -32,6 +32,10 @@ class RoomService {
           .gte(filter.minOccupantsNumber)
           .lte(filter.maxOccupantsNumber);
       }
+      if (filter.amenities)
+        query = query.where("amenities").in(filter.amenities);
+      if (filter.utilities)
+        query = query.where("utilities").in(filter.utilities);
 
       const rooms = await query;
       if (!rooms.length) {

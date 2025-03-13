@@ -196,8 +196,6 @@ class UtilityService {
   static async deleteUtility(id) {
     try {
       logger.info("UtilityService.deleteUtility() is called.");
-      const rooms = await RoomService.getAllRooms();
-
       const deletedUtility = await Utility.findByIdAndDelete(id);
       if (!deletedUtility) {
         throw new ApiError(404, `No utility found matching id ${id}.`);
@@ -210,6 +208,7 @@ class UtilityService {
         }
       }
 
+      const rooms = await RoomService.getAllRooms({ utilities: id });
       for (const room of rooms) {
         await RoomService.deleteUtilitiesForRoom(room._id, [id]);
       }
