@@ -43,38 +43,18 @@ class ContractService {
     }
   }
 
-  static async isExsits(roomId) {
+  static async isExsits(roomId, startDate, dueDate) {
     try {
       logger.info(`ContractService.isExsits() is called.`);
-      const contract = await Contract.findOne({ roomId: roomId });
+      const contract = await Contract.findOne({
+        roomId: roomId,
+        startDate: startDate,
+        dueDate: dueDate
+      });
       if (!contract) return false;
       return true;
     } catch (error) {
       logger.info(`ContractService.isExsits() have error:\n${error}`);
-      throw error;
-    }
-  }
-
-  static async generateContractCode(startDate, endDate) {
-    try {
-      logger.info(`ContractService.generateContractCode() is called.`);
-      const formatStartDate = moment(startDate).format("YYYYMMDD");
-      const formatEndDate = moment(endDate).format("YYYYMMDD");
-
-      const lastContract = await Contract.findOne().sort({ _id: -1 });
-      if (!lastContract) return `HD${formatStartDate}${formatEndDate}001`;
-
-      const lastContractCode = lastContract.contractCode;
-      const lastContractNumber = parseInt(lastContractCode.slice(-3));
-      const newContractNumber = lastContractNumber + 1;
-      const newContractCode = `HD${formatStartDate}${formatEndDate}${newContractNumber
-        .toString()
-        .padStart(3, "0")}`;
-      return newContractCode;
-    } catch (error) {
-      logger.info(
-        `ContractService.generateContractCode() have error:\n${error}`
-      );
       throw error;
     }
   }
@@ -113,7 +93,11 @@ class ContractService {
       logger.info("ContractService.addNewContract() is called.");
       const { roomId, contractCode, startDate, endDate } = data;
 
-      const isExits = await ContractService.isExsits(roomId);
+      const isExits = await ContractService.isExsits(
+        roomId,
+        startDate,
+        endDate
+      );
       if (isExits) throw new ApiError(409, "This contract already exists.");
 
       if (!contractCode) {

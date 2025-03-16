@@ -197,7 +197,7 @@ class InvoiceService {
           paymentMethod: paymentMethod
         },
         {
-          new: true
+          new: true 
         }
       );
       if (!updatedInvoice) {

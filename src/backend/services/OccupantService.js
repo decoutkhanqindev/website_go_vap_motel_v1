@@ -112,7 +112,7 @@ class OccupantService {
       logger.info("OccupanService.addCccdImagesToOccupant() is called.");
       const occupant = await Occupant.findById(id);
       if (!occupant) {
-        throw new ApiError(404, `No amenity found matching id ${id}.`);
+        throw new ApiError(404, `No occupant found matching id ${id}.`);
       }
 
       let newImages = [];
