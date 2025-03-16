@@ -6,7 +6,7 @@ const connectMongoDB = require("./config/databaseConfig");
 const logger = require("./utils/logger");
 const requestLoggingMiddleware = require("./middlewares/requestLoggingMiddleware");
 const errorHandlingMiddleware = require("./middlewares/errorHandlingMiddleware");
-const router = require("./routes/apiRoute");
+const router = require("./routes/apiRoutes");
 
 const app = express();
 const env = process.env;
@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true })); // middleware parses incoming r
 app.use(
   cors({
     credentials: true,
-    origin: `http://${HOSTNAME}:${PORT}`
+    origin: `http://${HOSTNAME}:${PORT}`,
   })
 ); // middleware enables Cross-Origin Resource Sharing (CORS)
 app.use(cookieParser()); // middleware parses cookies attached to incoming requests
@@ -27,7 +27,7 @@ app.use(requestLoggingMiddleware); // middleware handle request Logging
 app.use("/api", router); // middleware handle all api routes
 app.use(errorHandlingMiddleware); // middleware handle common error
 
-app.listen(PORT, HOSTNAME,  () => {
+app.listen(PORT, HOSTNAME, () => {
   logger.info(`Server is running at http://${HOSTNAME}:${PORT}.`);
 });
 
