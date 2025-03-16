@@ -22,7 +22,7 @@ winston.addColors({
   error: "brightRed",
   warn: "brightYellow",
   info: "green",
-  http: "brightBlue",
+  http: "green",
   debug: "cyan"
 });
 
