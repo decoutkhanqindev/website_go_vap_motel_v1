@@ -4,16 +4,22 @@ const ObjectId = Schema.Types.ObjectId;
 
 const expenseSchema = new Schema(
   {
+    roomId: {
+      type: ObjectId,
+      required: true,
+      ref: "Room",
+      index: true,
+    },
     expenseCode: {
       type: String,
       required: true,
       unique: true,
       trim: true,
-      index: true
+      index: true,
     },
     expenseDate: {
       type: Date,
-      required: true
+      required: true,
     },
     category: {
       type: String,
@@ -21,36 +27,36 @@ const expenseSchema = new Schema(
       trim: true,
       index: true,
       enum: ["repair", "maintenance", "purchase"],
-      default: "repair"
+      default: "repair",
     },
     amount: {
       type: Number,
       required: true,
-      min: 0
+      min: 0,
     },
     description: {
       type: String,
       required: false,
       trim: true,
-      default: ""
+      default: "",
     },
     receiptImages: [
       {
         type: ObjectId,
-        ref: "ExpenseImage"
-      }
+        ref: "ExpenseImage",
+      },
     ],
     notes: {
       type: String,
       required: false,
       trim: true,
-      default: ""
-    }
+      default: "",
+    },
   },
   {
     collection: "expenses",
     versionKey: false,
-    timestamps: true
+    timestamps: true,
   }
 );
 

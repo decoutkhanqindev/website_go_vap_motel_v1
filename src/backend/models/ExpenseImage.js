@@ -11,7 +11,7 @@ const expenseImageSchema = new Schema(
       index: true
     },
     data: {
-      type: buffer,
+      type: Buffer,
       required: true
     },
     contentType: {
