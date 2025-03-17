@@ -51,8 +51,7 @@ class ContractService {
         startDate: startDate,
         dueDate: dueDate
       });
-      if (!contract) return false;
-      return true;
+      return !!contract;
     } catch (error) {
       logger.info(`ContractService.isExsits() have error:\n${error}`);
       throw error;
