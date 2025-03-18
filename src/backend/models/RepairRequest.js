@@ -10,12 +10,12 @@ const reqairRequestSchema = new Schema(
       ref: "Room",
       index: true
     },
-    tenantId: {
-      type: ObjectId,
-      required: true,
-      ref: "User",
-      index: true
-    },
+    // tenantId: {
+    //   type: ObjectId,
+    //   required: true,
+    //   ref: "User",
+    //   index: true
+    // },
     requestDate: {
       type: Date,
       required: true,
@@ -36,7 +36,7 @@ const reqairRequestSchema = new Schema(
       type: String,
       required: true,
       index: true,
-      enum: ["pending", "accepted", "rejected"],
+      enum: ["pending", "accepted", "rejected", "resolved"],
       default: "pending"
     }
   },
