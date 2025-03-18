@@ -9,6 +9,7 @@ const OccupantController = require("../controllers/OccupantController");
 const ContractController = require("../controllers/ContractController");
 const InvoiceController = require("../controllers/InvoiceController");
 const ExpenseController = require("../controllers/ExpenseController");
+const RepairRequestController = require("../controllers/RepairRequestController");
 
 // amenity routes
 router.get("/amenities", AmenityController.getAllAmenities);
@@ -148,7 +149,7 @@ router.get(
 router.patch(
   "/expense/:id/receiptImages",
   upload.array("receiptImages", 5),
-  ExpenseController.addReceiptImgesToExpense
+  ExpenseController.addReceiptImagesToExpense
 );
 router.delete(
   "/expense/:id/receiptImages",
@@ -168,5 +169,37 @@ router.put(
 router.delete("/expense/:id", ExpenseController.deleteExpense);
 
 // ___________________________________________________________________________________________________
+
+// repair request routes
+router.get("/repairRequests", RepairRequestController.getAllRepairRequests);
+router.get("/repairRequest/:id", RepairRequestController.getRepairRequestById);
+router.get(
+  "/repairRequest/image/:id",
+  RepairRequestController.getRepairRequestImageById
+);
+router.patch(
+  "/repairRequest/:id/images",
+  upload.array("images", 5),
+  RepairRequestController.addImagesToRepairRequest
+);
+router.delete(
+  "/repairRequest/:id/images",
+  RepairRequestController.deleteImagesForRepairRequest
+);
+router.post(
+  "/repairRequest",
+  formatDateMiddleware(["requestDate"]),
+  upload.array("images", 5),
+  RepairRequestController.addNewRepairRequest
+);
+router.put(
+  "/repairRequest/:id",
+  formatDateMiddleware(["requestDate"]),
+  RepairRequestController.updateRepairRequest
+);
+router.delete(
+  "/repairRequest/:id",
+  RepairRequestController.deleteRepairRequest
+);
 
 module.exports = router;
