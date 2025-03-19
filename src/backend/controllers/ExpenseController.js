@@ -56,9 +56,9 @@ class ExpenseController {
     }
   }
 
-  static async addReceiptImgesToExpense(req, res, next) {
+  static async addReceiptImagesToExpense(req, res, next) {
     try {
-      logger.info("ExpenseController.addReceiptImgesToExpense() is called.");
+      logger.info("ExpenseController.addReceiptImagesToExpense() is called.");
       const id = req.params.id;
       const receiptImageFiles = req.files;
 
@@ -83,7 +83,7 @@ class ExpenseController {
       res.status(201).json(updatedExpense);
     } catch (error) {
       logger.error(
-        `ExpenseController.addReceiptImgesToExpense() have error:\n${error}`
+        `ExpenseController.addReceiptImagesToExpense() have error:\n${error}`
       );
       next(error);
     }
@@ -131,7 +131,7 @@ class ExpenseController {
       const receiptImageFiles = req.files;
 
       if (!data.roomId || !data.expenseDate || !data.category || !data.amount) {
-        return next(new ApiError(400, "Required fields must be provided."));
+        return next(new ApiError(400, "No form data found."));
       }
 
       const addedExpense = await ExpenseService.addNewExpense(
