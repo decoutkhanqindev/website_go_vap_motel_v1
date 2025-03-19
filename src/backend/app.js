@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const connectMongoDB = require("./config/databaseConfig");
+const connectMongoDB = require("./configs/databaseConfig");
 const logger = require("./utils/logger");
 const requestLoggingMiddleware = require("./middlewares/requestLoggingMiddleware");
 const errorHandlingMiddleware = require("./middlewares/errorHandlingMiddleware");
