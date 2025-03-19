@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const upload = require("../config/uploadConfig");
+const upload = require("../configs/uploadConfig");
 const formatDateMiddleware = require("../middlewares/formatDateMiddleware");
 const AmenityController = require("../controllers/AmenityController");
 const UtilityController = require("../controllers/UtilityController");
@@ -10,6 +10,7 @@ const ContractController = require("../controllers/ContractController");
 const InvoiceController = require("../controllers/InvoiceController");
 const ExpenseController = require("../controllers/ExpenseController");
 const RepairRequestController = require("../controllers/RepairRequestController");
+const UserController = require("../controllers/UserController");
 
 // amenity routes
 router.get("/amenities", AmenityController.getAllAmenities);
@@ -201,5 +202,16 @@ router.delete(
   "/repairRequest/:id",
   RepairRequestController.deleteRepairRequest
 );
+
+// ___________________________________________________________________________________________________
+
+// user routes
+router.post("/user/authenticate", UserController.authenticateUser);
+router.get("/users", UserController.getAllUsers);
+router.get("/user/:username", UserController.getUserByUsername);
+router.post("/user", UserController.addNewUser);
+router.patch("/user/:username/phone", UserController.updateUserPhone);
+router.patch("/user/:username/password", UserController.updateUserPassword);
+router.delete("/user/:username", UserController.deleteUser);
 
 module.exports = router;
