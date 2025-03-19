@@ -10,6 +10,12 @@ const occupantSchema = new Schema(
       ref: "Room",
       index: true
     },
+    tenantId: {
+      type: ObjectId,
+      require: false,
+      ref: "User",
+      index: true
+    },
     contractCode: {
       type: String,
       required: true,
