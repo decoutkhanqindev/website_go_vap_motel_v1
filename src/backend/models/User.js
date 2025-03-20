@@ -37,6 +37,23 @@ const userSchema = new Schema(
   }
 );
 
-const User = mongoose.model("User", userSchema);
+const refreshTokenSchema = new Schema(
+  {
+    data: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true
+    }
+  },
+  {
+    collection: "refreshTokens",
+    versionKey: false,
+    timestamps: true
+  }
+);
 
-module.exports = User;
+const User = mongoose.model("User", userSchema);
+const RefreshToken = mongoose.model("RefreshToken", refreshTokenSchema);
+
+module.exports = { User, RefreshToken };

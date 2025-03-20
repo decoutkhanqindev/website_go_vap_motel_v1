@@ -1,6 +1,7 @@
 const ApiError = require("../utils/ApiError");
 const logger = require("../utils/logger");
 const UserService = require("../services/UserService");
+const { securityRules } = require("firebase-admin");
 
 class UserController {
   static async getAllUsers(req, res, next) {
@@ -9,7 +10,7 @@ class UserController {
       const query = req.query;
       const filter = {};
       if (query.role) filter.role = query.role;
-      
+
       const users = await UserService.getAllUsers(filter);
       res.status(200).json(users);
     } catch (error) {
@@ -117,9 +118,65 @@ class UserController {
         username,
         password
       );
+
+      res.cookie("refreshToken", authenticatedUser.refreshToken, {
+        httpOnly: true,
+        secure: false,
+        path: "/",
+        sameSite: "strict"
+      });
+
       res.status(200).json(authenticatedUser);
     } catch (error) {
       logger.error(`UserController.authenticateUser() have error:\n${error}`);
+      next(error);
+    }
+  }
+
+  static async refreshToken(req, res, next) {
+    try {
+      logger.info(`UserController.refreshToken() is called.`);
+      const refreshToken = req.cookies.refreshToken;
+      // take refresh token from user
+      if (!refreshToken)
+        return next(new ApiError(401, "User is not authencated."));
+
+      // create new access token and refresh token
+      const { newAccessToken, newRefreshToken } =
+        await UserService.refreshToken(refreshToken);
+
+      res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: false,
+        path: "/",
+        sameSite: "strict"
+      });
+
+      res.status(200).json({ newAccessToken: newAccessToken });
+    } catch (error) {
+      logger.error(`UserController.refreshToken() have error:\n${error}`);
+      next(error);
+    }
+  }
+
+  static async logoutUser(req, res, next) {
+    try {
+      logger.info(`UserController.logoutUser() is called.`);
+      const refreshToken = req.cookies.refreshToken;
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: false,
+        path: "/",
+        sameSite: "strict"
+      });
+      if (!refreshToken)
+        return next(new ApiError(401, "User is not authencated."));
+      const deletedRefreshToken = await UserService.logoutUser(refreshToken);
+      res.status(200).json(deletedRefreshToken);
+    } catch (error) {
+      logger.error(
+        `UserSerUserControllervice.logoutUser() have error:\n${error}`
+      );
       next(error);
     }
   }

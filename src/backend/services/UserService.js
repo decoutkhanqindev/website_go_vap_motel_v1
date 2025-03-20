@@ -1,8 +1,10 @@
+require("dotenv").config();
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const env = process.env;
 const ApiError = require("../utils/ApiError");
 const logger = require("../utils/logger");
-const User = require("../models/User");
-
+const { User, RefreshToken } = require("../models/User");
 class UserService {
   static async getAllUsers(filter = {}) {
     try {
@@ -38,7 +40,7 @@ class UserService {
     try {
       logger.info(`UserService.isExists() is called.`);
       const user = await User.findOne({
-        [Object.keys(filter)[0]]: Object.values(filter)[0],
+        [Object.keys(filter)[0]]: Object.values(filter)[0]
       });
       return !!user;
     } catch (error) {
@@ -126,17 +128,92 @@ class UserService {
     }
   }
 
+  static generateToken(user, JWT_KEY, time) {
+    try {
+      logger.info(`UserService.generateToken() is called.`);
+      const token = jwt.sign(
+        {
+          id: user._id,
+          role: user.role
+        },
+        JWT_KEY,
+        { expiresIn: time }
+      );
+      return token;
+    } catch (error) {
+      logger.error(`UserService.generateToken() have error:\n${error}`);
+    }
+  }
+
   static async authenticateUser(username, password) {
     try {
       logger.info(`UserService.authenticateUser() is called.`);
       const user = await UserService.getUserByUsername(username);
+
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
         throw new ApiError(401, "Invalid password.");
       }
-      return user;
+
+      const accessToken = UserService.generateToken(
+        user,
+        env.JWT_ACCESS_KEY,
+        "30s"
+      );
+      const refreshToken = UserService.generateToken(
+        user,
+        env.JWT_REFRESH_KEY,
+        "5m"
+      );
+
+      return { user, accessToken, refreshToken };
     } catch (error) {
       logger.error(`UserService.authenticateUser() have error:\n${error}`);
+      throw error;
+    }
+  }
+
+  static async refreshToken(refreshToken) {
+    try {
+      logger.info(`UserService.refreshToken() is called.`);
+      let newAccessToken;
+      let newRefreshToken;
+
+      jwt.verify(refreshToken, env.JWT_REFRESH_KEY, (error, user) => {
+        if (error) throw new ApiError(403, "Token is not valid.");
+        newAccessToken = UserService.generateToken(
+          user,
+          env.JWT_ACCESS_KEY,
+          "30s"
+        );
+        newRefreshToken = UserService.generateToken(
+          user,
+          env.JWT_REFRESH_KEY,
+          "30s"
+        );
+      });
+
+      const newRefreshTokenModel = new RefreshToken({ data: newRefreshToken });
+      await newRefreshTokenModel.save();
+
+      return { newAccessToken, newRefreshToken };
+    } catch (error) {
+      logger.error(`UserService.refreshToken() have error:\n${error}`);
+      throw error;
+    }
+  }
+
+  static async logoutUser(refreshToken) {
+    try {
+      logger.info(`UserService.logoutUser() is called.`);
+      const deletedRefreshToken = await RefreshToken.findOneAndDelete({
+        data: refreshToken
+      });
+      if (!deletedRefreshToken)
+        throw new ApiError(401, "Not found refresh token.");
+      return deletedRefreshToken;
+    } catch (error) {
+      logger.error(`UserService.logoutUser() have error:\n${error}`);
       throw error;
     }
   }
