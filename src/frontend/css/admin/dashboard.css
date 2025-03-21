@@ -1,0 +1,38 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+.header-bg {
+  background-color: #a5bfcc;
+}
+.header-text {
+  font-size: 40px; /* Giảm kích thước chữ cho vừa ảnh */
+  color: #fff; /* Màu chữ trắng cho logo text theo ảnh */
+  font-weight: bold;
+  text-shadow: 4px 4px 6px #000000; /* Thêm bóng đổ cho chữ logo */
+}
+.header-logo img {
+  width: 70px;
+  height: 70px;
+}
+.navbar {
+  padding: 0px;
+  background-color: #e7f2f8;
+  margin-bottom: 20px;
+}
+.nav-item {
+  padding: 5px;
+  margin-right: 10px;
+  font-size: 17px;
+  font-weight: bold;
+}
+.nav-item img {
+  margin-left: 10px;
+  width: 23px;
+  height: 23px;
+}
+.navbar-nav .nav-item.active-menu-item .nav-link {
+  color: white;
+}
+.navbar-nav .nav-item.active-menu-item {
+  background-color: #4da1a9;
+}
