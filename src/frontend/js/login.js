@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
   const showRegisterLink = document.getElementById("show-register-link");
