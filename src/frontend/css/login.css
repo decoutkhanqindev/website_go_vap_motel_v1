@@ -1,0 +1,161 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #a5bfcc;
+}
+
+.half-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.left-side {
+  padding-right: 25%;
+}
+
+.right-side {
+  padding-left: 25%;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 350px;
+  background-color: #e7f2f8;
+  border-radius: 5px;
+  padding: 30px;
+  box-shadow: 4px 4px 6px #000000;
+}
+
+.logo-container {
+  width: 100%;
+  max-width: 350px;
+}
+
+.logo {
+  max-width: 350px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.logo-text {
+  font-size: 40px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 4px 4px 6px #000000;
+}
+
+.left-side,
+.right-side {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#register-form {
+  display: none;
+}
+
+#login-form h2,
+#register-form h2 {
+  text-align: center;
+  font-size: 30px;
+  color: black;
+  font-weight: bold;
+  margin-bottom: 25px;
+}
+
+#login-form button.btn,
+#register-form button.btn {
+  display: block;
+  margin: 0 auto;
+  text-align: center;
+  font-weight: bold;
+  padding: 10px 20px;
+  font-size: 17px;
+  background-color: #4da1a9;
+  color: white;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-heading .form-icon {
+  margin-bottom: 5px;
+  width: 23px;
+  height: 23px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-control {
+  padding: 10px;
+  font-size: 17px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.mt-3.d-flex.justify-content-center.align-items-center {
+  margin-top: 25px !important;
+  font-size: 17px;
+  text-align: center;
+}
+
+.mt-3.d-flex.justify-content-center.align-items-center a {
+  font-weight: bold;
+}
+
+.input-icon-container {
+  position: relative;
+}
+
+.input-icon-container .form-control {
+  padding-right: 35px; /* Tạo khoảng trống cho icon */
+}
+
+.input-icon {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 23px;
+  height: 23px;
+  cursor: text;
+}
+
+.password-input-container {
+  position: relative;
+}
+
+.password-input {
+  padding-right: 35px;
+}
+
+.password-toggle-icon {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 23px;
+  height: 23px;
+  cursor: pointer;
+}
+
+.error-message {
+  color: red;
+  font-style: oblique;
+  font-weight: lighter;
+  margin-top: 5px;
+  display: block;
+}
+
+#show-login-link,
+#show-register-link {
+  color: #4da1a9;
+}
