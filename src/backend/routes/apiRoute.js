@@ -17,13 +17,9 @@ const RepairRequestController = require("../controllers/RepairRequestController"
 const UserController = require("../controllers/UserController");
 
 // amenity routes
-router.get("/amenities", verifyToken, AmenityController.getAllAmenities);
-router.get("/amenity/:id", verifyToken, AmenityController.getAmenityById);
-router.get(
-  "/amenity/image/:id",
-  verifyToken,
-  AmenityController.getAmenityImageById
-);
+router.get("/amenities", AmenityController.getAllAmenities);
+router.get("/amenity/:id", AmenityController.getAmenityById);
+router.get("/amenity/image/:id", AmenityController.getAmenityImageById);
 router.post(
   "/amenity",
   verifyIsLandlord,
@@ -50,13 +46,9 @@ router.delete(
 
 // ___________________________________________________________________________________________________
 // utility routes
-router.get("/utilities", verifyToken, UtilityController.getAllUtilities);
-router.get("/utility/:id", verifyToken, UtilityController.getUtilityById);
-router.get(
-  "/utility/image/:id",
-  verifyToken,
-  UtilityController.getUtilityImageById
-);
+router.get("/utilities", UtilityController.getAllUtilities);
+router.get("/utility/:id", UtilityController.getUtilityById);
+router.get("/utility/image/:id", UtilityController.getUtilityImageById);
 router.post(
   "/utility",
   verifyIsLandlord,
@@ -83,9 +75,9 @@ router.delete(
 
 // ___________________________________________________________________________________________________
 // room routes
-router.get("/rooms", verifyToken, RoomController.getAllRooms);
-router.get("/room/:id", verifyToken, RoomController.getRoomById);
-router.get("/room/image/:id", verifyToken, RoomController.getRoomImageById);
+router.get("/rooms", RoomController.getAllRooms);
+router.get("/room/:id", RoomController.getRoomById);
+router.get("/room/image/:id", RoomController.getRoomImageById);
 router.post(
   "/room",
   verifyIsLandlord,
