@@ -16,7 +16,6 @@ class RoomController {
         filter.minRentPrice = query.minRentPrice;
         filter.maxRentPrice = query.maxRentPrice;
       }
-      if (query.area) filter.area = query.area;
       if (query.minOccupantsNumber && query.maxOccupantsNumber) {
         filter.minOccupantsNumber = query.minOccupantsNumber;
         filter.maxOccupantsNumber = query.maxOccupantsNumber;
