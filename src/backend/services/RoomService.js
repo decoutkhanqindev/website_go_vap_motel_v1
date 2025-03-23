@@ -12,7 +12,8 @@ class RoomService {
       if (filter.roomNumber)
         query = query.where("roomNumber").equals(filter.roomNumber);
       if (filter.status) query = query.where("status").equals(filter.status);
-      if (filter.address) query = query.where("address").equals(filter.address);
+      if (filter.address)
+        query = query.where("address").regex(new RegExp(filter.address, "i"));
       if (
         filter.minRentPrice !== undefined &&
         filter.maxRentPrice !== undefined
@@ -22,7 +23,6 @@ class RoomService {
           .gte(filter.minRentPrice)
           .lte(filter.maxRentPrice);
       }
-      if (filter.area) query = query.where("area").equals(filter.area);
       if (
         filter.minOccupantsNumber !== undefined &&
         filter.maxOccupantsNumber !== undefined
