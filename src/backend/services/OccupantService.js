@@ -13,7 +13,7 @@ class OccupantService {
       if (filter.contractCode)
         query = query.where("contractCode").equals(filter.contractCode);
       if (filter.fullName)
-        query = query.where("fullName").equals(filter.fullName);
+        query = query.where("fullName").regex(new RegExp(filter.fullName, "i"));
 
       const occupants = await query;
       if (!occupants.length) {
