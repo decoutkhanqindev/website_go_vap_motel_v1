@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nhà trọ Gò Vấp</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="shortcut icon" href="../../assets/logo.jpg" type="IMAGE" />
+    <link rel="stylesheet" href="../css/home.css" />
+  </head>
+  <body>
+    <!-- header -->
+    <header class="header-bg py-3">
+      <div
+        class="container-fluid d-flex justify-content-center align-items-center"
+      >
+        <div class="header-logo">
+          <img src="../../assets/logo_no_text.png" alt="Logo Nhà trọ" />
+        </div>
+
+        <h1 class="header-text text-center mb-0">NHÀ TRỌ GÒ VẤP</h1>
+      </div>
+    </header>
+
+    <!-- menu -->
+    <nav
+      class="navbar navbar-expand-sm d-flex justify-content-center align-items-center"
+    >
+      <div class="container-fluid">
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div
+          class="collapse navbar-collapse justify-content-center"
+          id="navbarNav"
+        >
+          <ul class="navbar-nav">
+            <li
+              class="nav-item d-flex justify-content-center align-items-center"
+            >
+              <img
+                class="nav-img"
+                src="../../assets/logo_home_page.png"
+                alt=""
+              />
+              <a class="nav-link" href="#" data-target="home">Trang chủ</a>
+            </li>
+            <li
+              class="nav-item d-flex justify-content-center align-items-center"
+            >
+              <img class="nav-img" src="../../assets/logo_room.png" alt="" />
+              <a class="nav-link" href="#" data-target="rooms">Phòng</a>
+            </li>
+            <li
+              class="nav-item d-flex justify-content-center align-items-center"
+            >
+              <img
+                class="nav-img"
+                src="../../assets/logo_amenity_utility.png"
+                alt=""
+              />
+              <a class="nav-link" href="#" data-target="amenities-utilities"
+                >Tiện nghi và Tiện ích
+              </a>
+            </li>
+            <li
+              class="nav-item d-flex justify-content-center align-items-center"
+            >
+              <img class="nav-img" src="../../assets/logo_phone.png" alt="" />
+              <a class="nav-link" href="#" data-target="contact">Liên hệ</a>
+            </li>
+            <li
+              class="nav-item d-flex justify-content-center align-items-center"
+            >
+              <img class="nav-img" src="../../assets/logo_user.png" alt="" />
+              <a class="nav-link" href="#" data-target="login">Đăng nhập</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- content -->
+    <div class="content">
+      <div class="container mt-4">
+        <!-- home menu item -->
+        <div id="home" class="home">
+          <div class="row d-flex align-items-stretch">
+            <!-- introduction -->
+            <div class="col-md-6">
+              <div class="introduction h-100">
+                <div
+                  class="introduction-title d-flex justify-content-center align-items-center"
+                >
+                  GIỚI THIỆU
+                </div>
+                <p>
+                  Hệ thống Nhà trọ Gò vấp được xây dựng từ năm 2021, các phòng
+                  trọ đều mang thiết kế mới mẻ, sạch sẽ, đầy đủ tiện ích như
+                  giường, tủ, máy lạnh, nước nóng, internet tốc độ cao,... Vị
+                  trí thuận tiện, gần các trường đại học lớn như Văn Lang, IUH,
+                  giúp sinh viên dễ dàng di chuyển mà không tốn nhiều thời gian.
+                </p>
+                <p>
+                  Chủ trọ – Ông Nguyễn Văn A (sinh ngày 01/01/1999, quê tại TP.
+                  Hồ Chí Minh), là người luôn đặt chữ Tâm lên hàng đầu, mong
+                  muốn mang đến một môi trường sống an toàn, chất lượng cho công
+                  nhân, lao động, học sinh, sinh viên. Không chỉ cung cấp chỗ ở
+                  đầy đủ tiện nghi, ông còn hỗ trợ sửa chữa nhanh chóng, đảm bảo
+                  cuộc sống của người thuê luôn thoải mái và an tâm.
+                </p>
+                <p>
+                  Với mức giá hợp lý chỉ từ 1.800.000 VNĐ đến 2.000.000 VNĐ bạn
+                  đã có được vị trí thuận lợi, môi trường sống văn minh, Nhà Trọ
+                  Gò Vấp là lựa chọn lý tưởng cho những ai đang tìm kiếm một chỗ
+                  ở lâu dài, ổn định tại khu vực Gò Vấp.
+                </p>
+              </div>
+            </div>
+
+            <!-- branch -->
+            <div class="col-md-6">
+              <div class="branch h-100">
+                <div
+                  class="branch-title d-flex justify-content-center align-items-center"
+                >
+                  CÁC CHI NHÁNH
+                </div>
+                <div class="row">
+                  <!-- Branch items will be dynamically generated here -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- room list -->
+          <div class="room-list">
+            <div
+              class="room-list-title d-flex justify-content-center align-items-center"
+            >
+              CÁC PHÒNG NỔI BẬT
+            </div>
+            <div class="room-list-container">
+              <!-- Room items will be added here -->
+            </div>
+          </div>
+
+          <!-- cost of living -->
+          <div class="cost-living">
+            <div
+              class="cost-living-title d-flex justify-content-center align-items-center"
+            >
+              CHI PHÍ SINH HOẠT
+            </div>
+            <p>
+              Tất cả các phòng trong Hệ thống Nhà trọ Gò Vấp sẽ có cùng mức giá
+              cho các chi phí sinh hoạt, người thuê cần thanh toán các chi phí
+              này theo mức sử dụng cá nhân. Dưới đây là chi tiết các khoản chi
+              phí:
+            </p>
+            <ul>
+              <li>
+                <strong>💡 Điện:</strong> 3.500 VNĐ/kWh (tính theo đồng hồ điện
+                riêng từng phòng).
+              </li>
+              <li>
+                <strong>💧 Nước:</strong> 4.000 VNĐ/m³ (tính theo đồng hồ nước
+                riêng từng phòng).
+              </li>
+            </ul>
+            <p>
+              Các khoản chi phí này sẽ được tính dựa trên mức tiêu thụ thực tế
+              hàng tháng. Người thuê có thể kiểm tra đồng hồ điện, nếu có sai
+              sót hãy liên hệ với chủ trọ sớm nhất có thể để được giải quyết
+              nhanh nhất.
+            </p>
+          </div>
+
+          <!-- amenity list -->
+          <div class="amenity-list">
+            <div
+              class="amenity-list-title d-flex justify-content-center align-items-center"
+            >
+              CÁC TIỆN NGHI TRONG PHÒNG
+            </div>
+            <div class="amenity-list-container">
+              <!-- amenity items will be added here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- rooms menu item -->
+        <div id="rooms" class="rooms">
+          <div
+            class="rooms-title d-flex justify-content-center align-items-center"
+          >
+            DANH SÁCH CÁC PHÒNG
+          </div>
+          <div class="row">
+            <!-- Left Column: Filters -->
+            <div class="col-md-3">
+              <div class="filter-container">
+                <h5 class="filter-heading">Lọc phòng</h5>
+
+                <!-- Status Filter -->
+                <div class="filter-group">
+                  <label class="filter-label">Trạng thái:</label>
+                  <select id="statusFilter" class="form-select">
+                    <option value="all">Tất cả</option>
+                    <option value="vacant">Trống</option>
+                    <option value="occupied">Đã thuê</option>
+                    <option value="unavailable">Không có sẵn</option>
+                  </select>
+                </div>
+
+                <!-- Price Range Filter -->
+                <div class="filter-group">
+                  <label for="priceRange" class="filter-label"
+                    >Khoảng giá (VNĐ):</label
+                  >
+                  <input
+                    type="range"
+                    class="form-range"
+                    min="0"
+                    max="5000000"
+                    step="100000"
+                    value="0"
+                    id="priceRange"
+                  />
+                  <div class="d-flex justify-content-between">
+                    <span id="minPrice">0</span>
+                    <span id="maxPrice">5.000.000</span>
+                  </div>
+                </div>
+
+                <!-- Address Filter -->
+                <div class="filter-group">
+                  <label class="filter-label">Địa chỉ:</label>
+                  <select id="addressFilter" class="form-select">
+                    <option value="all">Tất cả</option>
+                    <option value="Nguyễn Văn Công">Nguyễn Văn Công</option>
+                    <option value="Dương Quảng Hàm">Dương Quảng Hàm</option>
+                  </select>
+                </div>
+
+                <!-- Capacity Filter -->
+                <div class="filter-group">
+                  <label for="occupantNumberRange" class="filter-label"
+                    >Số người ở:</label
+                  >
+                  <input
+                    type="range"
+                    class="form-range"
+                    min="0"
+                    max="5"
+                    step="1"
+                    value="0"
+                    id="occupantNumberRange"
+                  />
+                  <div class="d-flex justify-content-between">
+                    <span id="minOccupantNumber">0</span>
+                    <span id="maxOccupantNumber">5</span>
+                  </div>
+                </div>
+
+                <!-- Apply Filter Button (Optional, for clarity) -->
+                <button id="applyFilters" class="btn">Áp dụng</button>
+              </div>
+            </div>
+
+            <!-- Right Column: Room List -->
+            <div class="col-md-9">
+              <div class="room-list-container">
+                <!-- Room items will be dynamically generated here -->
+              </div>
+              <!-- Pagination -->
+              <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                  <!-- Pagination items will be added here dynamically -->
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+
+        <!-- amenities and utilities menu item -->
+        <div id="amenities-utilities" class="amenities-utilities">
+          <div class="amenities-container">
+            <div
+              class="amenities-title d-flex justify-content-center align-items-center"
+            >
+              DANH SÁCH CÁC TIỆN NGHI
+            </div>
+            <p>
+              Nhà trọ Gò Vấp cung cấp đầy đủ tiện nghi cần thiết để mang lại
+              cuộc sống thoải mái cho người thuê. Các tiện nghi đều có nguồn gốc
+              rõ ràng, chất lượng đảm bảo với độ mới từ 80% - 99%. Nếu có hư
+              hỏng không phải do người thuê, chủ trọ sẽ hỗ trợ sửa chữa hoàn
+              toàn miễn phí.
+            </p>
+            <p>
+              Khi xem chi tiết phòng, bạn có thể thấy danh sách các tiện nghi đi
+              kèm. Nếu muốn thêm một số tiện nghi khác, bạn có thể chọn và giá
+              của từng tiện nghi sẽ được cộng vào tiền phòng.
+            </p>
+            <p>
+              <strong>Lưu ý:</strong> Các tiện nghi có thể lựa chọn sẽ chỉ được
+              tính phí một lần và khoản này sẽ được cộng vào tiền đặt cọc khi
+              thuê phòng.
+            </p>
+            <div class="amenity-list-container">
+              <!-- amenity items will be added here -->
+            </div>
+          </div>
+          <div class="utilities-container">
+            <div
+              class="utilities-title d-flex justify-content-center align-items-center"
+            >
+              ĐANH SÁCH CÁC TIỆN NGHI
+            </div>
+            <p>
+              Hệ thống Nhà trọ Gò Vấp cung cấp nhiều tiện ích khác nhằm nâng cao
+              trải nghiệm sinh hoạt của người thuê. Các tiện ích này bao gồm
+              internet tốc độ cao, bãi giữ xe rộng rãi, khu vực giặt sấy, camera
+              an ninh 24/7, hệ thống PCCC đạt chuẩn, và nhiều tiện ích khác.
+            </p>
+            <p>
+              <strong>Lưu ý:</strong> Một số tiện ích sẽ được sử dụng miễn phí,
+              trong khi một số tiện ích khác sẽ có phí dịch vụ tùy theo nhu cầu
+              sử dụng của từng người thuê. Bạn có thể tham khảo thông tin chi
+              tiết trong hợp đồng thuê phòng hoặc liên hệ trực tiếp với chủ trọ
+              để biết thêm thông tin.
+            </p>
+            <div class="utility-list-container">
+              <!-- utility items will be added here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- contact menu item -->
+        <div id="contact" class="contact">
+          <div
+            class="contact-title d-flex justify-content-center align-items-center"
+          >
+            THÔNG TIN LIÊN HỆ
+          </div>
+          <div class="contact-container">
+            <div class="contact-image-container">
+              <img
+                src="../../assets/chủ trọ.png"
+                alt="Ảnh chủ trọ"
+                class="contact-image"
+              />
+            </div>
+            <div class="contact-info">
+              <h2 class="contact-name">Ông Nguyễn Văn A</h2>
+              <p class="contact-detail">
+                <strong class="contact-label">Ngày sinh:</strong> 01/01/1999
+              </p>
+              <p class="contact-detail">
+                <strong class="contact-label">Quê quán:</strong> TP. Hồ Chí Minh
+              </p>
+              <p class="contact-detail">
+                Ông A là người luôn đặt chữ Tâm lên hàng đầu, mong muốn mang đến
+                một môi trường sống an toàn, chất lượng cho mọi người. Ông tốt
+                nghiệp Đại học Kiến trúc TP. Hồ Chí Minh, chuyên ngành Quản lý
+                xây dựng, với nền tảng vững chắc trong lĩnh vực quy hoạch và
+                phát triển không gian sống.
+              </p>
+              <p class="contact-detail">
+                Với hơn 5 năm kinh nghiệm trong việc xây dựng và vận hành hệ
+                thống nhà trọ, ông A hiểu rõ nhu cầu của người thuê trọ, đặc
+                biệt là sinh viên và người lao động tại TP. Hồ Chí Minh. Ông
+                luôn chú trọng vào việc thiết kế không gian sống tối ưu, đảm bảo
+                an ninh, tiện nghi và mức giá hợp lý.
+              </p>
+              <p class="contact-detail">
+                Hệ thống nhà trọ Gò Vấp được ông A xây dựng với mong muốn tạo ra
+                một cộng đồng sống thân thiện, nơi mọi người có thể yên tâm học
+                tập và làm việc. Ông không chỉ cung cấp chỗ ở mà còn thường
+                xuyên cải tiến dịch vụ, hỗ trợ người thuê trọ trong mọi vấn đề
+                liên quan đến sinh hoạt hàng ngày.
+              </p>
+
+              <div class="contact-methods">
+                <div class="d-flex align-items-center">
+                  <a
+                    href="https://www.facebook.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Facebook"
+                    class="me-3"
+                  >
+                    <img
+                      src="../../assets/logo_fb.png"
+                      alt="Facebook"
+                      class="contact-method-icon"
+                    />
+                  </a>
+                  <a
+                    href="https://zalo.me/0123456789"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Zalo"
+                    class="me-3"
+                  >
+                    <img
+                      src="../../assets/logo_zalo.png"
+                      alt="Zalo"
+                      class="contact-method-icon"
+                    />
+                  </a>
+
+                  <a href="tel:0123456789" aria-label="Phone">
+                    <img
+                      src="../../assets/logo_phone.png"
+                      alt="Phone"
+                      class="contact-method-icon"
+                    />
+                  </a>
+                  <span>0123 456 789</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- login menu item -->
+        <div id="login" class="login">
+          <div
+            class="login-title d-flex justify-content-center align-items-center"
+          >
+            Log in to continue
+          </div>
+          <p>Comming soon</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <footer class="footer-bg py-4">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <p class="footer-copyright mb-2">
+              © 2025 Nhà trọ Gò Vấp. All rights reserved.
+            </p>
+            <p class="footer-contact mb-2">
+              Liên hệ: 0123 456 789 (Mr. A) | Email: lienhe@nhathogovap.com
+            </p>
+            <p class="footer-policy">
+              <a href="#">Chính sách bảo mật</a>
+            </p>
+          </div>
+          <div class="col-md-6 d-flex justify-content-end align-items-center">
+            <div class="footer-social">
+              <a
+                href="https://www.facebook.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+              >
+                <img
+                  src="../../assets/logo_fb.png"
+                  alt="Facebook"
+                  class="social-icon"
+                />
+              </a>
+              <a
+                href="https://www.youtube.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Youtube"
+              >
+                <img
+                  src="../../assets/logo_ytb.png"
+                  alt="YouTube"
+                  class="social-icon"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- alert error -->
+    <div
+      id="errorAlert"
+      class="alert alert-danger alert-dismissible fade show"
+      role="alert"
+      style="
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+      "
+    >
+      <span id="errorMessage"></span>
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert"
+        aria-label="Close"
+      ></button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="module" src="../js/home.js"></script>
+  </body>
+</html>
