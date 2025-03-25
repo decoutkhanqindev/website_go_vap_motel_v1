@@ -3,7 +3,7 @@ const path = require("path");
 const router = express.Router();
 
 router.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../frontend/html/client/home.html"));
+  res.sendFile(path.join(__dirname, "../../frontend/html/home.html"));
 });
 
 router.get("/login", (req, res) => {
@@ -19,6 +19,12 @@ router.get("/admin/dashboard", (req, res) => {
 router.get("/client/dashboard", (req, res) => {
   res.sendFile(
     path.join(__dirname, "../../frontend/html/client/dashboard.html")
+  );
+});
+
+router.get("/room/details/:id", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "../../frontend/html/details/roomDetails.html")
   );
 });
 
