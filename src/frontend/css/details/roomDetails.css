@@ -1,0 +1,307 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  position: relative;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header-bg {
+  background-color: #a5bfcc;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+.header-text {
+  font-size: 70px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 4px 4px 6px #000000;
+}
+.header-logo img {
+  width: 100px;
+  height: 100px;
+}
+
+.content {
+  position: relative;
+  padding-top: 150px;
+  flex: 1;
+}
+.content::before {
+  content: "";
+  position: fixed;
+  top: calc(50px + 2 * 1rem + 1rem);
+  left: 0;
+  width: 100%;
+  height: calc(100% - (130px + 2 * 1rem + 1rem));
+  background-image: url("../../assets/logo_no_text.png");
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center center;
+  background-size: 700px;
+  opacity: 0.1;
+  z-index: -3;
+}
+
+.room-details-title,
+.cost-living-title,
+.amenity-list-title,
+.utility-list-title {
+  border-radius: 5px;
+  font-size: 32px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 4px 4px 6px #000000;
+  color: white;
+  background-color: #a5bfcc;
+  padding: 10px;
+  border-bottom: 2px solid #4da1a9;
+  margin-bottom: 20px;
+}
+.room-details {
+  padding: 20px;
+  border: 2px solid #a5bfcc;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+.image-list-container {
+  display: flex;
+  align-items: center;
+  width: 600px;
+  height: 350px;
+  padding: 0;
+  overflow: hidden; /* Ẩn ảnh khi vượt quá khung */
+  position: relative; /* Để các nút prev/next định vị tuyệt đối */
+}
+.image-list {
+  display: flex;
+  margin-left: 170px;
+  transition: transform 0.5s ease-in-out; /* Hiệu ứng chuyển ảnh */
+  width: fit-content; /* Để chiều rộng của .image-list bằng tổng chiều rộng các ảnh */
+}
+.image-list img {
+  width: 220px; /* Kích thước ảnh nhỏ */
+  height: 220px;
+  object-fit: cover;
+  margin-right: 20px;
+  margin-left: 20px;
+  padding-left: 10px;
+  padding-right: 10px;
+  cursor: pointer;
+  transition: transform 0.3s ease; /* Hiệu ứng khi phóng to/thu nhỏ */
+  border: 2px solid transparent;
+}
+.image-list img.active {
+  transform: scale(1.5); /* Ảnh active to hơn */
+  z-index: 1;
+}
+.nav-button {
+  position: absolute; /* Các nút prev/next nằm trên danh sách ảnh */
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(255, 255, 255, 0.7); /* Nền trong suốt */
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 2; /* Nút nằm trên ảnh */
+  padding: 10px;
+  width: 50px; /* Điều chỉnh kích thước nút nếu cần */
+  height: 50px;
+}
+.nav-button img {
+  width: 100%;
+  height: 100%;
+}
+.prev-button {
+  left: 10px;
+}
+.next-button {
+  right: 10px;
+}
+.nav-button:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.room-info-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 1em;
+  text-align: center;
+}
+.room-info-container {
+  width: auto;
+}
+.amenity-item,
+.utility-item {
+  flex: 0 0 auto;
+  width: 250px;
+  padding: 10px;
+  border: 2px solid #a5bfcc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  margin-right: 10px;
+  transition: transform 0.2s ease-in-out;
+  & p {
+    margin-bottom: 5px;
+    font-size: 16px;
+    &:first-child {
+      font-size: 16px;
+      font-weight: bold;
+    }
+  }
+}
+.amenity-info,
+.utility-info {
+  display: flex;
+  flex-direction: column;
+}
+.amenity-item:hover,
+.utility-item:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.amenity-note,
+.utility-note {
+  margin-top: 3px;
+  font-size: 15px;
+}
+.amenity-image,
+.utility-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  margin-bottom: 10px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+.room-name {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #333;
+}
+.amenity-name,
+.utility-name {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #333;
+}
+.room-price,
+.room-address,
+.room-status,
+.room-occupant-number,
+.room-description,
+.amenity-price,
+.utility-price {
+  font-size: 16px;
+  margin-bottom: 3px;
+  display: flex;
+  gap: 5px;
+}
+.price-label,
+.address-label,
+.status-label,
+.occupant-number-label,
+.description-label {
+  font-weight: bold;
+}
+.price-value {
+  color: #d9534f;
+  font-weight: bold;
+}
+.address-value {
+  color: #555;
+}
+.status-vacant {
+  color: green;
+}
+.status-occupied {
+  color: red;
+}
+.status-unavailable {
+  color: orange;
+}
+.cost-living {
+  margin-top: 20px;
+}
+.cost-living,
+.amenity-list,
+.utility-list p {
+  line-height: 1.6;
+  margin-bottom: 25px;
+  text-align: justify;
+  font-weight: bold;
+}
+.amenity-list-container,
+.utility-list-container {
+  padding: 25px;
+  display: flex;
+  overflow-x: auto;
+  gap: 15px;
+  width: 100%;
+  border-radius: 5px;
+  margin-bottom: 25px;
+}
+.add-amenity,
+.remove-amenity,
+.add-utitlity,
+.remove-utitlity {
+  border-radius: 5px;
+  background-color: #4da1a9;
+}
+.add-amenity,
+.remove-amenity,
+.add-utitlity,
+.remove-utitlity p {
+  border: 2px solid white;
+  color: white;
+  background-color: #4da1a9; /* Bootstrap primary color */
+}
+
+strong {
+  color: red;
+}
+
+.footer-bg {
+  background-color: #a5bfcc;
+  color: white;
+  padding: 20px 0;
+  clear: both;
+}
+.footer-copyright,
+.footer-contact,
+.footer-policy {
+  margin-bottom: 0.5rem;
+  font-size: 16px;
+}
+.footer-social a {
+  margin-left: 1rem;
+  display: inline-block;
+}
+.social-icon {
+  width: 30px;
+  height: 30px;
+  transition: transform 0.2s ease-in-out;
+}
+.social-icon:hover {
+  transform: scale(1.1);
+}
+.footer-policy a {
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+}
