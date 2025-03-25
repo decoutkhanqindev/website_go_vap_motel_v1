@@ -5,6 +5,7 @@ const env = process.env;
 const ApiError = require("../utils/ApiError");
 const logger = require("../utils/logger");
 const { User, RefreshToken } = require("../models/User");
+
 class UserService {
   static async getAllUsers(filter = {}) {
     try {
@@ -32,6 +33,21 @@ class UserService {
       return user;
     } catch (error) {
       logger.error(`UserService.getUserByUsername() have error:\n${error}`);
+      throw error;
+    }
+  }
+
+  static async getUserById(id) {
+    // New method to get user by ID
+    try {
+      logger.info(`UserService.getUserById() is called with ID: ${id}`);
+      const user = await User.findById(id);
+      if (!user) {
+        throw new ApiError(404, `No user found matching ID ${id}.`);
+      }
+      return user;
+    } catch (error) {
+      logger.error(`UserService.getUserById() have error:\n${error}`);
       throw error;
     }
   }
@@ -142,6 +158,7 @@ class UserService {
       return token;
     } catch (error) {
       logger.error(`UserService.generateToken() have error:\n${error}`);
+      throw error; // Re-throw the error
     }
   }
 
@@ -214,6 +231,17 @@ class UserService {
       return deletedRefreshToken;
     } catch (error) {
       logger.error(`UserService.logoutUser() have error:\n${error}`);
+      throw error;
+    }
+  }
+  static async getMe(userId) {
+    // New method to get the current user
+    try {
+      logger.info(`UserService.getMe() is called`);
+      const user = await UserService.getUserById(userId); // Use existing getUserById
+      return user;
+    } catch (error) {
+      logger.error(`UserService.getMe() have error:\n${error}`);
       throw error;
     }
   }

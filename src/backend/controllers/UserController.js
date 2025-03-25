@@ -1,7 +1,6 @@
 const ApiError = require("../utils/ApiError");
 const logger = require("../utils/logger");
 const UserService = require("../services/UserService");
-const { securityRules } = require("firebase-admin");
 
 class UserController {
   static async getAllUsers(req, res, next) {
@@ -177,6 +176,22 @@ class UserController {
       logger.error(
         `UserSerUserControllervice.logoutUser() have error:\n${error}`
       );
+      next(error);
+    }
+  }
+
+  static async getMe(req, res, next) {
+    // New controller method
+    try {
+      logger.info(`UserController.getMe() is called.`);
+      const userId = req.user.id; // Get user ID from the request (added by verifyToken middleware)
+      console.log("userId", userId)
+      const user = await UserService.getMe(userId);
+      // Remove sensitive data like password before sending the response.
+      const { password, ...userData } = user.toObject ? user.toObject() : user; // Use toObject() if it's a Mongoose document
+      res.status(200).json(userData);
+    } catch (error) {
+      logger.error(`UserController.getMe() have error:\n${error}`);
       next(error);
     }
   }

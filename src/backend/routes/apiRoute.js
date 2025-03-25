@@ -15,6 +15,7 @@ const InvoiceController = require("../controllers/InvoiceController");
 const ExpenseController = require("../controllers/ExpenseController");
 const RepairRequestController = require("../controllers/RepairRequestController");
 const UserController = require("../controllers/UserController");
+const { User } = require("../models/User");
 
 // amenity routes
 router.get("/amenities", AmenityController.getAllAmenities);
@@ -306,6 +307,7 @@ router.post("/user/logout", UserController.logoutUser);
 router.post("/user", UserController.addNewUser);
 router.get("/users", verifyIsLandlord, UserController.getAllUsers);
 router.get("/user/:username", verifyToken, UserController.getUserByUsername);
+router.get("/user/current/me", verifyToken, UserController.getMe);
 router.patch(
   "/user/:username/phone",
   verifyToken,
