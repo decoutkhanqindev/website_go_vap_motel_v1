@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchAndRenderUiForHomeTab() {
     try {
       // call api to fetch rooms and render ui for home tab
-      const rooms = await RoomService.getAllRooms();
+      const rooms = await RoomService.getAllRooms({}); // Pass an empty object as the filter
       const roomsNVC = rooms.filter((room) =>
         room.address.includes("Nguyễn Văn Công")
       );
@@ -84,19 +84,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const minOccupant = occupantNumberRange.value;
       const maxOccupant = occupantNumberRange.getAttribute("max");
 
-      const queryParams = new URLSearchParams();
-      if (statusFilter !== "all") queryParams.append("status", statusFilter);
+      const filter = {}; // Use a filter object
+      if (statusFilter !== "all") filter.status = statusFilter;
       if (Number(minPrice) > 0) {
-        queryParams.append("minRentPrice", minPrice);
-        queryParams.append("maxRentPrice", maxPrice);
+        filter.minRentPrice = minPrice;
+        filter.maxRentPrice = maxPrice;
       }
-      if (addressFilter !== "all") queryParams.append("address", addressFilter);
+      if (addressFilter !== "all") filter.address = addressFilter;
       if (Number(minOccupant) > 0) {
-        queryParams.append("minOccupantsNumber", minOccupant);
-        queryParams.append("maxOccupantsNumber", maxOccupant);
+        filter.minOccupantsNumber = minOccupant;
+        filter.maxOccupantsNumber = maxOccupant;
       }
-
-      const rooms = await RoomService.getAllRooms(queryParams);
+      const rooms = await RoomService.getAllRooms(filter); //pass filter
       renderRoomListUIRoomsTab(rooms);
     } catch (error) {
       handleError(error, error.message);
@@ -146,6 +145,8 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchAndRenderUiForHomeTab();
   fetchAndRenderUiForRoomsTab();
   fetchAndRenderUiForAmenitiesAndUtilitiesTab();
+
+  addRoomClickListeners();
 
   // begin content is home tab
   showContent("home");
@@ -222,8 +223,9 @@ function renderBranchUIHomeTab(roomsNVC, roomsDQH) {
 async function createRoomItem(room) {
   const roomItem = document.createElement("div");
   roomItem.classList.add("room-item");
+  roomItem.dataset.id = room._id;
 
-  let imageSrc = "../../assets/logo_no_text.png";
+  let imageSrc = "../../assets/logo_error.png";
   if (room.images && room.images.length > 0) {
     try {
       const imageData = await RoomService.getRoomImageById(room.images[0]);
@@ -235,6 +237,7 @@ async function createRoomItem(room) {
       );
       imageSrc = `data:${imageData.contentType};base64,${base64Image}`;
     } catch (error) {
+      handleError(error, error.message);
       console.error("Error fetching or processing image:", error);
     }
   }
@@ -307,6 +310,8 @@ async function renderRoomListUIHomeTab(roomsNVC, roomsDQH) {
     const item = await createRoomItem(room);
     roomListContainer.appendChild(item);
   }
+
+  addRoomClickListeners();
 }
 
 async function createAmenityItem(amenity) {
@@ -327,6 +332,7 @@ async function createAmenityItem(amenity) {
       );
       imageSrc = `data:${imageData.contentType};base64,${base64Image}`;
     } catch (error) {
+      handleError(error, error.message);
       console.error("Error fetching or processing amenity image:", error);
     }
   }
@@ -399,20 +405,6 @@ async function renderPaginationUI(rooms) {
 
   const totalPages = Math.ceil(totalRooms / roomsPerPage);
 
-  // // Nút Previous
-  // const prevButton = document.createElement("li");
-  // prevButton.classList.add("page-item");
-  // prevButton.innerHTML = `<a class="page-link" href="#" aria-label="Previous"><img src="../../assets/pre_btn.png" alt="Previous"></a>`; // Thay đổi đường dẫn ảnh
-  // if (currentPage === 1) {
-  //   prevButton.classList.add("disabled");
-  // } else {
-  //   prevButton.addEventListener("click", () => {
-  //     currentPage--;
-  //     renderRoomListUIRoomsTab(rooms);
-  //   });
-  // }
-  // paginationContainer.appendChild(prevButton);
-
   for (let i = 1; i <= totalPages; i++) {
     const pageNumberItem = document.createElement("li");
     pageNumberItem.classList.add("page-item");
@@ -436,20 +428,6 @@ async function renderPaginationUI(rooms) {
     pageNumberItem.appendChild(pageNumberLink);
     paginationContainer.appendChild(pageNumberItem);
   }
-
-  // // Nút Next
-  // const nextButton = document.createElement("li");
-  // nextButton.classList.add("page-item");
-  // nextButton.innerHTML = `<a class="page-link" href="#" aria-label="Next"><img src="../../assets/next_btn.png" alt="Next"></a>`; // Thay đổi đường dẫn ảnh
-  // if (currentPage === totalPages) {
-  //   nextButton.classList.add("disabled");
-  // } else {
-  //   nextButton.addEventListener("click", () => {
-  //     currentPage++;
-  //     renderRoomListUIRoomsTab(rooms);
-  //   });
-  // }
-  // paginationContainer.appendChild(nextButton);
 }
 
 async function renderRoomListUIRoomsTab(rooms) {
@@ -478,6 +456,8 @@ async function renderRoomListUIRoomsTab(rooms) {
     currentRow.appendChild(roomItem);
   }
   renderPaginationUI(rooms);
+
+  addRoomClickListeners();
 }
 
 // amenities and utilities tab functions
@@ -516,6 +496,7 @@ async function createUtilityItem(utility) {
       );
       imageSrc = `data:${imageData.contentType};base64,${base64Image}`;
     } catch (error) {
+      handleError(error, error.message);
       console.error("Error fetching or processing amenity image:", error);
     }
   }
@@ -565,6 +546,17 @@ async function renderUtilityListUIAmenitiesAndUtilitiesTab(utilities) {
     const item = await createUtilityItem(utility);
     utiltyListContainer.appendChild(item);
   }
+}
+
+// handle room click listeners
+function addRoomClickListeners() {
+  const roomItems = document.querySelectorAll(".room-item");
+  roomItems.forEach((roomItem) => {
+    roomItem.addEventListener("click", () => {
+      const roomId = roomItem.dataset.id;
+      window.location.href = `/room/details/${roomId}`;
+    });
+  });
 }
 
 // handle error alert

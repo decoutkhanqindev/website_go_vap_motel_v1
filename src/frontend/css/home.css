@@ -330,7 +330,6 @@ strong {
   padding: 20px;
   border: 2px solid #a5bfcc;
   border-radius: 5px;
-  background-color: #f9f9f9;
   display: flex;
   flex-direction: column;
   margin-bottom: 20px;
@@ -341,9 +340,8 @@ strong {
   text-align: center;
 }
 .contact-image {
-  width: 250px;
-  height: 250px;
-  border-radius: 5px;
+  width: 150px;
+  height: 150px;
   object-fit: cover;
 }
 .contact-info {
@@ -366,18 +364,19 @@ strong {
   color: #555;
 }
 .contact-methods {
-  margin-top: 50px;
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 .contact-methods p {
+  font-size: 19px;
   margin-bottom: 8px;
 }
 .contact-method-icon {
-  width: 150px;
-  height: 150px;
+  width: 80px;
+  height: 80px;
   margin-right: 8px;
   vertical-align: middle;
 }
