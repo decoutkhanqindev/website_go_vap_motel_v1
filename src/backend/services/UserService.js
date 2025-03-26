@@ -158,7 +158,7 @@ class UserService {
       return token;
     } catch (error) {
       logger.error(`UserService.generateToken() have error:\n${error}`);
-      throw error; // Re-throw the error
+      throw error; 
     }
   }
 
@@ -175,12 +175,12 @@ class UserService {
       const accessToken = UserService.generateToken(
         user,
         env.JWT_ACCESS_KEY,
-        "30s"
+        "5m"
       );
       const refreshToken = UserService.generateToken(
         user,
         env.JWT_REFRESH_KEY,
-        "5m"
+        "15m"
       );
 
       return { user, accessToken, refreshToken };

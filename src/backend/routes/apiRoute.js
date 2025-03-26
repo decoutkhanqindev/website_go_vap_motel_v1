@@ -304,7 +304,7 @@ router.delete(
 router.post("/user/authenticate", UserController.authenticateUser);
 router.post("/user/refreshToken", UserController.refreshToken);
 router.post("/user/logout", UserController.logoutUser);
-router.post("/user", UserController.addNewUser);
+router.post("/user", verifyIsLandlord, UserController.addNewUser);
 router.get("/users", verifyIsLandlord, UserController.getAllUsers);
 router.get("/user/:username", verifyToken, UserController.getUserByUsername);
 router.get("/user/current/me", verifyToken, UserController.getMe);
