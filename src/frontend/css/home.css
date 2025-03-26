@@ -199,6 +199,7 @@ body {
   color: #333;
 }
 .room-price,
+.room-total-deposit-price,
 .room-address,
 .room-status,
 .room-occupant-number,
@@ -299,12 +300,13 @@ body {
   color: white;
   background-color: #4da1a9; /* Bootstrap primary color */
 }
+
 .rooms .room-list-container {
   display: flex;
   flex-direction: column;
 }
 .rooms .room-list-container .room-item {
-  margin-left: 40px;
+  margin-left: 50px;
   margin-bottom: 20px;
 }
 .page-item.active .page-link {
