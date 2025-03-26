@@ -1,6 +1,4 @@
-import AuthService from "../services/AuthService.js";
-
-const api = axios.create({ baseURL: "http://localhost:8386/api" });
+import api from "./axiosConfig.js";
 
 class RoomService {
   static async getAllRooms(filter) {
@@ -16,12 +14,9 @@ class RoomService {
         }
       }
       const queryString = queryParams.toString();
-      // Include the Authorization header conditionally
-      const response = await api.get(`/rooms?${queryString}`, {
-        headers: AuthService.authHeader() // Use the imported function
-      });
-      console.log("res", response);
-
+      // Không cần headers thủ công
+      const response = await api.get(`/rooms?${queryString}`);
+      // console.log("res", response); // Giữ lại nếu cần debug
       return response.data;
     } catch (error) {
       throw error;
@@ -30,10 +25,8 @@ class RoomService {
 
   static async getRoomById(id) {
     try {
-      // Include the Authorization header conditionally
-      const response = await api.get(`/room/${id}`, {
-        headers: AuthService.authHeader()
-      });
+      // Không cần headers thủ công
+      const response = await api.get(`/room/${id}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -42,10 +35,8 @@ class RoomService {
 
   static async getRoomImageById(id) {
     try {
-      // Include the Authorization header conditionally
-      const response = await api.get(`/room/image/${id}`, {
-        headers: AuthService.authHeader()
-      });
+      // Không cần headers thủ công
+      const response = await api.get(`/room/image/${id}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -59,13 +50,9 @@ class RoomService {
         formData.append("images", file);
       });
 
-      // Include Authorization and Content-Type headers
-      const response = await api.patch(`/room/${id}/images`, formData, {
-        headers: {
-          ...AuthService.authHeader(), // Merge auth header with other headers
-          "Content-Type": "multipart/form-data"
-        }
-      });
+      // Axios tự xử lý Content-Type cho FormData
+      // Interceptor xử lý Authorization
+      const response = await api.patch(`/room/${id}/images`, formData);
       return response.data;
     } catch (error) {
       throw error;
@@ -74,10 +61,9 @@ class RoomService {
 
   static async deleteImagesForRoom(id, imageIds) {
     try {
-      // Include the Authorization header conditionally
+      // Không cần headers thủ công, data cho DELETE nằm trong config
       const response = await api.delete(`/room/${id}/images`, {
-        headers: AuthService.authHeader(),
-        data: { images: imageIds }
+        data: { images: imageIds } // data cho DELETE
       });
       return response.data;
     } catch (error) {
@@ -87,10 +73,9 @@ class RoomService {
 
   static async addAmenitiesToRoom(id, amenityIds) {
     try {
-      // Include the Authorization header conditionally
+      // Sửa cú pháp: data là argument thứ 2 cho PATCH
       const response = await api.patch(`/room/${id}/amenities`, {
-        headers: AuthService.authHeader(),
-        data: { amenities: amenityIds }
+        amenities: amenityIds
       });
       return response.data;
     } catch (error) {
@@ -100,9 +85,8 @@ class RoomService {
 
   static async deleteAmenitiesForRoom(id, amenityIds) {
     try {
-      // Include the Authorization header conditionally
+      // Sửa cú pháp: data cho DELETE nằm trong config object (argument thứ 2)
       const response = await api.delete(`/room/${id}/amenities`, {
-        headers: AuthService.authHeader(),
         data: { amenities: amenityIds }
       });
       return response.data;
@@ -113,10 +97,9 @@ class RoomService {
 
   static async addUtilitiesToRoom(id, utilityIds) {
     try {
-      // Include the Authorization header conditionally
+      // Sửa cú pháp: data là argument thứ 2 cho PATCH
       const response = await api.patch(`/room/${id}/utilities`, {
-        headers: AuthService.authHeader(),
-        data: { utilities: utilityIds }
+        utilities: utilityIds
       });
       return response.data;
     } catch (error) {
@@ -126,9 +109,8 @@ class RoomService {
 
   static async deleteUtilitiesForRoom(id, utilityIds) {
     try {
-      // Include the Authorization header conditionally
+      // Sửa cú pháp: data cho DELETE nằm trong config object (argument thứ 2)
       const response = await api.delete(`/room/${id}/utilities`, {
-        headers: AuthService.authHeader(),
         data: { utilities: utilityIds }
       });
       return response.data;
@@ -152,24 +134,19 @@ class RoomService {
         });
       }
 
-      // Include Authorization and Content-Type headers
-      const response = await api.post("/room", formData, {
-        headers: {
-          ...AuthService.authHeader(), // Merge auth header
-          "Content-Type": "multipart/form-data"
-        }
-      });
+      // Axios tự xử lý Content-Type cho FormData
+      // Interceptor xử lý Authorization
+      const response = await api.post("/room", formData);
       return response.data;
     } catch (error) {
       throw error;
     }
   }
+
   static async updateRoom(id, data) {
     try {
-      // Include the Authorization header conditionally
-      const response = await api.put(`/room/${id}`, data, {
-        headers: AuthService.authHeader()
-      });
+      // Không cần headers thủ công
+      const response = await api.put(`/room/${id}`, data);
       return response.data;
     } catch (error) {
       throw error;
@@ -178,10 +155,8 @@ class RoomService {
 
   static async deleteRoom(id) {
     try {
-      // Include the Authorization header conditionally
-      const response = await api.delete(`/room/${id}`, {
-        headers: AuthService.authHeader()
-      });
+      // Không cần headers thủ công
+      const response = await api.delete(`/room/${id}`);
       return response.data;
     } catch (error) {
       throw error;

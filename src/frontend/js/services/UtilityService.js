@@ -1,16 +1,10 @@
-import AuthService from "../services/AuthService.js"; // Import AuthService
-
-const api = axios.create({
-  baseURL: "http://localhost:8386/api",
-  withCredentials: true
-});
+import api from "./axiosConfig.js";
 
 class UtilityService {
   static async getAllUtilities() {
     try {
-      const response = await api.get("/utilities", {
-        headers: AuthService.authHeader()
-      }); // Add auth header
+      // Không cần headers thủ công
+      const response = await api.get("/utilities");
       return response.data;
     } catch (error) {
       throw error;
@@ -19,9 +13,8 @@ class UtilityService {
 
   static async getUtilityById(id) {
     try {
-      const response = await api.get(`/utility/${id}`, {
-        headers: AuthService.authHeader()
-      }); // Add auth header
+      // Không cần headers thủ công
+      const response = await api.get(`/utility/${id}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -30,9 +23,8 @@ class UtilityService {
 
   static async getUtilityImageById(id) {
     try {
-      const response = await api.get(`/utility/image/${id}`, {
-        headers: AuthService.authHeader()
-      }); // Add auth header
+      // Không cần headers thủ công
+      const response = await api.get(`/utility/image/${id}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -46,12 +38,9 @@ class UtilityService {
         formData.append("images", file);
       });
 
-      const response = await api.patch(`/utility/${id}/images`, formData, {
-        headers: {
-          ...AuthService.authHeader(), // Include existing auth headers
-          "Content-Type": "multipart/form-data"
-        }
-      });
+      // Axios tự xử lý Content-Type cho FormData
+      // Interceptor xử lý Authorization
+      const response = await api.patch(`/utility/${id}/images`, formData);
       return response.data;
     } catch (error) {
       throw error;
@@ -60,16 +49,16 @@ class UtilityService {
 
   static async deleteImagesForUtility(id, imageIds) {
     try {
+      // Không cần headers thủ công, data cho DELETE nằm trong config
       const response = await api.delete(`/utility/${id}/images`, {
-        headers: AuthService.authHeader(), // Add auth header
-        data: { images: imageIds }
+        data: { images: imageIds } // data cho DELETE
       });
       return response.data;
     } catch (error) {
       throw error;
     }
   }
-  
+
   static async addNewUtility(data, imageFiles) {
     try {
       const formData = new FormData();
@@ -85,12 +74,9 @@ class UtilityService {
         });
       }
 
-      const response = await api.post("/utility", formData, {
-        headers: {
-          ...AuthService.authHeader(), // Include existing auth headers
-          "Content-Type": "multipart/form-data"
-        }
-      });
+      // Axios tự xử lý Content-Type cho FormData
+      // Interceptor xử lý Authorization
+      const response = await api.post("/utility", formData);
       return response.data;
     } catch (error) {
       throw error;
@@ -99,9 +85,8 @@ class UtilityService {
 
   static async updateUtility(id, data) {
     try {
-      const response = await api.put(`/utility/${id}`, data, {
-        headers: AuthService.authHeader()
-      }); // Add auth header
+      // Không cần headers thủ công
+      const response = await api.put(`/utility/${id}`, data);
       return response.data;
     } catch (error) {
       throw error;
@@ -110,9 +95,8 @@ class UtilityService {
 
   static async deleteUtility(id) {
     try {
-      const response = await api.delete(`/utility/${id}`, {
-        headers: AuthService.authHeader()
-      }); // Add auth header
+      // Không cần headers thủ công
+      const response = await api.delete(`/utility/${id}`);
       return response.data;
     } catch (error) {
       throw error;

@@ -3,12 +3,12 @@ const getAccessToken = () => {
   return localStorage.getItem("accessToken");
 };
 
-const authHeader = () => {
-  const token = getAccessToken();
-  if (token) {
-    return { Authorization: `Bearer ${token}` };
-  }
-  return {};
-};
+// const authHeader = () => {
+//   const token = getAccessToken();
+//   if (token) {
+//     return { Authorization: `Bearer ${token}` };
+//   }
+//   return {};
+// };
 
-export default { getAccessToken, authHeader };
+export default { getAccessToken };
