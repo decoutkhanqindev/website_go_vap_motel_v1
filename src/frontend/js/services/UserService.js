@@ -143,7 +143,6 @@ class UserService {
 }
 
 // --- Axios Interceptors for Automatic Token Refresh ---
-// This is a *very* important part of the authentication flow.
 
 // Request Interceptor: Add the Authorization header to every request (if logged in)
 api.interceptors.request.use(
@@ -167,27 +166,48 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If the error is 403 (Forbidden) or 401 (Unauthorized) AND we haven't already tried to refresh,
-    // try refreshing the token.
+    // Nếu lỗi đến từ endpoint đăng nhập hoặc làm mới token, không thử refresh lại.
+    if (
+      originalRequest.url.endsWith("/user/authenticate") ||
+      originalRequest.url.endsWith("/user/refreshToken")
+    ) {
+      return Promise.reject(error); // Chỉ cần reject lỗi gốc
+    }
+
+    // Nếu lỗi là 403 (Forbidden) hoặc 401 (Unauthorized) *VÀ* không phải từ authenticate/refresh *VÀ* chưa thử lại
     if (
       (error.response.status === 403 || error.response.status === 401) &&
       !originalRequest._retry
     ) {
       originalRequest._retry = true; // Mark the request to prevent infinite loops
       try {
-        await UserService.refreshToken(); // Refresh the token
-        // Retry the original request with the new token.  The request
-        // interceptor will add the new token.
+        console.log("Attempting to refresh token...");
+        await UserService.refreshToken();
+        console.log(
+          "Token refreshed successfully. Retrying original request..."
+        );
+        // Request interceptor sẽ tự động thêm token mới vào header
         return api(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, log the user out.
-        await UserService.logoutUser();
-        // Redirect to the login page.
+        console.error("Failed to refresh token:", refreshError);
+        // nếu refresh lỗi, user sẽ bị đăng xuất.
+        try {
+          await UserService.logoutUser();
+        } catch (logoutError) {
+          console.error(
+            "Error during logout after refresh failure:",
+            logoutError
+          );
+          // Ngay cả khi logout lỗi, vẫn xóa token ở client
+          localStorage.removeItem("accessToken");
+        }
+        // trở lại trang đăng nhập
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }
 
+    // Đối với các lỗi khác (không phải 401/403 hoặc đã retry), chỉ cần reject
     return Promise.reject(error);
   }
 );
