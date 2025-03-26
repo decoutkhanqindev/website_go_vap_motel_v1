@@ -219,6 +219,7 @@ body {
   color: #d9534f;
   font-weight: bold;
 }
+.home-note,
 .amenity-note,
 .utility-note {
   margin-top: 3px;

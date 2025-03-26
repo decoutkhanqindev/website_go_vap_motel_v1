@@ -165,6 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchAndRenderUiForAmenitiesAndUtilitiesTab();
 
   addRoomClickListeners(); // Attach click listeners to room items
+  addLoginTabClickListeners(); // Attach click listeners to login tab
 
   showContent("home"); // Show the home tab by default on page load
 });
@@ -601,6 +602,14 @@ function addRoomClickListeners() {
       // Redirect to the room details page
       window.location.href = `/room/details/${roomId}`;
     });
+  });
+}
+
+// Function: Add Click Event Listeners to Login Tab
+function addLoginTabClickListeners() {
+  const loginTab = document.querySelector(".login-tab");
+  loginTab.addEventListener("click", () => {
+    window.location.href = `/login`;
   });
 }
 
