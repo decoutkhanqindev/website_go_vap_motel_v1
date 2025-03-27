@@ -108,7 +108,7 @@ body {
 .amenities-container,
 .utilities-container p {
   line-height: 1.6;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   text-align: justify;
   font-weight: bold;
 }
@@ -146,7 +146,7 @@ body {
 
 .room-list,
 .amenity-list {
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 .room-list-container,
 .amenity-list-container,
@@ -318,6 +318,7 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
+  margin-bottom: 20px;
 }
 .pagination img {
   width: 23px;
@@ -329,7 +330,6 @@ strong {
 }
 
 .contact-container {
-  margin-top: 20px;
   padding: 20px;
   border: 2px solid #a5bfcc;
   border-radius: 5px;
