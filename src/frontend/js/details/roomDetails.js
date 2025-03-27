@@ -29,33 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Core Functions ---
 
-  // Function: Handle Errors
-  function handleError(error, customMessage = "Đã xảy ra lỗi") {
-    console.error(customMessage, error);
-
-    if (errorAlert && errorMessage) {
-      let msg = customMessage;
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        msg += `: ${error.response.data.message}`;
-      } else if (error.request) {
-        msg += ": Không thể kết nối đến máy chủ.";
-      } else {
-        msg += `: ${error.message}`;
-      }
-      errorMessage.innerText = msg;
-      errorAlert.style.display = "block";
-      setTimeout(() => {
-        if (errorAlert) errorAlert.style.display = "none";
-      }, 5000);
-    } else {
-      alert(`${customMessage}\n${error.message || "Kiểm tra console."}`);
-    }
-  }
-
   // Function: Extract Room ID from URL
   function getRoomIdFromUrl() {
     const pathSegments = window.location.pathname.split("/");
@@ -68,10 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function: Render Room Information
   function renderRoomInfoUI(room) {
-    if (!roomInfoContainer) {
-      console.error("Room info container (.room-info-container) not found.");
-      return;
-    }
+    if (!roomInfoContainer) return;
     roomInfoContainer.innerHTML = ""; // Clear previous content
 
     let statusText = "Không có sẵn";
@@ -125,10 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function: Render Room Images
   async function renderRoomImagesUI(room) {
-    if (!imageList) {
-      console.error("Image list container (.image-list) not found.");
-      return;
-    }
+    if (!imageList) return;
     imageList.innerHTML = "";
     imageElements = [];
 
@@ -149,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
           img.dataset.index = index;
           return img;
         } catch (error) {
-          console.error(`Error loading image ID ${imageId}:`, error);
+          console.error(error);
           const img = document.createElement("img");
           img.src = "../../assets/logo_error.png";
           img.alt = `Error loading image ${index + 1}`;
@@ -199,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         imageSrc = `data:${imageData.contentType};base64,${base64Image}`;
       } catch (error) {
-        console.error(`Error loading amenity image ${amenity._id}:`, error);
+        console.error(error);
       }
     }
 
@@ -256,16 +223,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function: Render Amenity List
   async function renderAmenityListUI(amenities) {
-    if (!amenityListContainer) {
-      console.error("Amenity list container not found.");
-      return;
-    }
+    if (!amenityListContainer) return;
     amenityListContainer.innerHTML = "";
+
     if (!amenities || amenities.length === 0) {
       amenityListContainer.innerHTML =
         "<p>Không có tiện nghi chọn thêm nào.</p>"; // Changed message slightly
       return;
     }
+
     const itemPromises = amenities.map((amenity) => createAmenityItem(amenity));
     const items = await Promise.all(itemPromises);
     items.forEach((item) => amenityListContainer.appendChild(item));
@@ -291,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         imageSrc = `data:${imageData.contentType};base64,${base64Image}`;
       } catch (error) {
-        console.error(`Error loading utility image ${utility._id}:`, error);
+        console.error(error);
       }
     }
 
@@ -345,11 +311,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function: Render Utility List
   async function renderUtilityListUI(utilities) {
-    if (!utilityListContainer) {
-      console.error("Utility list container not found.");
-      return;
-    }
+    if (!utilityListContainer) return;
     utilityListContainer.innerHTML = "";
+    
     if (!utilities || utilities.length === 0) {
       utilityListContainer.innerHTML =
         "<p>Không có tiện ích chọn thêm nào.</p>"; // Changed message slightly
@@ -370,14 +334,6 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedAmenitiesTotalPrice += price;
       selectedAmenities.push(amenity._id);
       updateRoomDepositPriceDisplay(); // Update the specific deposit display
-      console.log(
-        "Added amenity:",
-        amenity.name,
-        "| Price:",
-        price,
-        "| New Amenity Total:",
-        selectedAmenitiesTotalPrice
-      );
     }
   }
 
@@ -391,14 +347,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (selectedAmenitiesTotalPrice < 0) selectedAmenitiesTotalPrice = 0;
       selectedAmenities.splice(index, 1);
       updateRoomDepositPriceDisplay(); // Update the specific deposit display
-      console.log(
-        "Removed amenity:",
-        amenity.name,
-        "| Price:",
-        price,
-        "| New Amenity Total:",
-        selectedAmenitiesTotalPrice
-      );
     }
   }
 
@@ -408,15 +356,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!selectedUtilities.includes(utility._id)) {
       selectedUtilitiesTotalPrice += price;
       selectedUtilities.push(utility._id);
-      // DO NOT update the deposit price display here
-      console.log(
-        "Added utility:",
-        utility.name,
-        "| Price:",
-        price,
-        "| New Utility Total:",
-        selectedUtilitiesTotalPrice
-      );
+      updateRoomDepositPriceDisplay(); // Update the specific deposit display
     }
   }
 
@@ -428,15 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedUtilitiesTotalPrice -= price;
       if (selectedUtilitiesTotalPrice < 0) selectedUtilitiesTotalPrice = 0;
       selectedUtilities.splice(index, 1);
-      // DO NOT update the deposit price display here
-      console.log(
-        "Removed utility:",
-        utility.name,
-        "| Price:",
-        price,
-        "| New Utility Total:",
-        selectedUtilitiesTotalPrice
-      );
+      updateRoomDepositPriceDisplay(); // Update the specific deposit display
     }
   }
 
@@ -447,18 +379,15 @@ document.addEventListener("DOMContentLoaded", () => {
       ".room-price .price-value" // Get the base rent price element
     );
 
-    // Check if initialPriceElement
-    if (!initialPriceElement) {
-      console.warn("Price elements not found for updating deposit display.");
-      return;
-    }
-
     // Get the base rent price from its data attribute
     const initialRoomPrice =
       parseFloat(initialPriceElement.dataset.initialPrice) || 0;
 
     // Calculate the total deposit price: base rent + selected amenities
-    const newTotalDepositPrice = initialRoomPrice + selectedAmenitiesTotalPrice;
+    const newTotalDepositPrice =
+      initialRoomPrice +
+      selectedAmenitiesTotalPrice +
+      selectedUtilitiesTotalPrice;
 
     // Update the text content of the specific deposit total element
     initialPriceElement.textContent = newTotalDepositPrice.toLocaleString(
@@ -486,13 +415,9 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchAndRenderUiRoomDetails(roomId) {
     try {
       const room = await RoomService.getRoomById(roomId);
-      if (!room) {
-        handleError(new Error(`Room ${roomId} not found.`), "Lỗi tải phòng.");
-        if (roomInfoContainer)
-          roomInfoContainer.innerHTML =
-            "<p class='text-danger text-center'>Không tìm thấy phòng.</p>";
-        return;
-      }
+
+      roomInfoContainer.innerHTML =
+        "<p class='text-danger text-center'>Không tìm thấy phòng.</p>";
 
       renderRoomInfoUI(room);
       await renderRoomImagesUI(room);
@@ -505,10 +430,9 @@ document.addEventListener("DOMContentLoaded", () => {
           )
             .then(renderAmenityListUI)
             .catch((error) => {
-              handleError(error, "Lỗi tải tiện nghi");
-              if (amenityListContainer)
-                amenityListContainer.innerHTML =
-                  "<p class='text-danger d-flex justify-content-center align-items-center'>Lỗi tải tiện nghi.</p>";
+              console.error(error);
+              amenityListContainer.innerHTML =
+                "<p class='text-danger d-flex justify-content-center align-items-center'>Lỗi tải tiện nghi.</p>";
             })
         );
       } else {
@@ -523,10 +447,9 @@ document.addEventListener("DOMContentLoaded", () => {
           )
             .then(renderUtilityListUI)
             .catch((error) => {
-              handleError(error, "Lỗi tải tiện ích");
-              if (utilityListContainer)
-                utilityListContainer.innerHTML =
-                  "<p class='text-danger d-flex justify-content-center align-items-center'>Lỗi tải tiện ích.</p>";
+              console.error(error);
+              utilityListContainer.innerHTML =
+                "<p class='text-danger d-flex justify-content-center align-items-center'>Lỗi tải tiện ích.</p>";
             })
         );
       } else {
@@ -536,42 +459,33 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       await Promise.all(amenityUtilityPromises);
     } catch (error) {
-      handleError(error, "Lỗi khi tải chi tiết phòng.");
-      if (roomInfoContainer)
-        roomInfoContainer.innerHTML =
-          "<p class='text-danger text-center'>Lỗi tải thông tin phòng.</p>";
+      console.error(error);
+      roomInfoContainer.innerHTML =
+        "<p class='text-danger text-center'>Lỗi tải thông tin phòng.</p>";
     }
   }
 
   // --- Event Listeners Setup ---
-  if (prevButton) {
-    prevButton.addEventListener("click", () => {
-      if (currentImageIndex > 0) {
-        currentImageIndex--;
-        updateImagePosition();
-      }
-    });
-  } else {
-    console.warn("Prev button not found.");
-  }
-  if (nextButton) {
-    nextButton.addEventListener("click", () => {
-      if (currentImageIndex < imageElements.length - 1) {
-        currentImageIndex++;
-        updateImagePosition();
-      }
-    });
-  } else {
-    console.warn("Next button not found.");
-  }
+  prevButton.addEventListener("click", () => {
+    if (currentImageIndex > 0) {
+      currentImageIndex--;
+      updateImagePosition();
+    }
+  });
+
+  nextButton.addEventListener("click", () => {
+    if (currentImageIndex < imageElements.length - 1) {
+      currentImageIndex++;
+      updateImagePosition();
+    }
+  });
 
   // --- Initial Load ---
   const roomId = getRoomIdFromUrl();
   if (roomId) {
     fetchAndRenderUiRoomDetails(roomId);
   } else {
-    console.error("Room ID not found in URL.");
-    handleError(new Error("Missing Room ID"), "Lỗi URL");
+    console.error(error);
     if (roomInfoContainer)
       roomInfoContainer.innerHTML =
         "<p class='text-danger text-center'>URL không hợp lệ.</p>";

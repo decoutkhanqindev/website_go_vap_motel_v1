@@ -65,10 +65,10 @@ body {
   background-color: #a5bfcc;
   padding: 10px;
   border-bottom: 2px solid #4da1a9;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 .room-details {
-  padding: 20px;
+  padding: 10px;
   border: 2px solid #a5bfcc;
   border-radius: 5px;
   display: flex;
@@ -254,19 +254,22 @@ body {
   gap: 15px;
   width: 100%;
   border-radius: 5px;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 .add-amenity,
-.remove-amenity,
-.add-utitlity,
-.remove-utitlity {
+.add-utility {
   border-radius: 5px;
   background-color: #4da1a9;
 }
+.remove-amenity,
+.remove-utility {
+  border-radius: 5px;
+  background-color: red;
+}
 .add-amenity,
 .remove-amenity,
-.add-utitlity,
-.remove-utitlity p {
+.add-utility,
+.remove-utility p {
   border: 2px solid white;
   color: white;
   background-color: #4da1a9; /* Bootstrap primary color */
