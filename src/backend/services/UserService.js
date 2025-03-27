@@ -175,12 +175,12 @@ class UserService {
       const accessToken = UserService.generateToken(
         user,
         env.JWT_ACCESS_KEY,
-        "5m"
+        "15m"
       );
       const refreshToken = UserService.generateToken(
         user,
         env.JWT_REFRESH_KEY,
-        "15m"
+        "1d"
       );
 
       return { user, accessToken, refreshToken };
@@ -201,12 +201,12 @@ class UserService {
         newAccessToken = UserService.generateToken(
           user,
           env.JWT_ACCESS_KEY,
-          "30s"
+          "15m"
         );
         newRefreshToken = UserService.generateToken(
           user,
           env.JWT_REFRESH_KEY,
-          "30s"
+          "1d"
         );
       });
 
