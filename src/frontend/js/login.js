@@ -137,12 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Function: Display Error Message
   function displayErrorMessage(errorElement, message) {
-    if (errorElement) {
-      errorElement.textContent = message;
-    }
-    // else {
-    //   console.warn("Attempted to display error on non-existent element:", message);
-    // }
+    errorElement.textContent = message;
   }
 
   // Function: Clear Error Messages
@@ -186,19 +181,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     try {
       const user = await UserService.authenticateUser(username, password);
-      console.log("Login successful!", user);
-
+      
       // Role-based redirection
       if (user.role === "landlord") {
         window.location.href = "/admin/dashboard";
       } else if (user.role === "tenant") {
         window.location.href = "/client/dashboard";
       } else {
-        console.warn("Unknown user role:", user.role);
         displayErrorMessage(loginError, "Vai trò người dùng không xác định.");
       }
     } catch (error) {
-      console.error("Authentication failed:", error);
+      console.error(error);
 
       // Handle specific error statuses using the error elements selected above
       if (error.response) {
@@ -279,21 +272,17 @@ document.addEventListener("DOMContentLoaded", function () {
   // --- Event Listeners Setup ---
 
   // Login Form Submission
-  if (loginFormElement) {
-    loginFormElement.addEventListener("submit", async function (event) {
-      // Marked async
-      event.preventDefault();
-      // clearErrorMessages("login"); // Clear API errors specifically here if preferred, or rely on authenticateUser
-      if (validateLoginForm()) {
-        // Validation happens first
-        const username = loginUsernameInput.value.trim();
-        const password = loginPasswordInput.value;
-        await authenticateUser(username, password); // Call API function
-      }
-    });
-  } else {
-    console.error("Login form element (#login-form-element) not found.");
-  }
+  loginFormElement.addEventListener("submit", async function (event) {
+    // Marked async
+    event.preventDefault();
+    // clearErrorMessages("login"); // Clear API errors specifically here if preferred, or rely on authenticateUser
+    if (validateLoginForm()) {
+      // Validation happens first
+      const username = loginUsernameInput.value.trim();
+      const password = loginPasswordInput.value;
+      await authenticateUser(username, password); // Call API function
+    }
+  });
 
   // Registration Form Submission (Keep listener structure)
   /*
@@ -317,16 +306,9 @@ document.addEventListener("DOMContentLoaded", function () {
   */
 
   // Login Password Toggle
-  if (loginPasswordToggleIcon && loginPasswordInput) {
-    loginPasswordToggleIcon.addEventListener("click", function () {
-      togglePasswordVisibility(loginPasswordInput, loginPasswordToggleIcon);
-    });
-  } else {
-    // Only log warning if BOTH elements are expected but not found
-    if (!loginPasswordToggleIcon)
-      console.warn("Login password toggle icon not found.");
-    if (!loginPasswordInput) console.warn("Login password input not found.");
-  }
+  loginPasswordToggleIcon.addEventListener("click", function () {
+    togglePasswordVisibility(loginPasswordInput, loginPasswordToggleIcon);
+  });
 
   // Registration Password Toggles (Keep listener structure)
   /*
@@ -365,5 +347,4 @@ document.addEventListener("DOMContentLoaded", function () {
   // if (loginForm && registerForm) {
   //   showForm(loginForm, registerForm); // Show login form by default
   // }
-  console.log("Login page script initialized.");
 });

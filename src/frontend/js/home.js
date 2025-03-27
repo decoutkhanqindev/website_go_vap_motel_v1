@@ -3,10 +3,10 @@ import AmenityService from "../js/services/AmenityService.js";
 import UtilityService from "../js/services/UtilityService.js";
 
 // --- Global Scope Variables ---
-let currentPage = 1; 
+let currentPage = 1;
 let totalRooms = 0;
-const roomsPerPage = 9; 
-let currentRoomData = []; 
+const roomsPerPage = 9;
+let currentRoomData = [];
 
 // --- DOMContentLoaded Event Listener ---
 document.addEventListener("DOMContentLoaded", () => {
@@ -48,8 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Other Elements
   const loginTab = document.querySelector(".login-tab");
-  const errorAlert = document.getElementById("errorAlert");
-  const errorMessage = document.getElementById("errorMessage");
 
   // --- Core Functions ---
 
@@ -69,39 +67,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Function: Handle Errors and Display Alerts
-  function handleError(error, customMessage = "Đã xảy ra lỗi") {
-    console.error(customMessage, error);
-
-    if (errorAlert && errorMessage) {
-      let msg = customMessage;
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        msg += `: ${error.response.data.message}`;
-      } else if (error.request) {
-        msg += ": Không thể kết nối đến máy chủ.";
-      } else {
-        msg += `: ${error.message}`;
-      }
-      errorMessage.innerText = msg;
-      errorAlert.style.display = "block";
-      setTimeout(() => {
-        errorAlert.style.display = "none";
-      }, 5000);
-    } else {
-      // Fallback
-      alert(
-        `${customMessage}\n${
-          error.message || "Kiểm tra console để biết chi tiết."
-        }`
-      );
+  // Function: Generate random integer number
+  function getRandomIntInclusive(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    if (min > max) {
+      return min;
     }
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  // Function: Add Click Event Listeners to Room Items (General)
+  // Function: Generate shuffle array
+  function shuffleArray(array) {
+    const shuffledArray = [...array]; // Tạo một bản sao
+    for (let i = shuffledArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledArray[i], shuffledArray[j]] = [
+        shuffledArray[j],
+        shuffledArray[i]
+      ];
+    }
+    return shuffledArray;
+  }
+
+  // Function: Add Click Event Listeners to Room Items
   function addRoomClickListeners() {
     // Select ALL room items currently in the DOM across different containers
     const roomItems = document.querySelectorAll(".room-item");
@@ -110,11 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!roomItem.hasAttribute("data-listener-added")) {
         roomItem.addEventListener("click", () => {
           const roomId = roomItem.dataset.id;
-          if (roomId) {
-            window.location.href = `/room/details/${roomId}`;
-          } else {
-            console.warn("Room item clicked but missing data-id attribute.");
-          }
+          window.location.href = `/room/details/${roomId}`;
         });
         roomItem.setAttribute("data-listener-added", "true"); // Mark as listener added
       }
@@ -127,7 +112,6 @@ document.addEventListener("DOMContentLoaded", () => {
   async function createRoomItem(room) {
     const roomItem = document.createElement("div");
     roomItem.classList.add("room-item"); // Base class
-    // Note: Bootstrap grid classes (col-md-4 etc.) will be added in renderRoomListUIRoomsTab if needed
     roomItem.dataset.id = room._id;
 
     let imageSrc = "../../assets/logo_error.png";
@@ -142,13 +126,8 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         imageSrc = `data:${imageData.contentType};base64,${base64Image}`;
       } catch (error) {
-        // Do not show alert for every failed image, just log it.
-        console.error(
-          "Error fetching or processing room image:",
-          room._id,
-          error
-        );
-        // Keep the default error image
+        console.error(error);
+        imageSrc = "../../assets/logo_error.png";
       }
     }
 
@@ -218,11 +197,8 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         imageSrc = `data:${imageData.contentType};base64,${base64Image}`;
       } catch (error) {
-        console.error(
-          "Error fetching or processing amenity image:",
-          amenity._id,
-          error
-        );
+        console.error(error);
+        imageSrc = "../../assets/logo_error.png";
       }
     }
 
@@ -252,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         : "N/A"
                     } / Phòng</span>
                 </p>
-                <p class="amenity-note" style="font-style: italic; font-weight: bold">(Chỉ cộng vào tiền cọc khi thuê)</p>
+                <p class="amenity-note" style="font-style: italic; font-weight: bold">(Cộng vào tiền cọc)</p>
             </div>
         `;
     return amenityItem;
@@ -277,11 +253,8 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         imageSrc = `data:${imageData.contentType};base64,${base64Image}`;
       } catch (error) {
-        console.error(
-          "Error fetching or processing utility image:",
-          utility._id,
-          error
-        );
+        console.error(error);
+        imageSrc = "../../assets/logo_error.png";
       }
     }
 
@@ -319,16 +292,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Fetch Rooms for Home Tab
     try {
       const rooms = await RoomService.getAllRooms({}); // Fetch all
-      const roomsNVC = rooms.filter((room) =>
-        room.address.includes("Nguyễn Văn Công")
-      );
-      const roomsDQH = rooms.filter((room) =>
-        room.address.includes("Dương Quảng Hàm")
-      );
-      renderBranchUIHomeTab(roomsNVC, roomsDQH);
-      await renderRoomListUIHomeTab(roomsNVC, roomsDQH); // Wait for rooms to render before adding listeners
+      renderBranchUIHomeTab(rooms);
+      await renderRoomListUIHomeTab(rooms, 10); // Wait for rooms to render before adding listeners
     } catch (error) {
-      handleError(error, "Lỗi tải dữ liệu phòng cho trang chủ.");
+      console.error(error);
     }
 
     // Fetch Amenities for Home Tab
@@ -336,12 +303,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const amenities = await AmenityService.getAllAmenities();
       await renderAmenityListUIHomeTab(amenities);
     } catch (error) {
-      handleError(error, "Lỗi tải dữ liệu tiện nghi cho trang chủ.");
+      console.error(error);
     }
   }
 
   // --- Home Tab: UI Rendering Functions ---
-  function renderBranchUIHomeTab(roomsNVC, roomsDQH) {
+  function renderBranchUIHomeTab(rooms) {
     if (!branchContainer) return;
     branchContainer.innerHTML = "";
 
@@ -358,70 +325,98 @@ document.addEventListener("DOMContentLoaded", () => {
       return roomDiv;
     }
 
-    const vacantNVC = roomsNVC.filter((r) => r.status === "vacant").length;
-    const vacantDQH = roomsDQH.filter((r) => r.status === "vacant").length;
+    const allAddresses = rooms.map((room) => room.address).filter(Boolean);
+    const uniqueAddresses = [...new Set(allAddresses)];
 
-    if (roomsNVC.length > 0) {
+    uniqueAddresses.forEach((address) => {
+      const roomFilterd = rooms.filter((room) =>
+        room.address.includes(address)
+      );
+      const vacantNVC = roomFilterd.filter((r) => r.status === "vacant").length;
       branchContainer.appendChild(
-        createBranchItem(
-          "175 Nguyễn Văn Công, Phường 3, Quận Gò Vấp, TP.Hồ Chí Minh",
-          roomsNVC.length,
-          vacantNVC
-        )
+        createBranchItem(address, roomFilterd.length, vacantNVC)
       );
-    } else {
-      branchContainer.insertAdjacentHTML(
-        "beforeend",
-        '<div class="col-md-6"><p>Không có phòng tại Nguyễn Văn Công.</p></div>'
-      );
-    }
-    if (roomsDQH.length > 0) {
-      branchContainer.appendChild(
-        createBranchItem(
-          "202 Dương Quảng Hàm, Phường 5, Quận Gò Vấp, TP.Hồ Chí Minh",
-          roomsDQH.length,
-          vacantDQH
-        )
-      );
-    } else {
-      branchContainer.insertAdjacentHTML(
-        "beforeend",
-        '<div class="col-md-6"><p>Không có phòng tại Dương Quảng Hàm.</p></div>'
-      );
-    }
+    });
   }
 
-  async function renderRoomListUIHomeTab(roomsNVC, roomsDQH) {
+  async function renderRoomListUIHomeTab(rooms, numberOfRandomRooms = 0) {
     if (!homeRoomListContainer) return;
     homeRoomListContainer.innerHTML = ""; // Clear previous
 
-    // Create items for NVC (max 4)
-    const itemsNVCPromises = roomsNVC
-      .slice(0, 4)
-      .map((room) => createRoomItem(room));
-    const itemsNVC = await Promise.all(itemsNVCPromises);
-    itemsNVC.forEach((item) => homeRoomListContainer.appendChild(item));
+    const shuffledRooms = shuffleArray(rooms);
+    const actualNumberOfRandom = Math.min(
+      numberOfRandomRooms,
+      shuffledRooms.length
+    );
+    const randomRoomsToShow = shuffledRooms.slice(0, actualNumberOfRandom);
+    const itemsPromises = randomRoomsToShow.map((room) => createRoomItem(room));
 
-    // Create items for DQH (max 4)
-    const itemsDQHPromises = roomsDQH
-      .slice(0, 4)
-      .map((room) => createRoomItem(room));
-    const itemsDQH = await Promise.all(itemsDQHPromises);
-    itemsDQH.forEach((item) => homeRoomListContainer.appendChild(item));
+    try {
+      const createdItems = await Promise.all(itemsPromises);
 
-    addRoomClickListeners(); // Add listeners after items are in DOM
+      const fragment = document.createDocumentFragment();
+      createdItems.forEach((item) => {
+        fragment.appendChild(item);
+      });
+      homeRoomListContainer.appendChild(fragment);
+
+      addRoomClickListeners();
+    } catch (error) {
+      console.error(error);
+      homeRoomListContainer.innerHTML =
+        "<p>Đã xảy ra lỗi khi tải danh sách phòng.</p>";
+    }
   }
 
   async function renderAmenityListUIHomeTab(amenities) {
     if (!homeAmenityListContainer) return;
-    homeAmenityListContainer.innerHTML = ""; // Clear previous
+    homeAmenityListContainer.innerHTML = "";
 
-    const itemPromises = amenities.map((amenity) => createAmenityItem(amenity));
-    const items = await Promise.all(itemPromises);
-    items.forEach((item) => homeAmenityListContainer.appendChild(item));
+    try {
+      const itemPromises = amenities.map((amenity) =>
+        createAmenityItem(amenity)
+      );
+      const items = await Promise.all(itemPromises);
+      const fragment = document.createDocumentFragment();
+      items.forEach((item) => {
+        fragment.appendChild(item);
+      });
+      homeAmenityListContainer.appendChild(fragment);
+    } catch (error) {
+      console.error(error);
+      homeAmenityListContainer.innerHTML = `
+      <p class="error-message" style="color: red; text-align: center;">
+        Lỗi tải tiện nghi
+      </p>
+    `;
+    }
   }
 
   // --- Rooms Tab: Fetch and Render ---
+
+  async function populateAddressFilter() {
+    if (!addressFilter) return;
+
+    while (addressFilter.options.length > 1) {
+      addressFilter.remove(1);
+    }
+
+    try {
+      const allRooms = await RoomService.getAllRooms({});
+      const allAddresses = allRooms.map((room) => room.address).filter(Boolean);
+      const uniqueAddresses = [...new Set(allAddresses)];
+      uniqueAddresses.forEach((addr) => {
+        const option = document.createElement("option");
+        option.value = addr;
+        option.textContent = addr;
+
+        addressFilter.appendChild(option);
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   async function fetchAndRenderUiForRoomsTab() {
     if (roomsTabRoomListContainer)
       roomsTabRoomListContainer.innerHTML =
@@ -458,65 +453,92 @@ document.addEventListener("DOMContentLoaded", () => {
       // Render the first page
       renderRoomListUIRoomsTab(); // Uses global currentRoomData
     } catch (error) {
-      handleError(error, "Lỗi tải dữ liệu phòng cho trang Phòng.");
-      if (roomsTabRoomListContainer)
-        roomsTabRoomListContainer.innerHTML =
-          '<div class="text-center w-100 text-danger">Lỗi khi tải dữ liệu. Vui lòng thử lại.</div>';
+      console.error(error);
+      roomsTabRoomListContainer.innerHTML =
+        '<div class="text-center w-100 text-danger">Lỗi khi tải dữ liệu.</div>';
     }
   }
 
   // --- Rooms Tab: UI Rendering Functions ---
   async function renderRoomListUIRoomsTab() {
-    if (!roomsTabRoomListContainer) {
-      console.error("Rooms tab room list container not found.");
+    if (!roomsTabRoomListContainer) return;
+    roomsTabRoomListContainer.innerHTML = "";
+
+    if (!Array.isArray(currentRoomData)) {
+      roomsTabRoomListContainer.innerHTML =
+        '<div class="text-center w-100 error-message">Lỗi: Dữ liệu phòng không hợp lệ.</div>';
+      renderPaginationUI();
       return;
     }
-    roomsTabRoomListContainer.innerHTML = ""; // Clear previous rooms
 
     if (currentRoomData.length === 0) {
       roomsTabRoomListContainer.innerHTML =
         '<div class="text-center w-100">Không tìm thấy phòng nào phù hợp.</div>';
-      renderPaginationUI(); // Render empty pagination
+      renderPaginationUI();
       return;
     }
 
-    // Calculate indices for the current page
-    const startIndex = (currentPage - 1) * roomsPerPage;
-    const endIndex = Math.min(startIndex + roomsPerPage, totalRooms);
-    const roomsToDisplay = currentRoomData.slice(startIndex, endIndex);
+    try {
+      const startIndex = (currentPage - 1) * roomsPerPage;
+      const endIndex = Math.min(
+        startIndex + roomsPerPage,
+        currentRoomData.length
+      );
+      const roomsToDisplay = currentRoomData.slice(startIndex, endIndex);
 
-    // Create room items and add them (using rows for structure like in home.css)
-    let currentRow = null;
-    const itemPromises = roomsToDisplay.map((room) => createRoomItem(room));
-    const items = await Promise.all(itemPromises);
-
-    items.forEach((roomItem, index) => {
-      // Create a new row every 3 items (adjust number if needed)
-      if (index % 3 === 0) {
-        currentRow = document.createElement("div");
-        currentRow.classList.add("row", "mb-3"); // Add Bootstrap row and margin
-        roomsTabRoomListContainer.appendChild(currentRow);
+      if (roomsToDisplay.length === 0 && currentPage > 1) {
+        roomsTabRoomListContainer.innerHTML = `<div class="text-center w-100">Không có phòng nào trên trang ${currentPage}.</div>`;
+        renderPaginationUI();
+        return;
       }
-      // Add Bootstrap column classes to the item wrapper
-      const colDiv = document.createElement("div");
-      colDiv.classList.add(
-        "col-md-4",
-        "col-sm-6",
-        "col-12",
-        "d-flex",
-        "justify-content-center"
-      ); // Center card in column
-      colDiv.appendChild(roomItem); // Add the created room item card
-      if (currentRow) {
-        currentRow.appendChild(colDiv);
-      } else {
-        // Fallback if somehow currentRow is null (shouldn't happen)
-        roomsTabRoomListContainer.appendChild(colDiv);
-      }
-    });
 
-    renderPaginationUI(); // Render pagination controls
-    addRoomClickListeners(); // Add click listeners after items are in DOM
+      const itemPromises = roomsToDisplay.map((room) => createRoomItem(room));
+      const items = await Promise.all(itemPromises);
+
+      let currentRow = null;
+      const fragment = document.createDocumentFragment(); // Use fragment for performance
+
+      items.forEach((roomItem, index) => {
+        roomsToDisplay[index];
+
+        // Create a new row every 3 items
+        if (index % 3 === 0) {
+          currentRow = document.createElement("div");
+          currentRow.classList.add("row", "mb-3");
+          fragment.appendChild(currentRow); // Add row to fragment
+        }
+
+        // Create column wrapper
+        const colDiv = document.createElement("div");
+        colDiv.classList.add(
+          "col-md-4",
+          "col-sm-6",
+          "col-12",
+          "d-flex",
+          "justify-content-center"
+        );
+        colDiv.appendChild(roomItem);
+
+        if (currentRow) {
+          currentRow.appendChild(colDiv);
+        } else {
+          fragment.appendChild(colDiv);
+        }
+      });
+
+      roomsTabRoomListContainer.appendChild(fragment);
+
+      renderPaginationUI();
+      addRoomClickListeners();
+    } catch (error) {
+      console.error(error);
+      roomsTabRoomListContainer.innerHTML = `
+        <div class="text-center w-100 error-message" style="color: red;">
+            Đã xảy ra lỗi khi hiển thị danh sách phòng. 
+        </div>
+    `;
+      renderPaginationUI();
+    }
   }
 
   function renderPaginationUI() {
@@ -559,7 +581,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const amenities = await AmenityService.getAllAmenities();
       await renderAmenityListUIAmenitiesAndUtilitiesTab(amenities);
     } catch (error) {
-      handleError(error, "Lỗi tải dữ liệu tiện nghi.");
+      console.error(error);
     }
 
     // Fetch Utilities
@@ -567,7 +589,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const utilities = await UtilityService.getAllUtilities();
       await renderUtilityListUIAmenitiesAndUtilitiesTab(utilities);
     } catch (error) {
-      handleError(error, "Lỗi tải dữ liệu tiện ích.");
+      console.error(error);
     }
   }
 
@@ -576,18 +598,48 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!amenitiesTabAmenityListContainer) return;
     amenitiesTabAmenityListContainer.innerHTML = ""; // Clear
 
-    const itemPromises = amenities.map((amenity) => createAmenityItem(amenity));
-    const items = await Promise.all(itemPromises);
-    items.forEach((item) => amenitiesTabAmenityListContainer.appendChild(item));
+    try {
+      const itemPromises = amenities.map((amenity) =>
+        createAmenityItem(amenity)
+      );
+      const items = await Promise.all(itemPromises);
+      const fragment = document.createDocumentFragment();
+      items.forEach((item) => {
+        fragment.appendChild(item);
+      });
+      amenitiesTabAmenityListContainer.appendChild(fragment);
+    } catch (error) {
+      console.error(error);
+      amenitiesTabAmenityListContainer.innerHTML = `
+      <p class="error-message" style="color: red; text-align: center;">
+        Lỗi tải tiện nghi
+      </p>
+    `;
+    }
   }
 
   async function renderUtilityListUIAmenitiesAndUtilitiesTab(utilities) {
     if (!utilitiesTabUtilityListContainer) return;
     utilitiesTabUtilityListContainer.innerHTML = ""; // Clear
 
-    const itemPromises = utilities.map((utility) => createUtilityItem(utility));
-    const items = await Promise.all(itemPromises);
-    items.forEach((item) => utilitiesTabUtilityListContainer.appendChild(item));
+    try {
+      const itemPromises = utilities.map((utility) =>
+        createUtilityItem(utility)
+      );
+      const items = await Promise.all(itemPromises);
+      const fragment = document.createDocumentFragment();
+      items.forEach((item) => {
+        fragment.appendChild(item);
+      });
+      utilitiesTabUtilityListContainer.appendChild(fragment);
+    } catch (error) {
+      console.error(error);
+      utilitiesTabUtilityListContainer.innerHTML = `
+      <p class="error-message" style="color: red; text-align: center;">
+        Lỗi tải tiện ích
+      </p>
+    `;
+    }
   }
 
   // --- Event Listeners Setup ---
@@ -637,8 +689,10 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = `/login`;
     });
   }
+  
   // --- Initial Load ---
   fetchAndRenderUiForHomeTab();
+  populateAddressFilter();
   fetchAndRenderUiForRoomsTab();
   fetchAndRenderUiForAmenitiesAndUtilitiesTab();
 
