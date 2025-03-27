@@ -10,7 +10,7 @@ router.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/html/login.html"));
 });
 
-router.get("/admin/dashboard", (req, res) => {
+router.get("/admin/dashboard",  (req, res) => {
   res.sendFile(
     path.join(__dirname, "../../frontend/html/admin/dashboard.html")
   );
