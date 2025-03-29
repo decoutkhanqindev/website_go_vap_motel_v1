@@ -119,21 +119,8 @@ class RoomService {
     }
   }
 
-  static async addNewRoom(data, imageFiles) {
+  static async addNewRoom(formData) {
     try {
-      const formData = new FormData();
-      for (const key in data) {
-        if (data.hasOwnProperty(key)) {
-          formData.append(key, data[key]);
-        }
-      }
-
-      if (imageFiles) {
-        imageFiles.forEach((file) => {
-          formData.append("images", file);
-        });
-      }
-
       // Axios tự xử lý Content-Type cho FormData
       // Interceptor xử lý Authorization
       const response = await api.post("/room", formData);
