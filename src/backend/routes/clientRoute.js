@@ -10,9 +10,15 @@ router.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/html/login.html"));
 });
 
-router.get("/admin/dashboard",  (req, res) => {
+router.get("/admin/dashboard", (req, res) => {
   res.sendFile(
     path.join(__dirname, "../../frontend/html/admin/dashboard.html")
+  );
+});
+
+router.get("/admin/room/details/:id", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "../../frontend/html/admin/roomDetails.html")
   );
 });
 
@@ -22,9 +28,9 @@ router.get("/client/dashboard", (req, res) => {
   );
 });
 
-router.get("/room/details/:id", (req, res) => {
+router.get("/client/room/details/:id", (req, res) => {
   res.sendFile(
-    path.join(__dirname, "../../frontend/html/details/roomDetails.html")
+    path.join(__dirname, "../../frontend/html/client/roomDetails.html")
   );
 });
 
