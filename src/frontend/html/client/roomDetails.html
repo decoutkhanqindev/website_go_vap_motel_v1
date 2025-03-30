@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nhà trọ Gò Vấp</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="shortcut icon" href="/assets/logo.jpg" type="IMAGE" />
+    <link rel="stylesheet" href="/css/client/roomDetails.css" />
+  </head>
+  <body>
+    <!-- header -->
+    <header class="header-bg py-3">
+      <div
+        class="container-fluid d-flex justify-content-center align-items-center"
+      >
+        <div class="header-logo">
+          <img src="/assets/logo_no_text.png" alt="Logo Nhà trọ" />
+        </div>
+
+        <h1 class="header-text text-center mb-0">NHÀ TRỌ GÒ VẤP</h1>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="container mt-4">
+        <div
+          class="room-details-title d-flex justify-content-center align-items-center"
+        >
+          THÔNG TIN CHI TIẾT
+        </div>
+        <div class="room-details">
+          <div class="row">
+            <!-- Image List -->
+            <div class="col-md-6">
+              <div class="image-list-container">
+                <button id="prevButton" class="nav-button prev-button">
+                  <img src="/assets/pre_btn.png" />
+                </button>
+                <div class="image-list">
+                  <!-- Images will be added here -->
+                </div>
+                <button id="nextButton" class="nav-button next-button">
+                  <img src="/assets/next_btn.png" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Thông tin chi tiết phòng -->
+            <div class="col-md-5">
+              <div class="room-info">
+                <div class="room-info-container">
+                  <!--Thông tin sẽ được điền ở đây-->
+                </div>
+              </div>
+            </div>
+
+            <div class="cost-living">
+              <div
+                class="cost-living-title d-flex justify-content-center align-items-center"
+              >
+                CHI PHÍ SINH HOẠT
+              </div>
+              <p>
+                Tất cả các phòng trong Hệ thống Nhà trọ Gò Vấp sẽ có cùng mức
+                giá cho các chi phí sinh hoạt, người thuê cần thanh toán các chi
+                phí này theo mức sử dụng cá nhân. Dưới đây là chi tiết các khoản
+                chi phí:
+              </p>
+              <ul>
+                <li>
+                  <strong>💡 Điện:</strong> 3.500 VNĐ/kWh (tính theo đồng hồ
+                  điện riêng từng phòng).
+                </li>
+                <li>
+                  <strong>💧 Nước:</strong> 4.000 VNĐ/m³ (tính theo đồng hồ nước
+                  riêng từng phòng).
+                </li>
+              </ul>
+              <p>
+                Các khoản chi phí này sẽ được tính dựa trên mức tiêu thụ thực tế
+                hàng tháng. Người thuê có thể kiểm tra đồng hồ điện, nếu có sai
+                sót hãy liên hệ với chủ trọ sớm nhất có thể để được giải quyết
+                nhanh nhất.
+              </p>
+            </div>
+
+            <div class="amenity-list">
+              <div
+                class="amenity-list-title d-flex justify-content-center align-items-center"
+              >
+                DANH SÁCH CÁC TIỆN NGHI
+              </div>
+              <p>
+                Nhà trọ Gò Vấp cung cấp đầy đủ tiện nghi cần thiết để mang lại
+                cuộc sống thoải mái cho người thuê. Các tiện nghi đều có nguồn
+                gốc rõ ràng, chất lượng đảm bảo với độ mới từ 80% - 99%. Nếu có
+                hư hỏng không phải do người thuê, chủ trọ sẽ hỗ trợ sửa chữa
+                hoàn toàn miễn phí.
+              </p>
+              <p>
+                Khi xem chi tiết phòng, bạn có thể thấy danh sách các tiện nghi
+                đi kèm. Nếu muốn thêm một số tiện nghi khác, bạn có thể chọn và
+                giá của từng tiện nghi sẽ được cộng vào tiền phòng.
+              </p>
+              <p>
+                <strong>Lưu ý:</strong> Các tiện nghi có thể lựa chọn sẽ chỉ
+                được tính phí một lần và khoản này sẽ được cộng vào tiền đặt cọc
+                khi thuê phòng.
+              </p>
+              <div class="amenity-list-container">
+                <!-- amenity items will be added here -->
+              </div>
+            </div>
+
+            <div class="utility-list">
+              <div
+                class="utility-list-title d-flex justify-content-center align-items-center"
+              >
+                DANH SÁCH CÁC TIỆN ÍCH
+              </div>
+              <p>
+                Hệ thống Nhà trọ Gò Vấp cung cấp nhiều tiện ích khác nhằm nâng
+                cao trải nghiệm sinh hoạt của người thuê. Các tiện ích này bao
+                gồm internet tốc độ cao, bãi giữ xe rộng rãi, khu vực giặt sấy,
+                camera an ninh 24/7, hệ thống PCCC đạt chuẩn, và nhiều tiện ích
+                khác.
+              </p>
+              <p>
+                <strong>Lưu ý:</strong> Một số tiện ích sẽ được sử dụng miễn
+                phí, trong khi một số tiện ích khác sẽ có phí dịch vụ tùy theo
+                nhu cầu sử dụng của từng người thuê. Bạn có thể tham khảo thông
+                tin chi tiết trong hợp đồng thuê phòng hoặc liên hệ trực tiếp
+                với chủ trọ để biết thêm thông tin.
+              </p>
+              <div class="utility-list-container">
+                <!-- utility items will be added here -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <footer class="footer-bg py-4">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <p class="footer-copyright mb-2">
+              © 2025 Nhà trọ Gò Vấp. All rights reserved.
+            </p>
+            <p class="footer-contact mb-2">
+              Liên hệ: 0123 456 789 (Mr. A) | Email: lienhe@nhathogovap.com
+            </p>
+            <p class="footer-policy">
+              <a href="#">Chính sách bảo mật</a>
+            </p>
+          </div>
+          <div class="col-md-6 d-flex justify-content-end align-items-center">
+            <div class="footer-social">
+              <a
+                href="https://www.facebook.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+              >
+                <img
+                  src="/assets/logo_fb.png"
+                  alt="Facebook"
+                  class="social-icon"
+                />
+              </a>
+              <a
+                href="https://www.youtube.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Youtube"
+              >
+                <img
+                  src="/assets/logo_ytb.png"
+                  alt="YouTube"
+                  class="social-icon"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="module" src="/js/client/roomDetails.js"></script>
+  </body>
+</html>
