@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!roomItem.hasAttribute("data-listener-added")) {
         roomItem.addEventListener("click", () => {
           const roomId = roomItem.dataset.id;
-          window.location.href = `/room/details/${roomId}`;
+          window.location.href = `/client/room/details/${roomId}`;
         });
         roomItem.setAttribute("data-listener-added", "true"); // Mark as listener added
       }
