@@ -1,22 +1,28 @@
 import UserService from "../js/services/UserService.js";
 
-// --- DOMContentLoaded Event Listener ---
 document.addEventListener("DOMContentLoaded", function () {
-  // --- Element Selectors ---
+  // --- element selectors ---
 
-  // Login Form Elements
-  // const loginForm = document.getElementById("login-form"); // Container div (optional)
-  const loginFormElement = document.getElementById("login-form-element"); // The <form>
+  // login form elements
+  // const loginForm = document.getElementById("login-form"); // container div (optional)
+  // the actual <form> element for login
+  const loginFormElement = document.getElementById("login-form-element");
+  // username input field for login
   const loginUsernameInput = document.getElementById("login-username");
+  // password input field for login
   const loginPasswordInput = document.getElementById("login-password");
+  // error message display area for login username
   const loginUsernameError = document.getElementById("login-username-error");
+  // error message display area for login password
   const loginPasswordError = document.getElementById("login-password-error");
-  const loginError = document.getElementById("login-error"); // General login error
+  // general error message display area for login eg api errors
+  const loginError = document.getElementById("login-error");
+  // icon to toggle password visibility for login
   const loginPasswordToggleIcon = document.getElementById(
     "login-password-toggle"
   );
 
-  // Registration Form Elements (Keep selectors even if functionality is commented out)
+  // registration form elements (selectors kept for potential future use)
   /*
   const registerForm = document.getElementById("register-form"); // Container div (optional)
   const registerFormElement = document.getElementById("register-form-element"); // The <form>
@@ -33,15 +39,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const registerConfirmPasswordToggleIcon = document.getElementById("register-confirm-password-toggle");
   */
 
-  // Show/Hide Links (Keep selectors if using)
+  // show/hide links (selectors kept for potential future use)
   /*
   const showRegisterLink = document.getElementById("show-register-link");
   const showLoginLink = document.getElementById("show-login-link");
   */
 
-  // --- Core Functions ---
+  // --- core functions ---
 
-  // Function: Show/Hide Login/Register Forms (Keep if using the links)
+  // function: show/hide login/register forms (kept for potential future use)
   /*
   function showForm(formToShow, formToHide) {
     if (formToShow) formToShow.style.display = "block";
@@ -49,85 +55,90 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   */
 
-  // Function: Toggle Password Visibility
+  // toggles the visibility of a password input field and updates its toggle icon
   function togglePasswordVisibility(passwordInput, toggleIcon) {
+    // ensure both elements exist
     if (!passwordInput || !toggleIcon) return;
 
+    // check the current type of the input field
     if (passwordInput.type === "password") {
+      // if password show as text and update icon to 'hide' state
       passwordInput.type = "text";
-      toggleIcon.src = "../assets/logo_hint_password.png"; // Update path if needed
-      toggleIcon.alt = "Hide password";
+      toggleIcon.src = "../assets/logo_hint_password.png"; // update path if needed
+      toggleIcon.alt = "hide password";
     } else {
+      // if text show as password and update icon to 'show' state
       passwordInput.type = "password";
-      toggleIcon.src = "../assets/logo_no_hint_password.png"; // Update path if needed
-      toggleIcon.alt = "Show password";
+      toggleIcon.src = "../assets/logo_no_hint_password.png"; // update path if needed
+      toggleIcon.alt = "show password";
     }
   }
 
-  // Function: Validate Login Form Inputs
+  // validates the login form inputs (username and password)
+  // displays error messages next to the fields if invalid
   function validateLoginForm() {
     let isValid = true;
-    // Use selector variables defined above
-    clearErrorMessages("login-validation"); // Clear only validation errors
+    // clear only the specific validation error messages for login
+    clearErrorMessages("login-validation");
 
-    // Validate Username
+    // validate username: must not be empty
     if (!loginUsernameInput?.value.trim()) {
-      displayErrorMessage(loginUsernameError, "Vui lòng nhập tài khoản.");
+      displayErrorMessage(loginUsernameError, "vui lòng nhập tài khoản.");
       isValid = false;
     }
 
-    // Validate Password
+    // validate password: must not be empty and meet length requirement
     if (!loginPasswordInput?.value) {
-      displayErrorMessage(loginPasswordError, "Vui lòng nhập mật khẩu.");
+      displayErrorMessage(loginPasswordError, "vui lòng nhập mật khẩu.");
       isValid = false;
     } else if (loginPasswordInput.value.length < 8) {
+      // example length validation can be adjusted
       displayErrorMessage(
         loginPasswordError,
-        "Mật khẩu phải có ít nhất 8 ký tự."
+        "mật khẩu phải có ít nhất 8 ký tự."
       );
       isValid = false;
     }
 
-    return isValid;
+    return isValid; // return true if all checks pass false otherwise
   }
 
-  // Function: Validate Registration Form Inputs (Keep structure)
+  // function: validate registration form inputs (kept structure for potential future use)
   /*
   function validateRegisterForm() {
     let isValid = true;
-    // Use selector variables defined above
     clearErrorMessages("register-validation");
 
     // Validate Username
     if (!registerUsernameInput?.value.trim()) {
-      displayErrorMessage(registerUsernameError, "Vui lòng nhập tài khoản.");
+      displayErrorMessage(registerUsernameError, "vui lòng nhập tài khoản.");
       isValid = false;
     }
 
     // Validate Phone
     if (!registerPhoneInput?.value.trim()) {
-      displayErrorMessage(registerPhoneError, "Vui lòng nhập số điện thoại.");
+      displayErrorMessage(registerPhoneError, "vui lòng nhập số điện thoại.");
       isValid = false;
-    } else if (!/^\d{10}$/.test(registerPhoneInput.value.trim())) {
-      displayErrorMessage(registerPhoneError, "Số điện thoại phải gồm 10 chữ số.");
+    } else if (!/^\d{10}$/.test(registerPhoneInput.value.trim())) { // Example: 10 digits only
+      displayErrorMessage(registerPhoneError, "số điện thoại phải gồm 10 chữ số.");
       isValid = false;
     }
 
     // Validate Password
     if (!registerPasswordInput?.value) {
-      displayErrorMessage(registerPasswordError, "Vui lòng nhập mật khẩu.");
+      displayErrorMessage(registerPasswordError, "vui lòng nhập mật khẩu.");
       isValid = false;
     } else if (registerPasswordInput.value.length < 8) {
-      displayErrorMessage(registerPasswordError, "Mật khẩu phải có ít nhất 8 ký tự.");
+      displayErrorMessage(registerPasswordError, "mật khẩu phải có ít nhất 8 ký tự.");
       isValid = false;
     }
 
     // Validate Confirm Password
     if (!registerConfirmPasswordInput?.value) {
-      displayErrorMessage(registerConfirmPasswordError, "Vui lòng nhập lại mật khẩu.");
+      displayErrorMessage(registerConfirmPasswordError, "vui lòng nhập lại mật khẩu.");
       isValid = false;
     } else if (registerConfirmPasswordInput.value !== registerPasswordInput?.value) {
-      displayErrorMessage(registerConfirmPasswordError, "Mật khẩu nhập lại không khớp.");
+      displayErrorMessage(registerConfirmPasswordError, "mật khẩu nhập lại không khớp.");
       isValid = false;
     }
 
@@ -135,24 +146,29 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   */
 
-  // Function: Display Error Message
+  // displays an error message in a specified error element
   function displayErrorMessage(errorElement, message) {
-    errorElement.textContent = message;
+    if (errorElement) {
+      // check if the element exists before setting textcontent
+      errorElement.textContent = message;
+    }
   }
 
-  // Function: Clear Error Messages
+  // clears error messages based on the type specified
+  // type can be 'login' 'login-validation' 'register' 'register-validation' or 'all'
   function clearErrorMessages(type) {
     let errorElements = [];
 
-    // Login Errors
+    // collect login-specific validation error elements
     if (type === "login" || type === "login-validation" || type === "all") {
       errorElements.push(loginUsernameError, loginPasswordError);
     }
+    // collect general login error element (usually for api errors)
     if (type === "login" || type === "all") {
-      errorElements.push(loginError); // General login error
+      errorElements.push(loginError);
     }
 
-    // Registration Errors (Include even if commented out)
+    // registration errors (selectors included even if functionality is commented out)
     /*
     if (type === "register" || type === "register-validation" || type === "all") {
       errorElements.push(
@@ -163,154 +179,170 @@ document.addEventListener("DOMContentLoaded", function () {
       );
     }
     if (type === "register" || type === "all") {
-       errorElements.push(registerGeneralError); // General register error
+       errorElements.push(registerGeneralError); // general register error element
     }
     */
 
+    // clear the text content of all collected error elements
     errorElements.forEach((element) => {
       if (element) {
+        // check if element is not null/undefined
         element.textContent = "";
       }
     });
   }
 
-  // Function: Authenticate User via API
+  // attempts to authenticate the user via an api call using provided credentials
+  // handles api responses including success (redirection) and various errors
   async function authenticateUser(username, password) {
-    // Use selector variables for errors defined above
-    clearErrorMessages("login"); // Clear previous login/API errors
+    // clear previous login-related errors (both validation and api)
+    clearErrorMessages("login");
 
     try {
+      // call the user service to authenticate
       const user = await UserService.authenticateUser(username, password);
-      
-      // Role-based redirection
+
+      // check user role and redirect accordingly upon successful login
       if (user.role === "landlord") {
-        window.location.href = "/admin/dashboard";
+        window.location.href = "/admin/dashboard"; // redirect landlord
       } else if (user.role === "tenant") {
-        window.location.href = "/client/dashboard";
+        window.location.href = "/client/dashboard"; // redirect tenant
       } else {
-        displayErrorMessage(loginError, "Vai trò người dùng không xác định.");
+        // handle unexpected role
+        displayErrorMessage(loginError, "vai trò người dùng không xác định.");
       }
     } catch (error) {
-      console.error(error);
+      // handle errors from the api call
+      console.error("authentication error:", error); // log the full error
 
-      // Handle specific error statuses using the error elements selected above
+      // check if the error has a response object (typical for api errors)
       if (error.response) {
+        // handle specific http status codes
         switch (error.response.status) {
-          case 404:
-            displayErrorMessage(loginUsernameError, "Tài khoản không tồn tại.");
+          case 404: // not found
+            displayErrorMessage(loginUsernameError, "tài khoản không tồn tại.");
             break;
-          case 401:
+          case 401: // unauthorized
             displayErrorMessage(
               loginPasswordError,
-              "Mật khẩu không chính xác."
+              "mật khẩu không chính xác."
             );
             break;
-          case 409:
+          case 409: // conflict (could be used for various issues like account locked etc)
             displayErrorMessage(
-              loginError,
-              error.response.data?.message || "Thông tin bị trùng lặp."
+              loginError, // display in the general error area
+              error.response.data?.message || "thông tin bị trùng lặp." // use message from api if available
             );
             break;
-          default:
+          default: // other server errors
             displayErrorMessage(
               loginError,
-              `Lỗi máy chủ (${error.response.status}). Vui lòng thử lại sau.`
+              `lỗi máy chủ (${error.response.status}). vui lòng thử lại sau.`
             );
         }
       } else if (error.request) {
+        // handle network errors (request made but no response received)
         displayErrorMessage(
           loginError,
-          "Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng."
+          "không thể kết nối đến máy chủ. vui lòng kiểm tra mạng."
         );
       } else {
+        // handle other unexpected errors (eg javascript errors during the request setup)
         displayErrorMessage(
           loginError,
-          "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+          "đã xảy ra lỗi không mong muốn. vui lòng thử lại."
         );
       }
     }
   }
 
-  // Function: Register User via API (Keep structure)
+  // function: register user via api (kept structure for potential future use)
   /*
   async function registerUser(data) {
-    // Use selector variables for errors defined above
-    clearErrorMessages("register");
+    clearErrorMessages("register"); // Clear previous registration errors
 
     try {
       const newUser = await UserService.addNewUser(data);
-      console.log("Registration successful:", newUser);
-      alert("Đăng ký thành công! Vui lòng đăng nhập.");
-      // showForm(loginForm, registerForm); // Show login form after successful registration
-      window.location.href = "/login"; // Or simply reload/redirect
+      console.log("registration successful:", newUser);
+      alert("đăng ký thành công! vui lòng đăng nhập.");
+      // Optionally switch to login form or redirect
+      // showForm(loginForm, registerForm);
+      window.location.href = "/login"; // Redirect to login page
 
     } catch (error) {
-      console.error("Registration failed:", error);
+      console.error("registration failed:", error);
 
       if (error.response) {
-        if (error.response.status === 409) {
-          const message = error.response.data?.message || "Thông tin bị trùng lặp.";
-          if (message.includes("username")) {
-            displayErrorMessage(registerUsernameError, "Tài khoản này đã tồn tại.");
-          } else if (message.includes("phone")) {
-            displayErrorMessage(registerPhoneError, "Số điện thoại này đã tồn tại.");
+        if (error.response.status === 409) { // Conflict (e.g., username/phone exists)
+          const message = error.response.data?.message || "thông tin bị trùng lặp.";
+          if (message.toLowerCase().includes("username")) {
+            displayErrorMessage(registerUsernameError, "tài khoản này đã tồn tại.");
+          } else if (message.toLowerCase().includes("phone")) {
+            displayErrorMessage(registerPhoneError, "số điện thoại này đã tồn tại.");
           } else {
-            displayErrorMessage(registerGeneralError, message); // Use general register error P tag
+            displayErrorMessage(registerGeneralError, message); // Display in general area
           }
-        } else {
-          displayErrorMessage(registerGeneralError, `Lỗi máy chủ (${error.response.status}).`);
+        } else { // Other server errors
+          displayErrorMessage(registerGeneralError, `lỗi máy chủ (${error.response.status}).`);
         }
-      } else if (error.request) {
-        displayErrorMessage(registerGeneralError, "Lỗi mạng khi đăng ký.");
-      } else {
-        displayErrorMessage(registerGeneralError, "Lỗi không mong muốn khi đăng ký.");
+      } else if (error.request) { // Network error
+        displayErrorMessage(registerGeneralError, "lỗi mạng khi đăng ký.");
+      } else { // Other unexpected errors
+        displayErrorMessage(registerGeneralError, "lỗi không mong muốn khi đăng ký.");
       }
     }
   }
   */
 
-  // --- Event Listeners Setup ---
+  // --- event listeners setup ---
 
-  // Login Form Submission
-  loginFormElement.addEventListener("submit", async function (event) {
-    // Marked async
-    event.preventDefault();
-    // clearErrorMessages("login"); // Clear API errors specifically here if preferred, or rely on authenticateUser
-    if (validateLoginForm()) {
-      // Validation happens first
-      const username = loginUsernameInput.value.trim();
-      const password = loginPasswordInput.value;
-      await authenticateUser(username, password); // Call API function
-    }
-  });
+  // login form submission
+  // attach listener to the submit event of the login form
+  if (loginFormElement) {
+    loginFormElement.addEventListener("submit", async function (event) {
+      event.preventDefault(); // prevent default form submission which causes page reload
+      // first validate the form inputs
+      if (validateLoginForm()) {
+        // if valid get username and password
+        const username = loginUsernameInput.value.trim();
+        const password = loginPasswordInput.value;
+        // attempt to authenticate the user with the api
+        await authenticateUser(username, password);
+      }
+    });
+  } else {
+    console.warn("login form element (#login-form-element) not found.");
+  }
 
-  // Registration Form Submission (Keep listener structure)
+  // registration form submission (kept listener structure for potential future use)
   /*
   if (registerFormElement) {
-    registerFormElement.addEventListener("submit", async function (event) { // Marked async
+    registerFormElement.addEventListener("submit", async function (event) {
       event.preventDefault();
-      // clearErrorMessages("register");
       if (validateRegisterForm()) {
         const username = registerUsernameInput.value.trim();
         const phone = registerPhoneInput.value.trim();
         const password = registerPasswordInput.value;
-        const role = 'tenant'; // Default role
+        const role = 'tenant'; // default role for self-registration
 
         const registrationData = { username, phone, password, role };
-        await registerUser(registrationData); // Call API function
+        await registerUser(registrationData); // Call the API registration function
       }
     });
   } else {
-    console.warn("Register form element (#register-form-element) not found.");
+    console.warn("register form element (#register-form-element) not found.");
   }
   */
 
-  // Login Password Toggle
-  loginPasswordToggleIcon.addEventListener("click", function () {
-    togglePasswordVisibility(loginPasswordInput, loginPasswordToggleIcon);
-  });
+  // login password toggle icon click
+  // add listener to the eye icon for toggling password visibility
+  if (loginPasswordToggleIcon && loginPasswordInput) {
+    loginPasswordToggleIcon.addEventListener("click", function () {
+      togglePasswordVisibility(loginPasswordInput, loginPasswordToggleIcon);
+    });
+  }
 
-  // Registration Password Toggles (Keep listener structure)
+  // registration password toggles (kept listener structure for potential future use)
   /*
   if (registerPasswordToggleIcon && registerPasswordInput) {
     registerPasswordToggleIcon.addEventListener("click", function () {
@@ -324,27 +356,28 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   */
 
-  // Show/Hide Form Links (Keep listener structure)
+  // show/hide form links (kept listener structure for potential future use)
   /*
   if (showRegisterLink && loginForm && registerForm) {
     showRegisterLink.addEventListener("click", function (event) {
       event.preventDefault();
       showForm(registerForm, loginForm);
-      clearErrorMessages("all"); // Clear all errors when switching
+      clearErrorMessages("all"); // Clear all errors when switching forms
     });
   }
   if (showLoginLink && loginForm && registerForm) {
     showLoginLink.addEventListener("click", function (event) {
       event.preventDefault();
       showForm(loginForm, registerForm);
-      clearErrorMessages("all"); // Clear all errors when switching
+      clearErrorMessages("all"); // Clear all errors when switching forms
     });
   }
   */
 
-  // --- Initial Setup ---
-  // If using show/hide forms, set the initial state:
+  // --- initial setup ---
+  // code to run on page load
+  // if using show/hide forms set the initial visible form:
   // if (loginForm && registerForm) {
-  //   showForm(loginForm, registerForm); // Show login form by default
+  //   showForm(loginForm, registerForm); // show login form by default
   // }
 });
