@@ -16,6 +16,26 @@ let selectedAmenityImageFiles = [];
 let currentUtilityData = [];
 let selectedUtilityImageFiles = [];
 
+// --- Store mapping for Amenity name ---
+const amenityNameMap = {
+  // Optional: Map for friendly names
+  bed: "Giường",
+  refrigerator: "Tủ lạnh",
+  air_conditioner: "Máy lạnh",
+  water_heater: "Vòi nước nóng",
+  table_and_chairs: "Bàn ghế",
+  electric_stove: "Bếp điện",
+  gas_stove: "Bếp ga"
+};
+
+// --- Store mapping for Utiltiy name ---
+const utilityNameMap = {
+  // Optional: Map for friendly names
+  wifi: "Wifi",
+  parking: "Đỗ xe",
+  cleaning: "Vệ sinh hàng tuần"
+};
+
 document.addEventListener("DOMContentLoaded", () => {
   // --- DOM Element Selectors ---
 
@@ -38,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const maxOccupantNumberSpan = document.getElementById("maxOccupantNumber"); // Note: Currently unused for display
   const applyFiltersButton = document.getElementById("applyFilters");
   const addNewRoomButton = document.getElementById("addNewRoomBtn");
-  // Add New Room Modal 
+  // Add New Room Modal
   const addNewRoomModalElement = document.getElementById("addNewRoomModal");
   const addRoomForm = document.getElementById("addRoomForm");
   const newRoomNumberInput = document.getElementById("newRoomNumber");
@@ -399,16 +419,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const amenities = await AmenityService.getAllAmenities();
       newRoomAmenitiesListDiv.innerHTML = "";
       if (amenities && amenities.length > 0) {
-        const amenityNameMap = {
-          // Optional: Map for friendly names
-          bed: "Giường",
-          refrigerator: "Tủ lạnh",
-          air_conditioner: "Máy lạnh",
-          water_heater: "Vòi nước nóng",
-          table_and_chairs: "Bàn ghế",
-          electric_stove: "Bếp điện",
-          gas_stove: "Bếp ga"
-        };
         amenities.forEach((amenity) => {
           const div = document.createElement("div");
           div.classList.add("form-check");
@@ -443,12 +453,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const utilities = await UtilityService.getAllUtilities();
       newRoomUtilitiesListDiv.innerHTML = "";
       if (utilities && utilities.length > 0) {
-        const utilityNameMap = {
-          // Optional: Map for friendly names
-          wifi: "Wifi",
-          parking: "Đỗ xe",
-          cleaning: "Vệ sinh hàng tuần"
-        };
         utilities.forEach((utility) => {
           const div = document.createElement("div");
           div.classList.add("form-check");
@@ -679,17 +683,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const amenityNameMap = {
-      // Optional: Map for friendly names
-      bed: "Giường",
-      refrigerator: "Tủ lạnh",
-      air_conditioner: "Máy lạnh",
-      water_heater: "Vòi nước nóng",
-      table_and_chairs: "Bàn ghế",
-      electric_stove: "Bếp điện",
-      gas_stove: "Bếp ga"
-    };
-
     currentAmenityData.forEach((amenity, index) => {
       const row = document.createElement("tr");
       row.dataset.id = amenity._id;
@@ -711,6 +704,14 @@ document.addEventListener("DOMContentLoaded", () => {
              }">Xóa</button>
         </td>
       `;
+
+      row.addEventListener("click", (event) => {
+        if (event.target.closest(".action-cell")) {
+          return;
+        }
+        window.location.href = `/admin/amenity/details/${amenity._id}`;
+      });
+
       amenityTableBody.appendChild(row);
     });
   }
@@ -724,14 +725,7 @@ document.addEventListener("DOMContentLoaded", () => {
       utilityTableBody.innerHTML = `<tr><td colspan="4" class="text-center">Không tìm thấy tiện ích nào.</td></tr>`; // Adjusted colspan
       return;
     }
-
-    const utilityNameMap = {
-      // Optional: Map for friendly names
-      wifi: "Wifi",
-      parking: "Đỗ xe",
-      cleaning: "Vệ sinh hàng tuần"
-    };
-
+    
     currentUtilityData.forEach((utility, index) => {
       const row = document.createElement("tr");
       row.dataset.id = utility._id;
@@ -753,6 +747,14 @@ document.addEventListener("DOMContentLoaded", () => {
              }">Xóa</button>
         </td>
       `;
+
+      row.addEventListener("click", (event) => {
+        if (event.target.closest(".action-cell")) {
+          return;
+        }
+        window.location.href = `/admin/utility/details/${utility._id}`;
+      });
+
       utilityTableBody.appendChild(row);
     });
   }
@@ -1325,7 +1327,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Initial Page Load Logic ---
   async function initializePage() {
     showContent("rooms-tab-container"); // Default tab
-    
+
     await populateAddressFilter(); // Populate room filters
     await fetchAndRenderUiForRoomsTab(); // Initial room data load
     await fetchAndRenderUiForAmenitiesTab(); // Initial amenity data load

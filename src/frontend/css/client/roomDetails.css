@@ -258,21 +258,25 @@ body {
 }
 .add-amenity,
 .add-utility {
-  border-radius: 5px;
-  background-color: #4da1a9;
+  background-color: #4da1a9 !important; 
+  border-color: #4da1a9 !important; 
+  color: #fff !important;          
 }
 .remove-amenity,
 .remove-utility {
-  border-radius: 5px;
-  background-color: red;
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important; 
+  color: #fff !important;          
 }
-.add-amenity,
-.remove-amenity,
-.add-utility,
-.remove-utility p {
-  border: 2px solid white;
-  color: white;
-  background-color: #4da1a9; /* Bootstrap primary color */
+.add-amenity:hover,
+.add-utility:hover {
+  background-color: #3c8c95 !important; 
+  border-color: #377f88 !important;
+}
+.remove-amenity:hover,
+.remove-utility:hover {
+  background-color: #c82333 !important; 
+  border-color: #bd2130 !important;
 }
 
 strong {

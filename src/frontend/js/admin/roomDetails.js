@@ -4,13 +4,13 @@ import UtilityService from "../services/UtilityService.js";
 
 // --- Global Scope: State Variables ---
 // --- State for Room Editing ---
-let currentRoomId = null; 
+let currentRoomId = null;
 let currentRoomData = null;
-let allAmenities = []; 
-let allUtilities = []; 
-let existingImagePreviews = []; 
-let newImageFiles = []; 
-let imagesToDeleteIds = []; 
+let allAmenities = [];
+let allUtilities = [];
+let existingImagePreviews = [];
+let newImageFiles = [];
+let imagesToDeleteIds = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- DOM Element Selectors ---
@@ -27,12 +27,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const roomDescriptionInput = document.getElementById("RoomDescription");
   const roomAmenitiesListDiv = document.getElementById("roomAmenitiesList");
   const roomUtilitiesListDiv = document.getElementById("roomUtilitiesList");
-  const roomImagesInput = document.getElementById("roomImagesInput"); 
-  const selectRoomImagesBtn = document.getElementById("selectRoomImagesBtn"); 
-  const roomImagePreviewDiv = document.getElementById("roomImagePreview"); 
+  const roomImagesInput = document.getElementById("roomImagesInput");
+  const selectRoomImagesBtn = document.getElementById("selectRoomImagesBtn");
+  const roomImagePreviewDiv = document.getElementById("roomImagePreview");
   const saveChangesBtn = document.getElementById("saveChangesBtn");
   const cancelChangesBtn = document.getElementById("cancelChangesBtn");
-  const editRoomFeedbackDiv = document.getElementById("editRoomModalFeedback"); 
+  const editRoomFeedbackDiv = document.getElementById("editRoomModalFeedback");
   const saveChangesSpinner = saveChangesBtn?.querySelector(".spinner-border");
 
   // --- Core Utility Functions ---
@@ -173,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         imageSrc = `data:${imageData.contentType};base64,${base64Image}`;
       } catch (error) {
-        console.error(`Error fetching image ${imgInfo.id}:`, error);
+        console.error(error);
       }
       previewItem.innerHTML = `<img src="${imageSrc}" alt="Existing room image"><button type="button" class="remove-image-btn existing-remove-btn" data-image-id="${imgInfo.id}" title="Xóa ảnh này">×</button>`;
       return previewItem;
@@ -219,10 +219,6 @@ document.addEventListener("DOMContentLoaded", () => {
               newImageFiles.splice(indexToRemove, 1); // Remove from new files array
               renderImagePreviews(); // Re-render to reflect removal and update indices
             } else {
-              console.warn(
-                "Invalid index found for new image removal:",
-                indexToRemove
-              );
               renderImagePreviews(); // Re-render just in case
             }
           });
@@ -230,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
         roomImagePreviewDiv.appendChild(newPreviewItem); // Append AFTER attaching listener
       };
       reader.onerror = (error) => {
-        console.error("FileReader error:", error);
+        console.error(error);
       };
       reader.readAsDataURL(file);
     });
@@ -515,7 +511,7 @@ document.addEventListener("DOMContentLoaded", () => {
           try {
             await fetchAndRenderUiRoomDetails(); // Re-fetch and re-render
           } catch (fetchError) {
-            console.error("Error refreshing data after update:", fetchError);
+            console.error(fetchError);
             const fetchErrMsg = (
               fetchError.message || "Unknown error"
             ).toString();
@@ -532,7 +528,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (error) {
       // Handle errors from Promise.all or other logic
-      console.error("Error during save process:", error);
+      console.error(error);
       const errorMessage =
         errors.length > 0
           ? errors.join("; ")
