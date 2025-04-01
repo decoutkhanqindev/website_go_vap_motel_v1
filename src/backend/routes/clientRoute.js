@@ -22,6 +22,18 @@ router.get("/admin/room/details/:id", (req, res) => {
   );
 });
 
+router.get("/admin/amenity/details/:id", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "../../frontend/html/admin/amenityDetails.html")
+  );
+});
+
+router.get("/admin/utility/details/:id", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "../../frontend/html/admin/utilityDetails.html")
+  );
+});
+
 router.get("/client/dashboard", (req, res) => {
   res.sendFile(
     path.join(__dirname, "../../frontend/html/client/dashboard.html")
