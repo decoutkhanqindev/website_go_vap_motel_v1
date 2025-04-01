@@ -1,4 +1,4 @@
-html,
+--- START OF FILE dashboard.css --- html,
 body {
   height: 100%;
   margin: 0;
@@ -35,7 +35,7 @@ body {
   padding: 0;
   background-color: #e7f2f8;
   position: fixed;
-  top: 130px;
+  top: 130px; /* Adjusted based on header height */
   left: 0;
   width: 100%;
   z-index: 999;
@@ -62,26 +62,33 @@ body {
 
 .content {
   position: relative;
-  padding-top: 200px;
+  /* Adjusted top padding based on fixed header and nav height */
+  padding-top: calc(
+    130px + 56px + 20px
+  ); /* header height + approx nav height + margin */
   flex: 1;
 }
 .content::before {
   content: "";
   position: fixed;
-  top: calc(50px + 2 * 1rem + 1rem);
+  /* Adjusted top position */
+  top: calc(130px + 56px); /* Position background below header and nav */
   left: 0;
   width: 100%;
-  height: calc(100% - (130px + 2 * 1rem + 1rem));
+  /* Adjusted height */
+  height: calc(100% - (130px + 56px));
   background-image: url("../../assets/logo_no_text.png");
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-position: center center;
   background-size: 700px;
   opacity: 0.1;
-  z-index: -3;
+  z-index: -3; /* Ensure it's behind content */
 }
 
-.rooms-tab-title {
+.rooms-tab-title,
+.amenities-tab-title,
+.utilities-tab-title {
   border-radius: 5px;
   font-size: 32px;
   color: #fff;
@@ -140,42 +147,78 @@ body {
   border-radius: 50%;
 }
 #applyFilters,
-#addNewRoomBtn {
+#addNewRoomBtn,
+#addNewAmenityBtn,
+#addNewUtilityBtn {
   color: white;
   background-color: #4da1a9;
 }
 
-.room-table {
+/* --- Combined Table Styles --- */
+.room-table,
+.amenity-table,
+.utility-table {
   margin-bottom: 0;
-  border-radius: 10px;
+  border-radius: 10px; /* Applied border-radius */
   border: 2px solid #a5bfcc;
 }
-.room-table thead.table-header-bg {
-  background-color: #f9f9f9;
+
+.room-table thead.table-header-bg,
+.amenity-table thead.table-header-bg,
+.utility-table thead.table-header-bg {
+  /* Inheriting class style - ensure .table-header-bg is defined if needed, or apply directly */
+  /* Example direct application (overrides potential .table-header-bg): */
+  background-color: #a5bfcc; /* Changed to match other headers */
   color: white;
   font-weight: bold;
   vertical-align: middle;
 }
-.room-table th {
+
+.room-table th,
+.amenity-table th,
+.utility-table th {
   border-bottom-width: 2px;
 }
+
+/* Apply cursor: pointer only to room table rows if only they are clickable */
 .room-table tbody tr {
   cursor: pointer;
 }
-.room-table tbody tr:hover {
+/* Remove cursor pointer from other tables if rows are not interactive */
+.amenity-table tbody tr,
+.utility-table tbody tr {
+  cursor: default; /* Or remove this rule if default is fine */
+}
+
+.room-table tbody tr:hover,
+.amenity-table tbody tr:hover, /* Apply hover effect to all for consistency */
+.utility-table tbody tr:hover {
   background-color: #e7f2f8;
 }
+
 .room-table td,
-.room-table th {
+.room-table th,
+.amenity-table td,
+.amenity-table th,
+.utility-table td,
+.utility-table th {
   vertical-align: middle;
   padding: 0.75rem;
 }
-.room-table .text-end {
+
+.room-table .text-end,
+.amenity-table .text-end,
+.utility-table .text-end {
   text-align: right;
 }
-.room-table .text-center {
+
+.room-table .text-center,
+.amenity-table .text-center,
+.utility-table .text-center {
   text-align: center;
 }
+/* --- End Combined Table Styles --- */
+
 .status-vacant {
   color: green;
   font-weight: bold;
@@ -188,8 +231,9 @@ body {
   color: red;
   font-weight: bold;
 }
+
 .table-responsive {
-  border-radius: 5px;
+  border-radius: 5px; /* Keep radius for container */
   overflow-x: auto;
 }
 .page-item.active .page-link {
@@ -200,13 +244,12 @@ body {
 .pagination {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 5px; /* Removed duplicate definition */
   margin-bottom: 20px;
+  justify-content: center; /* Center pagination */
+  margin-top: 1rem; /* Added top margin */
 }
-.pagination img {
-  width: 23px;
-  height: 23px;
-}
+/* Removed duplicate pagination img style */
 
 .checklist-container {
   max-height: 150px;
@@ -253,7 +296,7 @@ body {
   width: 20px;
   height: 20px;
   font-size: 12px;
-  line-height: 18px;
+  line-height: 18px; /* Adjusted for better centering */
   text-align: center;
   cursor: pointer;
   padding: 0;
@@ -263,12 +306,15 @@ body {
 .remove-image-btn:hover {
   opacity: 1;
 }
-#addRoomModalFeedback {
+.modal-body .alert {
+  /* áp dụng cho tất cả các alert trong modal body */
   margin-bottom: 1rem;
+  display: none; /* giữ nguyên logic ẩn ban đầu nếu cần */
 }
-#saveNewRoomBtn .spinner-border {
+.save-btn .spinner-border {
   margin-right: 5px;
   vertical-align: text-bottom;
+  display: none; 
 }
 .was-validated .form-control:invalid,
 .form-control.is-invalid {
@@ -291,11 +337,11 @@ body {
 .form-select.is-invalid ~ .invalid-feedback {
   display: block;
 }
-#cancelBtn {
+.cancel-btn { 
   color: white;
   background-color: #dc3545;
 }
-#saveNewRoomBtn {
+.save-btn { 
   color: white;
   background-color: #4da1a9;
 }

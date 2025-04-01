@@ -266,7 +266,86 @@
         <div
           id="amenities-utilities-tab-container"
           class="amenities-utilities-tab-container"
-        ></div>
+        >
+          <div class="row">
+            <div class="col-md-6">
+              <div
+                class="amenities-tab-title d-flex justify-content-center align-items-center"
+              >
+                QUẢN LÝ DANH SÁCH TIỆN NGHI
+              </div>
+              <!-- Add New Amenity Button -->
+              <div class="mt-2 mb-2">
+                <button id="addNewAmenityBtn" class="add-amenity-btn btn w-100">
+                  Thêm tiện nghi mới
+                </button>
+              </div>
+              <div class="amenity-list-container table-responsive">
+                <table
+                  class="table table-hover table-striped align-middle amenity-table"
+                >
+                  <thead class="table-header-bg">
+                    <tr>
+                      <th scope="col">STT</th>
+                      <th scope="col">Tên tiện nghi</th>
+                      <th scope="col" class="text-end">Giá thuê (VNĐ)</th>
+                      <th scope="col" class="text-center"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="amenityTableBody">
+                    <!-- Các hàng dữ liệu tiện nghi sẽ được thêm vào đây bằng JavaScript -->
+                    <tr>
+                      <td colspan="3" class="text-center">
+                        Đang tải dữ liệu...
+                      </td>
+                      <td class="text-center">
+                        <!-- delete amenity btn -->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div
+                class="utilities-tab-title d-flex justify-content-center align-items-center"
+              >
+                QUẢN LÝ DANH SÁCH TIỆN ÍCH
+              </div>
+              <!-- Add New Utitlity Button -->
+              <div class="mt-2 mb-2">
+                <button id="addNewUtilityBtn" class="add-utility-btn btn w-100">
+                  Thêm tiện ích mới
+                </button>
+              </div>
+              <div class="utility-list-container table-responsive">
+                <table
+                  class="table table-hover table-striped align-middle utility-table"
+                >
+                  <thead class="table-header-bg">
+                    <tr>
+                      <th scope="col">STT</th>
+                      <th scope="col">Tên tiện ích</th>
+                      <th scope="col" class="text-end">Giá thuê (VNĐ)</th>
+                      <th scope="col" class="text-center"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="utilityTableBody">
+                    <!-- Các hàng dữ liệu tiện ích sẽ được thêm vào đây bằng JavaScript -->
+                    <tr>
+                      <td colspan="3" class="text-center">
+                        Đang tải dữ liệu...
+                      </td>
+                      <td class="text-center">
+                        <!-- delete utility btn -->
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div id="occupants-tab-container" class="occupants-tab-container"></div>
 
@@ -286,6 +365,7 @@
         <div id="settings-tab-container" class="settings-tab-container"></div>
       </div>
 
+      <!-- Add New Room Modal -->
       <div
         class="modal fade"
         id="addNewRoomModal"
@@ -497,6 +577,237 @@
                 Lưu phòng
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add New Amenity Modal -->
+      <div
+        class="modal fade"
+        id="addNewAmenityModal"
+        tabindex="-1"
+        aria-labelledby="addNewAmenityModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-md modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addNewAmenityModalLabel">
+                Thêm tiện nghi mới
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <form id="addAmenityForm" novalidate>
+                <!-- feedback area -->
+                <div
+                  id="addAmenityModalFeedback"
+                  class="alert"
+                  role="alert"
+                  style="display: none"
+                ></div>
+
+                <!-- amenity name -->
+                <div class="mb-3">
+                  <label for="newAmenityName" class="form-label required"
+                    >Tên tiện nghi:</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="newAmenityName"
+                    required
+                  />
+                  <div class="invalid-feedback">
+                    Vui lòng nhập tên tiện nghi.
+                  </div>
+                </div>
+
+                <!-- amenity price -->
+                <div class="mb-3">
+                  <label for="newAmenityPrice" class="form-label required"
+                    >Giá thuê (vnd):</label
+                  >
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="newAmenityPrice"
+                    min="0"
+                    step="1000"
+                    required
+                  />
+                  <div class="invalid-feedback">
+                    Vui lòng nhập giá thuê hợp lệ (lớn hơn hoặc bằng 0).
+                  </div>
+                </div>
+
+                <!-- amenity images -->
+                <div class="mb-3">
+                  <label class="form-label">Hình ảnh:</label>
+                  <input
+                    type="file"
+                    class="form-control d-none"
+                    id="newAmenityImagesInput"
+                    multiple
+                    accept="image/*"
+                  />
+                  <!-- trigger button -->
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm mb-2"
+                    id="selectAmenityImagesBtn"
+                  >
+                    Chọn ảnh...
+                  </button>
+                  <div
+                    id="newAmenityImagePreview"
+                    class="image-preview-container mt-2"
+                  >
+                    <!-- image previews will be shown here -->
+                  </div>
+                  <!-- có thể thêm invalid-feedback nếu hình ảnh bắt buộc -->
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="cancel-btn btn"
+                id="cancelAmenityBtn"
+                data-bs-dismiss="modal"
+              >
+                Hủy
+              </button>
+              <button type="button" class="save-btn btn" id="saveNewAmenityBtn">
+                <span
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                  style="display: none"
+                ></span>
+                Lưu tiện nghi
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add New Utility Modal -->
+    <div
+      class="modal fade"
+      id="addNewUtilityModal"
+      tabindex="-1"
+      aria-labelledby="addNewUtilityModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-md modal-dialog-scrollable">
+        <!-- đổi thành modal-md cho gọn hơn -->
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addNewUtilityModalLabel">
+              thêm tiện ích mới
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="addUtilityForm" novalidate>
+              <!-- feedback area -->
+              <div
+                id="addUtilityModalFeedback"
+                class="alert"
+                role="alert"
+                style="display: none"
+              ></div>
+
+              <!-- utility name -->
+              <div class="mb-3">
+                <label for="newUtilityName" class="form-label required"
+                  >Tên tiện ích:</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="newUtilityName"
+                  required
+                />
+                <div class="invalid-feedback">Vui lòng nhập tên tiện ích.</div>
+              </div>
+
+              <!-- utility price -->
+              <div class="mb-3">
+                <label for="newUtilityPrice" class="form-label required"
+                  >Giá thuê (vnd):</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="newUtilityPrice"
+                  min="0"
+                  step="1000"
+                  required
+                />
+                <div class="invalid-feedback">
+                  Vui lòng nhập giá thuê hợp lệ (lớn hơn hoặc bằng 0).
+                </div>
+              </div>
+
+              <!-- utility images -->
+              <div class="mb-3">
+                <label class="form-label">Hình ảnh:</label>
+                <input
+                  type="file"
+                  class="form-control d-none"
+                  id="newUtilityImagesInput"
+                  multiple
+                  accept="image/*"
+                />
+                <!-- trigger button -->
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm mb-2"
+                  id="selectUtilityImagesBtn"
+                >
+                  Chọn ảnh...
+                </button>
+                <div
+                  id="newUtilityImagePreview"
+                  class="image-preview-container mt-2"
+                >
+                  <!-- image previews will be shown here -->
+                </div>
+                <!-- có thể thêm invalid-feedback nếu hình ảnh bắt buộc -->
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="cancel-btn btn"
+              id="cancelUtilityBtn"
+              data-bs-dismiss="modal"
+            >
+              Hủy
+            </button>
+            <button type="button" class="save-btn btn" id="saveNewUtilityBtn">
+              <span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+                style="display: none"
+              ></span>
+              Lưu tiện ích
+            </button>
           </div>
         </div>
       </div>
