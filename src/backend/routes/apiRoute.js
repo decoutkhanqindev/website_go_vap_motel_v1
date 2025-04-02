@@ -27,33 +27,33 @@ router.get("/amenity/image/:id", AmenityController.getAmenityImageById);
 // Landlord only routes
 router.post(
   "/amenity",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
-  upload.array("images", 5), 
+  upload.array("images", 5),
   AmenityController.addNewAmenity
 );
 router.put(
   "/amenity/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   AmenityController.updateAmenity
 );
 router.delete(
   "/amenity/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   AmenityController.deleteAmenity
 );
 router.patch(
   "/amenity/:id/images",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
-  upload.array("images", 5), 
+  upload.array("images", 5),
   AmenityController.addImagesToAmenity
 );
 router.delete(
   "/amenity/:id/images",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   AmenityController.deleteImagesForAmenity
 );
@@ -69,33 +69,33 @@ router.get("/utility/image/:id", UtilityController.getUtilityImageById);
 // Landlord only routes
 router.post(
   "/utility",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
-  upload.array("images", 5), 
+  upload.array("images", 5),
   UtilityController.addNewUtility
 );
 router.put(
   "/utility/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   UtilityController.updateUtility
 );
 router.delete(
   "/utility/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   UtilityController.deleteUtility
 );
 router.patch(
   "/utility/:id/images",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
-  upload.array("images", 5), 
+  upload.array("images", 5),
   UtilityController.addImagesToUtility
 );
 router.delete(
   "/utility/:id/images",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   UtilityController.deleteImagesForUtility
 );
@@ -113,55 +113,55 @@ router.post(
   "/room",
   verifyToken,
   verifyIsLandlord,
-  upload.array("images", 5), 
+  upload.array("images", 5),
   RoomController.addNewRoom
 );
 router.put(
   "/room/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   RoomController.updateRoom
 );
 router.delete(
   "/room/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   RoomController.deleteRoom
 );
 router.patch(
   "/room/:id/images",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
-  upload.array("images", 5), 
+  upload.array("images", 5),
   RoomController.addImagesToRoom
 );
 router.delete(
   "/room/:id/images",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   RoomController.deleteImagesForRoom
 );
 router.patch(
   "/room/:id/amenities",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   RoomController.addAmenitiesToRoom
 );
 router.delete(
   "/room/:id/amenities",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   RoomController.deleteAmenitiesForRoom
 );
 router.patch(
   "/room/:id/utilities",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   RoomController.addUtilitiesToRoom
 );
 router.delete(
   "/room/:id/utilities",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   RoomController.deleteUtilitiesForRoom
 );
@@ -181,7 +181,7 @@ router.post(
   "/occupant",
   verifyToken,
   formatDateMiddleware(["birthday"]),
-  upload.array("cccdImages", 5), 
+  upload.array("cccdImages", 5),
   OccupantController.addNewOccupant
 );
 router.put(
@@ -193,7 +193,7 @@ router.put(
 router.patch(
   "/occupant/:id/cccdImages",
   verifyToken,
-  upload.array("cccdImages", 5), 
+  upload.array("cccdImages", 5),
   OccupantController.addCccdImagesToOccupant
 );
 router.delete(
@@ -205,7 +205,7 @@ router.delete(
 // Landlord only route
 router.delete(
   "/occupant/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   OccupantController.deleteOccupant
 );
@@ -214,45 +214,46 @@ router.delete(
 // contract routes
 // =======================================
 // Logged in user routes (any role)
-router.get(
-  "/contracts",
-  verifyToken,
-  formatDateMiddleware(["startDate", "endDate"]),
-  ContractController.getAllContracts
-);
 router.get("/contract/:id", verifyToken, ContractController.getContractById);
 
 // Landlord only routes
+router.get(
+  "/contracts",
+  verifyToken,
+  verifyIsLandlord,
+  formatDateMiddleware(["startDate", "endDate"]),
+  ContractController.getAllContracts
+);
 router.post(
   "/contract",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   formatDateMiddleware(["startDate", "endDate"]),
   ContractController.addNewContract
 );
 router.put(
   "/contract/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   formatDateMiddleware(["startDate", "endDate"]),
   ContractController.updateContract
 );
 router.delete(
   "/contract/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   ContractController.deleteContract
 );
 router.patch(
   "/contract/:id/extend",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   formatDateMiddleware(["endDate"]),
   ContractController.extendContract
 );
 router.patch(
   "/contract/:id/terminate",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   ContractController.terminateContract
 );
@@ -267,26 +268,26 @@ router.get("/invoice/:id", verifyToken, InvoiceController.getInvoiceById);
 // Landlord only routes
 router.post(
   "/invoice",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   InvoiceController.addNewInvoice
 );
 router.put(
   "/invoice/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   InvoiceController.updateInvoice
 );
 router.delete(
   "/invoice/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   InvoiceController.deleteInvoice
 );
 router.patch(
   // Mark as paid
-  "/invoice/:id",
-  verifyToken, 
+  "/invoice/:id/paid",
+  verifyToken,
   verifyIsLandlord,
   InvoiceController.markInvoiceIsPaid
 );
@@ -306,35 +307,35 @@ router.get(
 // Landlord only routes
 router.post(
   "/expense",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   formatDateMiddleware(["expenseDate"]),
-  upload.array("receiptImages", 5), 
+  upload.array("receiptImages", 5),
   ExpenseController.addNewExpense
 );
 router.put(
   "/expense/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   formatDateMiddleware(["expenseDate"]),
   ExpenseController.updateExpense
 );
 router.delete(
   "/expense/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   ExpenseController.deleteExpense
 );
 router.patch(
   "/expense/:id/receiptImages",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
-  upload.array("receiptImages", 5), 
+  upload.array("receiptImages", 5),
   ExpenseController.addReceiptImagesToExpense
 );
 router.delete(
   "/expense/:id/receiptImages",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   ExpenseController.deleteReceiptImagesForExpense
 );
@@ -362,7 +363,7 @@ router.post(
   "/repairRequest",
   verifyToken,
   formatDateMiddleware(["requestDate"]),
-  upload.array("images", 5), 
+  upload.array("images", 5),
   RepairRequestController.addNewRepairRequest
 );
 router.put(
@@ -374,7 +375,7 @@ router.put(
 router.patch(
   "/repairRequest/:id/images",
   verifyToken,
-  upload.array("images", 5), 
+  upload.array("images", 5),
   RepairRequestController.addImagesToRepairRequest
 );
 router.delete(
@@ -386,7 +387,7 @@ router.delete(
 // Landlord only route
 router.delete(
   "/repairRequest/:id",
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   RepairRequestController.deleteRepairRequest
 );
@@ -402,19 +403,19 @@ router.post("/user/logout", UserController.logoutUser);
 // Landlord only routes
 router.post(
   "/user", // Add new user
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   UserController.addNewUser
 );
 router.get(
   "/users", // Get all users
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   UserController.getAllUsers
 );
 router.delete(
   "/user/:username", // Delete user
-  verifyToken, 
+  verifyToken,
   verifyIsLandlord,
   UserController.deleteUser
 );
