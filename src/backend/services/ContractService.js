@@ -16,7 +16,7 @@ class ContractService {
       if (filter.startDate)
         query = query.where("startDate").equals(filter.startDate);
       if (filter.endDate) query = query.where("endDate").equals(filter.endDate);
-      if (filter.status) query = query.where("status ").equals(filter.status);
+      if (filter.status) query = query.where("status").equals(filter.status);
 
       const contracts = await query;
       if (!contracts.length) {
@@ -109,6 +109,8 @@ class ContractService {
         );
       }
 
+      await RoomService.updateRoom(roomId, { status: "occupied" });
+
       const newContract = new Contract(data);
       const addedContract = await newContract.save();
       return addedContract;
@@ -141,6 +143,11 @@ class ContractService {
       if (!deletedContract) {
         throw new ApiError(404, `No contract found matching id ${id}.`);
       }
+
+      await RoomService.updateRoom(deletedContract.roomId, {
+        status: "vacant"
+      });
+
       return deletedContract;
     } catch (error) {
       logger.error(`ContractService.deleteContract() have error:\n${error}`);
