@@ -148,14 +148,13 @@
               <div class="filter-container">
                 <h5 class="filter-heading">Lọc phòng</h5>
 
-                <!-- Status Filter -->
+                <!-- Address Filter -->
                 <div class="filter-group">
-                  <label class="filter-label">Trạng thái:</label>
-                  <select id="statusFilter" class="form-select">
+                  <label class="filter-label">Địa chỉ:</label>
+                  <select id="addressFilter" class="form-select">
                     <option value="all">Tất cả</option>
-                    <option value="vacant">Trống</option>
-                    <option value="occupied">Đã thuê</option>
-                    <option value="unavailable">Không có sẵn</option>
+                    <!-- <option value="Nguyễn Văn Công">Nguyễn Văn Công</option>
+                    <option value="Dương Quảng Hàm">Dương Quảng Hàm</option> -->
                   </select>
                 </div>
 
@@ -179,16 +178,6 @@
                   </div>
                 </div>
 
-                <!-- Address Filter -->
-                <div class="filter-group">
-                  <label class="filter-label">Địa chỉ:</label>
-                  <select id="addressFilter" class="form-select">
-                    <option value="all">Tất cả</option>
-                    <!-- <option value="Nguyễn Văn Công">Nguyễn Văn Công</option>
-                    <option value="Dương Quảng Hàm">Dương Quảng Hàm</option> -->
-                  </select>
-                </div>
-
                 <!-- Capacity Filter -->
                 <div class="filter-group">
                   <label for="occupantNumberRange" class="filter-label"
@@ -207,6 +196,17 @@
                     <span id="minOccupantNumber">0</span>
                     <span id="maxOccupantNumber">5</span>
                   </div>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="filter-group">
+                  <label class="filter-label">Trạng thái:</label>
+                  <select id="statusFilter" class="form-select">
+                    <option value="all">Tất cả</option>
+                    <option value="vacant">Trống</option>
+                    <option value="occupied">Đã thuê</option>
+                    <option value="unavailable">Không có sẵn</option>
+                  </select>
                 </div>
 
                 <!-- Apply Filter Button (Optional, for clarity) -->
@@ -266,6 +266,7 @@
         <div
           id="amenities-utilities-tab-container"
           class="amenities-utilities-tab-container"
+          style="display: none"
         >
           <div class="row">
             <div class="col-md-6">
@@ -349,13 +350,171 @@
 
         <div id="occupants-tab-container" class="occupants-tab-container"></div>
 
-        <div id="contracts-tab-container" class="contracts-tab-container"></div>
+        <div
+          id="contracts-tab-container"
+          class="contracts-tab-container"
+          style="display: none"
+        >
+          <!-- START: contracts-tab-container (Layout matches provided image) -->
+          <div id="contracts-tab-container" class="contracts-tab-container">
+            <div
+              class="contracts-tab-title d-flex justify-content-center align-items-center"
+            >
+              QUẢN LÝ DANH SÁCH HỢP ĐỒNG
+            </div>
 
-        <div id="invoices-tab-container" class="invoices-tab-container"></div>
+            <!-- Search Section - Placed directly below title, above the main row -->
+            <div class="search-container my-3">
+              <div class="input-group">
+                <input
+                  type="text"
+                  id="searchContractInput"
+                  class="form-control"
+                  placeholder="Tìm theo mã hợp đồng"
+                  aria-label="Tìm kiếm hợp đồng"
+                />
+                <button id="searchContractsBtn" class="btn h-100" type="button">
+                  Tìm kiếm
+                </button>
+              </div>
+            </div>
 
-        <div id="expenses-tab-container" class="expenses-tab-container"></div>
+            <!-- Row for Filters and Table -->
+            <div class="row">
+              <!-- Left Column: Filters & Add Button -->
+              <div class="col-md-3">
+                <div class="filter-container">
+                  <h5 class="filter-heading">Lọc hợp đồng</h5>
 
-        <div id="users-tab-container" class="users-tab-container"></div>
+                  <!-- Room Filter -->
+                  <div class="filter-group">
+                    <label for="contractRoomFilter" class="filter-label"
+                      >Phòng:</label
+                    >
+                    <select id="contractRoomFilter" class="form-select">
+                      <option value="all" selected>Tất cả phòng</option>
+                      <!-- Options sẽ được load bằng JS -->
+                      <option value="" disabled>Đang tải...</option>
+                    </select>
+                  </div>
+                  <!-- Start Date Filter -->
+                  <div class="filter-group">
+                    <label for="contractStartDateFilter" class="filter-label"
+                      >Ngày bắt đầu:</label
+                    >
+                    <input
+                      type="date"
+                      id="contractStartDateFilter"
+                      class="form-control"
+                      placeholder="mm/dd/yyyy"
+                    />
+                  </div>
+
+                  <!-- End Date Filter -->
+                  <div class="filter-group">
+                    <label for="contractEndDateFilter" class="filter-label"
+                      >Ngày kết thúc:</label
+                    >
+                    <input
+                      type="date"
+                      id="contractEndDateFilter"
+                      class="form-control"
+                      placeholder="mm/dd/yyyy"
+                    />
+                  </div>
+
+                  <!-- Status Filter -->
+                  <div class="filter-group">
+                    <label class="filter-label">Trạng thái:</label>
+                    <select id="contractStatusFilter" class="form-select">
+                      <option value="all">Tất cả</option>
+                      <option value="active">Còn hiệu lực</option>
+                      <option value="expired">Hết hạn</option>
+                      <option value="terminated">Đã hủy</option>
+                    </select>
+                  </div>
+
+                  <!-- Apply Filter Button -->
+                  <button
+                    id="applyContractFilters"
+                    class="apply-filters-btn btn w-100"
+                  >
+                    Áp dụng lọc
+                  </button>
+                </div>
+
+                <!-- Add New Contract Button -->
+                <div class="mt-3">
+                  <button
+                    id="addNewContractBtn"
+                    class="add-contract-btn btn w-100"
+                  >
+                    Thêm hợp đồng mới
+                  </button>
+                </div>
+              </div>
+
+              <!-- Right Column: Contract List & Pagination -->
+              <div class="col-md-9">
+                <!-- Contract List Table -->
+                <div class="contract-list-container table-responsive">
+                  <table
+                    class="table table-hover table-striped align-middle contract-table"
+                  >
+                    <thead class="table-header-bg">
+                      <!-- Adjusted style to match image header -->
+                      <tr>
+                        <th scope="col">STT</th>
+                        <th scope="col">Mã hợp đồng</th>
+                        <th scope="col">Số phòng</th>
+                        <th scope="col" class="text-center">Ngày bắt đầu</th>
+                        <th scope="col" class="text-center">Ngày kết thúc</th>
+                        <th scope="col" class="text-center">Trạng thái</th>
+                        <th scope="col" class="text-center"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="contractTableBody">
+                      <tr>
+                        <td colspan="7" class="text-center">
+                          Đang tải dữ liệu...
+                        </td>
+                      </tr>
+                      <!-- Contract data rows -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Contract list page navigation">
+                  <ul
+                    class="pagination justify-content-center mt-3"
+                    id="contractPagination"
+                  >
+                    <!-- Pagination items -->
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="invoices-tab-container"
+          class="invoices-tab-container"
+          style="display: none"
+        ></div>
+
+        <div
+          id="expenses-tab-container"
+          class="expenses-tab-container"
+          style="display: none"
+        ></div>
+
+        <div
+          id="users-tab-container"
+          class="users-tab-container"
+          style="display: none"
+        ></div>
 
         <div
           id="notifications-tab-container"
@@ -478,7 +637,7 @@
                     </div>
 
                     <!-- Status -->
-                    <div class="mb-3">
+                    <!-- <div class="mb-3">
                       <label for="newRoomStatus" class="form-label required"
                         >Trạng thái:</label
                       >
@@ -487,8 +646,7 @@
                         <option value="occupied">Đã thuê</option>
                         <option value="unavailable">Không có sẵn</option>
                       </select>
-                      <!-- No invalid-feedback needed as it always has a default -->
-                    </div>
+                    </div> -->
 
                     <!-- Description -->
                     <div class="mb-3">
@@ -562,7 +720,7 @@
               <button
                 type="button"
                 class="cancel-btn btn"
-                id="cancelBtn"
+                id="cancelRoomBtn"
                 data-bs-dismiss="modal"
               >
                 Hủy
@@ -807,6 +965,171 @@
                 style="display: none"
               ></span>
               Lưu tiện ích
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add New Contract Modal -->
+    <div
+      class="modal fade"
+      id="addNewContractModal"
+      tabindex="-1"
+      aria-labelledby="addNewContractModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <!-- Using modal-lg like the room modal -->
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addNewContractModalLabel">
+              Thêm hợp đồng mới
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="addContractForm" novalidate>
+              <!-- Feedback Area -->
+              <div
+                id="addContractModalFeedback"
+                class="alert"
+                role="alert"
+                style="display: none"
+              ></div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <!-- Room Selection -->
+                  <div class="mb-3">
+                    <label for="newContractRoomId" class="form-label required"
+                      >Phòng:</label
+                    >
+                    <select class="form-select" id="newContractRoomId" required>
+                      <option value="" selected disabled>Chọn phòng...</option>
+                      <!-- Options will be loaded dynamically by JS -->
+                      <!-- Example: <option value="room_id_1">Phòng 101 - Địa chỉ A</option> -->
+                    </select>
+                    <div id="roomSelectLoading" style="display: none">
+                      Đang tải danh sách phòng...
+                    </div>
+                    <div class="invalid-feedback">Vui lòng chọn phòng.</div>
+                  </div>
+
+                  <!-- Start Date -->
+                  <div class="mb-3">
+                    <label
+                      for="newContractStartDate"
+                      class="form-label required"
+                      >Ngày bắt đầu:</label
+                    >
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="newContractStartDate"
+                      required
+                    />
+                    <div class="invalid-feedback">
+                      Vui lòng chọn ngày bắt đầu.
+                    </div>
+                  </div>
+
+                  <!-- End Date -->
+                  <div class="mb-3">
+                    <label for="newContractEndDate" class="form-label required"
+                      >Ngày kết thúc:</label
+                    >
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="newContractEndDate"
+                      required
+                    />
+                    <div class="invalid-feedback">
+                      Vui lòng chọn ngày kết thúc.
+                    </div>
+                  </div>
+
+                  <!-- Rent Price (Prefill from Room recommended, but editable) -->
+                  <div class="mb-3">
+                    <label
+                      for="newContractRentPrice"
+                      class="form-label required"
+                      >Giá thuê (VNĐ):</label
+                    >
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="newContractRentPrice"
+                      min="0"
+                      step="50000"
+                      required
+                    />
+                    <small class="form-text text-muted"
+                      >Giá thuê sẽ được gợi ý từ phòng đã chọn.</small
+                    >
+                    <div class="invalid-feedback">
+                      Vui lòng nhập giá thuê hợp lệ (lớn hơn hoặc bằng 0).
+                    </div>
+                  </div>
+
+                  <!-- Deposit -->
+                  <div class="mb-3">
+                    <label for="newContractDeposit" class="form-label required"
+                      >Tiền cọc (VNĐ):</label
+                    >
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="newContractDeposit"
+                      min="0"
+                      required
+                    />
+                    <div class="invalid-feedback">
+                      Vui lòng nhập tiền cọc hợp lệ (lớn hơn hoặc bằng 0).
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label"
+                      >Tiện nghi bao gồm (tính vào cọc):</label
+                    >
+                    <div
+                      id="newContractAmenitiesList"
+                      class="checklist-container"
+                    >
+                      <!-- Checkboxes will be loaded here by JS -->
+                      <p class="text-muted small m-0">Đang tải tiện nghi...</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="cancel-btn btn"
+              id="cancelContractBtn"
+              data-bs-dismiss="modal"
+            >
+              Hủy
+            </button>
+            <button type="button" class="save-btn btn" id="saveNewContractBtn">
+              <span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+                style="display: none"
+              ></span>
+              Lưu hợp đồng
             </button>
           </div>
         </div>

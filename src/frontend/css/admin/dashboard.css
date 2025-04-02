@@ -88,7 +88,8 @@ body {
 
 .rooms-tab-title,
 .amenities-tab-title,
-.utilities-tab-title {
+.utilities-tab-title,
+.contracts-tab-title {
   border-radius: 5px;
   font-size: 32px;
   color: #fff;
@@ -146,79 +147,74 @@ body {
   cursor: pointer;
   border-radius: 50%;
 }
+.apply-filters-btn,
 #applyFilters,
 #addNewRoomBtn,
 #addNewAmenityBtn,
-#addNewUtilityBtn {
+#addNewUtilityBtn,
+#applyContractFilters,
+#addNewContractBtn,
+#searchContractsBtn {
   color: white;
   background-color: #4da1a9;
 }
 
-/* --- Combined Table Styles --- */
 .room-table,
 .amenity-table,
-.utility-table {
+.utility-table,
+.contract-table {
   margin-bottom: 0;
-  border-radius: 10px; /* Applied border-radius */
+  border-radius: 10px;
   border: 2px solid #a5bfcc;
 }
-
 .room-table thead.table-header-bg,
 .amenity-table thead.table-header-bg,
-.utility-table thead.table-header-bg {
-  /* Inheriting class style - ensure .table-header-bg is defined if needed, or apply directly */
-  /* Example direct application (overrides potential .table-header-bg): */
-  background-color: #a5bfcc; /* Changed to match other headers */
+.utility-table thead.table-header-bg,
+.contract-table thead.table-header-bg {
+  background-color: #a5bfcc;
   color: white;
   font-weight: bold;
   vertical-align: middle;
 }
-
 .room-table th,
 .amenity-table th,
 .utility-table th {
   border-bottom-width: 2px;
 }
-
-/* Apply cursor: pointer only to room table rows if only they are clickable */
-.room-table tbody tr {
-  cursor: pointer;
-}
-/* Remove cursor pointer from other tables if rows are not interactive */
 .amenity-table tbody tr,
-.utility-table tbody tr {
-  cursor: default; /* Or remove this rule if default is fine */
+.utility-table tbody tr,
+.contract-table tbody tr {
+  cursor: default;
 }
-
 .room-table tbody tr:hover,
-.amenity-table tbody tr:hover, /* Apply hover effect to all for consistency */
-.utility-table tbody tr:hover {
+.amenity-table tbody tr:hover,
+.utility-table tbody tr:hover,
+.contract-table tbody tr:hover {
   background-color: #e7f2f8;
 }
-
 .room-table td,
 .room-table th,
 .amenity-table td,
 .amenity-table th,
 .utility-table td,
-.utility-table th {
+.utility-table th,
+.contract-table td,
+.contract-table th {
   vertical-align: middle;
   padding: 0.75rem;
 }
-
 .room-table .text-end,
 .amenity-table .text-end,
-.utility-table .text-end {
+.utility-table .text-end,
+.contract-table .text-end {
   text-align: right;
 }
-
 .room-table .text-center,
 .amenity-table .text-center,
-.utility-table .text-center {
+.utility-table .text-center,
+.contract-table .text-center {
   text-align: center;
 }
-/* --- End Combined Table Styles --- */
-
 .status-vacant {
   color: green;
   font-weight: bold;
@@ -228,6 +224,18 @@ body {
   font-weight: bold;
 }
 .status-unavailable {
+  color: red;
+  font-weight: bold;
+}
+.status-active {
+  color: green;
+  font-weight: bold;
+}
+.status-expired {
+  color: orange;
+  font-weight: bold;
+}
+.status-terminated {
   color: red;
   font-weight: bold;
 }
@@ -314,7 +322,7 @@ body {
 .save-btn .spinner-border {
   margin-right: 5px;
   vertical-align: text-bottom;
-  display: none; 
+  display: none;
 }
 .was-validated .form-control:invalid,
 .form-control.is-invalid {
@@ -337,11 +345,17 @@ body {
 .form-select.is-invalid ~ .invalid-feedback {
   display: block;
 }
-.cancel-btn { 
+#cancelRoomBtn,
+#cancelAmenityBtn,
+#cancelUtilityBtn,
+#cancelContractBtn {
   color: white;
   background-color: #dc3545;
 }
-.save-btn { 
+#saveNewRoomBtn,
+#saveNewAmenityBtn,
+#saveNewUtilityBtn,
+#saveNewContractBtn {
   color: white;
   background-color: #4da1a9;
 }

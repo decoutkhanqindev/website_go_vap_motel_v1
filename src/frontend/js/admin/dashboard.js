@@ -1,6 +1,7 @@
 import RoomService from "../services/RoomService.js";
 import AmenityService from "../services/AmenityService.js";
 import UtilityService from "../services/UtilityService.js";
+import ContractService from "../services/ContractService.js";
 
 // --- Global Scope: State Variables ---
 // --- State for Rooms Tab ---
@@ -35,6 +36,17 @@ const utilityNameMap = {
   parking: "Đỗ xe",
   cleaning: "Vệ sinh hàng tuần"
 };
+
+// --- State for Contracts Tab ---
+let contractCurrentPage = 1;
+let totalContracts = 0;
+const contractsPerPage = 10;
+let currentContractData = [];
+let vacantRoomsData = [];
+let allAmenitiesData = [];
+let allUtilitiesData = [];
+let baseContractDeposit = 0;
+let allRoomsForFilter = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- DOM Element Selectors ---
@@ -132,6 +144,53 @@ document.addEventListener("DOMContentLoaded", () => {
     saveNewUtilityBtn?.querySelector(".spinner-border");
   const addNewUtilityButton = document.getElementById("addNewUtilityBtn");
 
+  // --- Selectors: Contracts Tab UI ---
+  const contractTableBody = document.getElementById("contractTableBody");
+  const contractPaginationContainer =
+    document.getElementById("contractPagination");
+  const searchContractInput = document.getElementById("searchContractInput");
+  const searchContractsBtn = document.getElementById("searchContractsBtn");
+  const contractRoomFilterSelect =
+    document.getElementById("contractRoomFilter");
+  const contractStartDateFilter = document.getElementById(
+    "contractStartDateFilter"
+  );
+  const contractEndDateFilter = document.getElementById(
+    "contractEndDateFilter"
+  );
+  const contractStatusFilter = document.getElementById("contractStatusFilter");
+  const applyContractFiltersBtn = document.getElementById(
+    "applyContractFilters"
+  );
+  const addNewContractBtn = document.getElementById("addNewContractBtn");
+  // Add New Contract Modal
+  const addNewContractModalElement = document.getElementById(
+    "addNewContractModal"
+  );
+  const addContractForm = document.getElementById("addContractForm");
+  const newContractRoomIdSelect = document.getElementById("newContractRoomId");
+  const newContractStartDateInput = document.getElementById(
+    "newContractStartDate"
+  );
+  const newContractEndDateInput = document.getElementById("newContractEndDate");
+  const newContractRentPriceInput = document.getElementById(
+    "newContractRentPrice"
+  );
+  const newContractDepositInput = document.getElementById("newContractDeposit");
+  const saveNewContractBtn = document.getElementById("saveNewContractBtn");
+  const addContractModalFeedbackDiv = document.getElementById(
+    "addContractModalFeedback"
+  );
+  const saveNewContractSpinner =
+    saveNewContractBtn?.querySelector(".spinner-border");
+  const roomSelectLoadingDiv = document.getElementById("roomSelectLoading"); // Loading indicator for room dropdown
+  const newContractAmenitiesListDiv = document.getElementById(
+    "newContractAmenitiesList"
+  );
+  const newContractUtilitiesListDiv = document.getElementById(
+    "newContractUtilitiesList"
+  );
+
   // --- Initialize Bootstrap Modals ---
   const addNewRoomModal = addNewRoomModalElement
     ? new bootstrap.Modal(addNewRoomModalElement)
@@ -141,6 +200,9 @@ document.addEventListener("DOMContentLoaded", () => {
     : null;
   const addNewUtilityModal = addNewUtilityModalElement
     ? new bootstrap.Modal(addNewUtilityModalElement)
+    : null;
+  const addNewContractModal = addNewContractModalElement
+    ? new bootstrap.Modal(addNewContractModalElement)
     : null;
 
   // --- Core UI Functions ---
@@ -256,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error(error);
       if (roomTableBody) {
-        roomTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi khi tải dữ liệu.</td></tr>`;
+        roomTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi khi tải dữ liệu phòng.</td></tr>`;
       }
     }
   }
@@ -380,9 +442,14 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       await RoomService.deleteRoom(roomId);
 
-      const totalPagesAfterDeletion = Math.ceil(
-        (totalRooms - 1) / roomsPerPage
-      );
+      const indexToRemove = currentRoomData.findIndex((r) => r._id === roomId);
+      if (indexToRemove > -1) {
+        currentRoomData.splice(indexToRemove, 1);
+      }
+
+      totalRooms = currentRoomData.length;
+
+      const totalPagesAfterDeletion = Math.ceil(totalRooms / roomsPerPage);
       if (
         currentPage > totalPagesAfterDeletion &&
         totalPagesAfterDeletion > 0
@@ -391,16 +458,21 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (totalPagesAfterDeletion === 0) {
         currentPage = 1;
       }
-      await fetchAndRenderUiForRoomsTab();
-      // Consider adding toast notification for success
+
+      renderRoomTableUIRoomsTab();
     } catch (error) {
       console.error(error);
-      const errorMsg = (error.message || "Lỗi chưa rõ").toString();
+      const errorMsg = (
+        error?.response?.data?.message ||
+        error.message ||
+        "Lỗi chưa rõ"
+      ).toString();
       alert(
         `Lỗi khi xóa phòng: ${
           errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1)
         }`
       );
+    } finally {
       if (deleteButton) {
         deleteButton.disabled = false;
         deleteButton.innerHTML = originalButtonText;
@@ -573,7 +645,7 @@ document.addEventListener("DOMContentLoaded", () => {
       occupantsNumber: newRoomOccupantsNumberInput
         ? parseInt(newRoomOccupantsNumberInput.value, 10)
         : 1,
-      status: newRoomStatusSelect ? newRoomStatusSelect.value : "vacant",
+      status: "vacant",
       description: newRoomDescriptionInput
         ? newRoomDescriptionInput.value.trim()
         : ""
@@ -725,7 +797,7 @@ document.addEventListener("DOMContentLoaded", () => {
       utilityTableBody.innerHTML = `<tr><td colspan="4" class="text-center">Không tìm thấy tiện ích nào.</td></tr>`; // Adjusted colspan
       return;
     }
-    
+
     currentUtilityData.forEach((utility, index) => {
       const row = document.createElement("tr");
       row.dataset.id = utility._id;
@@ -1151,6 +1223,539 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // --- Contracts Tab: Data Fetching & Filtering Logic ---
+
+  // Function: Populates the room filter dropdown with all rooms.
+  async function populateOccupiedRoomFilterDropdown() {
+    if (!contractRoomFilterSelect) return;
+
+    contractRoomFilterSelect.innerHTML =
+      '<option value="all" selected>Tất cả phòng</option><option value="" disabled>Đang tải...</option>';
+    contractRoomFilterSelect.disabled = true;
+
+    try {
+      // Fetch ALL rooms (not just vacant)
+      const rooms = await RoomService.getAllRooms({ status: "occupied" });
+      allRoomsForFilter = rooms; // Store globally if needed elsewhere, otherwise just use locally
+
+      // Clear loading and add options
+      contractRoomFilterSelect.innerHTML =
+        '<option value="all" selected>Tất cả phòng</option>';
+
+      if (rooms && rooms.length > 0) {
+        rooms.forEach((room) => {
+          const option = document.createElement("option");
+          option.value = room._id; // Use room ID as value
+          option.textContent = `P. ${room.roomNumber || "N/A"} - ${
+            room.address || "N/A"
+          }`;
+          contractRoomFilterSelect.appendChild(option);
+        });
+      } else {
+        // Optionally add a message if no rooms exist at all
+        // contractRoomFilterSelect.innerHTML += '<option value="" disabled>Không có phòng nào</option>';
+      }
+      contractRoomFilterSelect.disabled = false;
+    } catch (error) {
+      console.error("Error loading rooms for filter:", error);
+      contractRoomFilterSelect.innerHTML =
+        '<option value="all" selected>Tất cả phòng</option><option value="" disabled>Lỗi tải phòng</option>';
+    }
+  }
+
+  // Function: Fetches contract data based on filters/search and triggers UI rendering
+  async function fetchAndRenderUiForContractsTab() {
+    if (contractTableBody) {
+      contractTableBody.innerHTML = `<tr><td colspan="7" class="text-center">Đang tải dữ liệu hợp đồng...</td></tr>`;
+    }
+    if (contractPaginationContainer) {
+      contractPaginationContainer.innerHTML = "";
+    }
+
+    try {
+      // Get filter values
+      const searchTerm = searchContractInput
+        ? searchContractInput.value.trim()
+        : "";
+      const selectedRoomId = contractRoomFilterSelect
+        ? contractRoomFilterSelect.value
+        : "all";
+      const startDate = contractStartDateFilter
+        ? contractStartDateFilter.value
+        : "";
+      const endDate = contractEndDateFilter ? contractEndDateFilter.value : "";
+      const status = contractStatusFilter ? contractStatusFilter.value : "all";
+
+      // Build filter object
+      const filter = {};
+      if (searchTerm) filter.contractCode = searchTerm;
+      if (selectedRoomId !== "all") filter.roomId = selectedRoomId;
+      if (startDate) filter.startDate = startDate;
+      if (endDate) filter.endDate = endDate;
+      if (status !== "all") filter.status = status;
+
+      // Fetch contracts with the updated filter object
+      const allMatchingContracts = await ContractService.getAllContracts(
+        filter
+      );
+
+      // Store and render
+      currentContractData = allMatchingContracts || [];
+      totalContracts = currentContractData.length;
+      renderContractTableUI();
+    } catch (error) {
+      console.error(error);
+      if (contractTableBody) {
+        contractTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi khi tải dữ liệu hợp đồng</td></tr>`; // Sửa lại lỗi chính tả
+      }
+      currentContractData = [];
+      totalContracts = 0;
+      renderContractPaginationUI();
+    }
+  }
+
+  // --- Contracts Tab: UI Rendering Logic ---
+
+  // Function: Renders the contract table based on current data and pagination
+  function renderContractTableUI() {
+    if (!contractTableBody) return;
+    contractTableBody.innerHTML = ""; // Clear previous rows
+
+    // Check if there's any data in the full list
+    if (currentContractData.length === 0) {
+      contractTableBody.innerHTML = `<tr><td colspan="7" class="text-center">Không tìm thấy hợp đồng nào phù hợp.</td></tr>`;
+      renderContractPaginationUI(); // Still render pagination (which will be empty)
+      return;
+    }
+
+    // Calculate start and end index for the current page
+    const startIndex = (contractCurrentPage - 1) * contractsPerPage;
+    const endIndex = Math.min(startIndex + contractsPerPage, totalContracts); // Use totalContracts
+
+    // Slice the data to get only the contracts for the current page
+    const contractsToDisplay = currentContractData.slice(startIndex, endIndex);
+
+    // Render only the contracts for the current page
+    contractsToDisplay.forEach(async (contract, index) => {
+      const row = document.createElement("tr");
+      row.dataset.id = contract._id;
+
+      // Calculate sequential number based on the start index of the page
+      const sequentialNumber = startIndex + index + 1;
+
+      const formattedStartDate = contract.startDate
+        ? new Date(contract.startDate).toLocaleDateString("vi-VN")
+        : "N/A";
+      const formattedEndDate = contract.endDate
+        ? new Date(contract.endDate).toLocaleDateString("vi-VN")
+        : "N/A";
+
+      const room = await RoomService.getRoomById(contract.roomId);
+      const roomNumber = room.roomNumber;
+
+      let statusText = "Không xác định";
+      let statusClass = "status-unknown";
+      switch (contract.status) {
+        case "active":
+          statusText = "Còn hiệu lực";
+          statusClass = "status-active";
+          break;
+        case "expired":
+          statusText = "Hết hạn";
+          statusClass = "status-expired";
+          break;
+        case "terminated":
+          statusText = "Đã hủy";
+          statusClass = "status-terminated";
+          break;
+      }
+
+      row.innerHTML = `
+        <td>${sequentialNumber}</td>
+        <td>${contract.contractCode || "N/A"}</td>
+        <td>${roomNumber || "N/A"}</td>
+        <td class="text-center">${formattedStartDate}</td>
+        <td class="text-center">${formattedEndDate}</td>
+        <td class="text-center">
+          <span class="${statusClass}">${statusText}</span>
+        </td>
+        <td class="text-center action-cell">
+          <button class="btn btn-sm btn-danger delete-contract-btn" data-id="${
+            contract._id
+          }">Xóa</button>
+        </td>
+      `;
+
+      row.addEventListener("click", (event) => {
+        if (event.target.closest(".action-cell")) return;
+        window.location.href = `/admin/contract/details/${contract._id}`;
+      });
+
+      contractTableBody.appendChild(row);
+    });
+
+    // Render pagination controls after rendering the table rows
+    renderContractPaginationUI();
+  }
+
+  // Function: Renders pagination controls for the contract table
+  function renderContractPaginationUI() {
+    if (!contractPaginationContainer) return;
+    contractPaginationContainer.innerHTML = ""; // Clear previous pagination
+
+    const totalPages = Math.ceil(totalContracts / contractsPerPage);
+
+    if (totalPages <= 1) {
+      return; // No pagination needed for 0 or 1 page
+    }
+
+    // Create page number links
+    for (let i = 1; i <= totalPages; i++) {
+      const pageNumberItem = document.createElement("li");
+      pageNumberItem.classList.add("page-item");
+      if (i === contractCurrentPage) {
+        pageNumberItem.classList.add("active");
+      }
+
+      const pageNumberLink = document.createElement("a");
+      pageNumberLink.classList.add("page-link");
+      pageNumberLink.href = "#"; // Prevent default link behavior
+      pageNumberLink.textContent = i;
+
+      pageNumberLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (i !== contractCurrentPage) {
+          contractCurrentPage = i;
+          renderContractTableUI();
+        }
+      });
+
+      pageNumberItem.appendChild(pageNumberLink);
+      contractPaginationContainer.appendChild(pageNumberItem);
+    }
+  }
+
+  // --- Contracts Tab: Delete Contract Logic ---
+  async function handleDeleteContract(contractId) {
+    const confirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa hợp đồng này không?"
+    );
+    if (!confirmed) return;
+
+    const deleteButton = contractTableBody?.querySelector(
+      `.delete-contract-btn[data-id="${contractId}"]`
+    );
+    const originalButtonText = deleteButton ? deleteButton.innerHTML : "Xóa";
+
+    if (deleteButton) {
+      deleteButton.disabled = true;
+      deleteButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xóa...`;
+    }
+
+    try {
+      await ContractService.deleteContract(contractId);
+
+      const indexToRemove = currentContractData.findIndex(
+        (c) => c._id === contractId
+      );
+      if (indexToRemove > -1) {
+        currentContractData.splice(indexToRemove, 1);
+      }
+
+      totalContracts = currentContractData.length;
+
+      const totalPagesAfterDeletion = Math.ceil(
+        totalContracts / contractsPerPage
+      );
+      if (
+        contractCurrentPage > totalPagesAfterDeletion &&
+        totalPagesAfterDeletion > 0
+      ) {
+        contractCurrentPage = totalPagesAfterDeletion;
+      } else if (totalPagesAfterDeletion === 0) {
+        contractCurrentPage = 1; // Reset to page 1 if no contracts left
+      }
+
+      renderContractTableUI();
+    } catch (error) {
+      console.error("Error deleting contract:", error);
+      const errorMsg = (
+        error?.response?.data?.message ||
+        error.message ||
+        "Không thể xóa hợp đồng"
+      ).toString();
+      alert(
+        `Lỗi khi xóa hợp đồng: ${
+          errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1)
+        }`
+      );
+      // No need to re-render here on error, just restore the button
+    } finally {
+      if (deleteButton) {
+        deleteButton.disabled = false;
+        deleteButton.innerHTML = originalButtonText;
+      }
+    }
+  }
+
+  // --- Contracts Tab: Add New Contract Modal Logic ---
+
+  // Function: Loads vaccant rooms into the 'Add Contract' modal checkboxes.
+  async function loadVacantRoomsForModal() {
+    if (!newContractRoomIdSelect || !roomSelectLoadingDiv) return;
+
+    newContractRoomIdSelect.innerHTML =
+      '<option value="" selected disabled>Đang tải...</option>';
+    newContractRoomIdSelect.disabled = true;
+    roomSelectLoadingDiv.style.display = "block"; // Show loading indicator
+
+    try {
+      // Fetch only vacant rooms
+      const rooms = await RoomService.getAllRooms({ status: "vacant" });
+      vacantRoomsData = rooms; // Store fetched data globally
+
+      newContractRoomIdSelect.innerHTML =
+        '<option value="" selected disabled>Chọn phòng...</option>'; // Reset dropdown
+
+      if (rooms && rooms.length > 0) {
+        rooms.forEach((room) => {
+          const option = document.createElement("option");
+          option.value = room._id;
+          option.textContent = `P. ${room.roomNumber || "N/A"} - ${
+            room.address || "N/A"
+          }`;
+          // Store rent price directly on the option for easy access
+          option.dataset.rentPrice = room.rentPrice || 0;
+          newContractRoomIdSelect.appendChild(option);
+        });
+        newContractRoomIdSelect.disabled = false;
+      } else {
+        newContractRoomIdSelect.innerHTML =
+          '<option value="" disabled>Không có phòng trống</option>';
+      }
+    } catch (error) {
+      console.error(error);
+      newContractRoomIdSelect.innerHTML =
+        '<option value="" disabled>Lỗi tải phòng</option>';
+    } finally {
+      roomSelectLoadingDiv.style.display = "none"; // Hide loading indicator
+    }
+  }
+
+  // Function: Loads amenities into the 'Add Contract' modal checkboxes.
+  async function loadContractAmenitiesForModal() {
+    if (!newContractAmenitiesListDiv) return;
+    newContractAmenitiesListDiv.innerHTML =
+      '<p class="text-muted small m-0">Đang tải tiện nghi...</p>';
+    try {
+      const amenities = await AmenityService.getAllAmenities();
+      allAmenitiesData = amenities; // Store globally
+      newContractAmenitiesListDiv.innerHTML = "";
+      if (amenities && amenities.length > 0) {
+        amenities.forEach((amenity) => {
+          const div = document.createElement("div");
+          div.classList.add("form-check", "form-check-sm"); // Smaller checks maybe
+          const amenityName =
+            amenityNameMap[amenity.name] ||
+            (amenity.name
+              ? amenity.name.charAt(0).toUpperCase() + amenity.name.slice(1)
+              : "Tiện nghi");
+          div.innerHTML = `
+                    <input class="form-check-input contract-amenity-checkbox" type="checkbox" value="${
+                      amenity._id
+                    }" id="contract-amenity-${amenity._id}" data-price="${
+            amenity.price || 0
+          }">
+                    <label class="form-check-label" for="contract-amenity-${
+                      amenity._id
+                    }">${amenityName} (+${(amenity.price || 0).toLocaleString(
+            "vi-VN"
+          )} VNĐ)</label>
+                `;
+          newContractAmenitiesListDiv.appendChild(div);
+        });
+      } else {
+        newContractAmenitiesListDiv.innerHTML =
+          '<p class="text-muted small m-0">Không có tiện nghi nào.</p>';
+      }
+    } catch (error) {
+      console.error(error);
+      allAmenitiesData = []; // Clear on error
+      newContractAmenitiesListDiv.innerHTML =
+        '<p class="text-danger small m-0">Lỗi tải tiện nghi.</p>';
+    }
+  }
+
+  // Function: Loads utilities into the 'Add Contract' modal checkboxes.
+  async function loadContractUtilitiesForModal() {
+    if (!newContractUtilitiesListDiv) return;
+    newContractUtilitiesListDiv.innerHTML =
+      '<p class="text-muted small m-0">Đang tải tiện ích...</p>';
+    try {
+      const utilities = await UtilityService.getAllUtilities();
+      allUtilitiesData = utilities; // Store globally
+      newContractUtilitiesListDiv.innerHTML = "";
+      if (utilities && utilities.length > 0) {
+        utilities.forEach((utility) => {
+          const div = document.createElement("div");
+          div.classList.add("form-check", "form-check-sm");
+          const utilityName =
+            utilityNameMap[utility.name] ||
+            (utility.name
+              ? utility.name.charAt(0).toUpperCase() + utility.name.slice(1)
+              : "Tiện ích");
+          div.innerHTML = `
+                    <input class="form-check-input contract-utility-checkbox" type="checkbox" value="${
+                      utility._id
+                    }" id="contract-utility-${utility._id}" data-price="${
+            utility.price || 0
+          }">
+                    <label class="form-check-label" for="contract-utility-${
+                      utility._id
+                    }">${utilityName} (+${(utility.price || 0).toLocaleString(
+            "vi-VN"
+          )} VNĐ)</label>
+                `;
+          newContractUtilitiesListDiv.appendChild(div);
+        });
+      } else {
+        newContractUtilitiesListDiv.innerHTML =
+          '<p class="text-muted small m-0">Không có tiện ích nào.</p>';
+      }
+    } catch (error) {
+      console.error(error);
+      allUtilitiesData = []; // Clear on error
+      newContractUtilitiesListDiv.innerHTML =
+        '<p class="text-danger small m-0">Lỗi tải tiện ích.</p>';
+    }
+  }
+
+  // Function :Updates the deposit amount based on selected room and checked amenities/utilities.
+  function updateContractDeposit() {
+    if (!newContractDepositInput) return;
+
+    let totalDeposit = baseContractDeposit; // Start with the base deposit from the room
+
+    // Add price of checked amenities
+    const checkedAmenities =
+      newContractAmenitiesListDiv?.querySelectorAll(
+        ".contract-amenity-checkbox:checked"
+      ) || [];
+    checkedAmenities.forEach((checkbox) => {
+      totalDeposit += parseFloat(checkbox.dataset.price || 0);
+    });
+
+    // Add price of checked utilities
+    const checkedUtilities =
+      newContractUtilitiesListDiv?.querySelectorAll(
+        ".contract-utility-checkbox:checked"
+      ) || [];
+    checkedUtilities.forEach((checkbox) => {
+      totalDeposit += parseFloat(checkbox.dataset.price || 0);
+    });
+
+    newContractDepositInput.value = totalDeposit;
+  }
+
+  // Function: Resets the 'Add Contract' form to its default state.
+  function resetAddContractForm() {
+    if (addContractForm) {
+      addContractForm.reset();
+      addContractForm.classList.remove("was-validated");
+    }
+    // Reset dropdown to initial state
+    if (newContractRoomIdSelect) {
+      newContractRoomIdSelect.innerHTML =
+        '<option value="" selected disabled>Chọn phòng...</option>';
+      newContractRoomIdSelect.disabled = true; // Disable until loaded again
+    }
+    if (newContractRentPriceInput) newContractRentPriceInput.value = "";
+    if (newContractDepositInput) newContractDepositInput.value = "";
+    baseContractDeposit = 0; // Reset base deposit
+
+    // Clear and reset checkboxes
+    if (newContractAmenitiesListDiv)
+      newContractAmenitiesListDiv.innerHTML =
+        '<p class="text-muted small m-0">Chọn phòng để tải tiện nghi...</p>';
+    if (newContractUtilitiesListDiv)
+      newContractUtilitiesListDiv.innerHTML =
+        '<p class="text-muted small m-0">Chọn phòng để tải tiện ích...</p>';
+
+    hideModalFeedback("addContractModalFeedback");
+  }
+
+  // Function: Handles the submission of the 'Add New Contract' form.
+  async function handleSaveNewContract() {
+    hideModalFeedback("addContractModalFeedback");
+
+    if (!addContractForm || !addContractForm.checkValidity()) {
+      if (addContractForm) addContractForm.classList.add("was-validated");
+      showModalFeedback(
+        "addContractModalFeedback",
+        "Vui lòng điền đầy đủ các trường bắt buộc và chọn phòng.",
+        "warning"
+      );
+      return;
+    }
+    // Optional: Add date validation (end date >= start date)
+    const startDate = newContractStartDateInput?.value;
+    const endDate = newContractEndDateInput?.value;
+    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+      showModalFeedback(
+        "addContractModalFeedback",
+        "Ngày kết thúc không được trước ngày bắt đầu.",
+        "warning"
+      );
+      return;
+    }
+
+    if (addContractForm) addContractForm.classList.add("was-validated");
+
+    if (saveNewContractBtn) saveNewContractBtn.disabled = true;
+    if (saveNewContractSpinner)
+      saveNewContractSpinner.style.display = "inline-block";
+
+    // Collect data
+    const contractData = {
+      roomId: newContractRoomIdSelect.value,
+      startDate: newContractStartDateInput.value,
+      endDate: newContractEndDateInput.value,
+      rentPrice: parseInt(newContractRentPriceInput.value || 0, 10),
+      deposit: parseInt(newContractDepositInput.value || 0, 10),
+      status: "active"
+    };
+
+    try {
+      await ContractService.addNewContract(contractData);
+      showModalFeedback(
+        "addContractModalFeedback",
+        "Thêm hợp đồng thành công!",
+        "success"
+      );
+      contractCurrentPage = 1; // Go to first page to see the new contract
+      await fetchAndRenderUiForContractsTab(); // Refresh contract list
+      setTimeout(() => {
+        if (addNewContractModal) addNewContractModal.hide();
+        // Reset is handled by hidden.bs.modal listener
+      }, 1500);
+    } catch (error) {
+      console.error(error);
+      const errorMsg = (
+        error?.response?.data?.message ||
+        error.message ||
+        "Không thể thêm hợp đồng"
+      ).toString();
+      showModalFeedback(
+        "addContractModalFeedback",
+        `Lỗi: ${errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1)}`,
+        "danger"
+      );
+    } finally {
+      if (saveNewContractBtn) saveNewContractBtn.disabled = false;
+      if (saveNewContractSpinner) saveNewContractSpinner.style.display = "none";
+    }
+  }
+
   // --- Event Listener Setup ---
 
   // Event Listeners: Navigation
@@ -1208,7 +1813,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (addNewRoomButton && addNewRoomModal) {
     addNewRoomButton.addEventListener("click", () => {
       resetAddRoomForm();
-      Promise.all([loadAmenitiesForModal(), loadUtilitiesForModal()]) // Load data before showing
+      Promise.all([loadAmenitiesForModal()]) // Load data before showing
         .then(() => {
           addNewRoomModal.show();
         })
@@ -1324,14 +1929,116 @@ document.addEventListener("DOMContentLoaded", () => {
     saveNewUtilityBtn.addEventListener("click", handleSaveNewUtility);
   }
 
+  // Event Listeners: Contracts Tab Actions
+  if (searchContractsBtn) {
+    searchContractsBtn.addEventListener("click", () => {
+      contractCurrentPage = 1; // Reset to first page on new search/filter
+      fetchAndRenderUiForContractsTab();
+    });
+  }
+
+  if (searchContractInput) {
+    searchContractInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        contractCurrentPage = 1; // Reset to first page on new search/filter
+        fetchAndRenderUiForContractsTab();
+      }
+    });
+  }
+
+  if (applyContractFiltersBtn) {
+    applyContractFiltersBtn.addEventListener("click", () => {
+      contractCurrentPage = 1; // Reset to first page on new search/filter
+      fetchAndRenderUiForContractsTab();
+    });
+  }
+
+  if (contractTableBody) {
+    // Event delegation for delete button
+    contractTableBody.addEventListener("click", (event) => {
+      const deleteButton = event.target.closest(".delete-contract-btn");
+      if (deleteButton) {
+        event.stopPropagation(); // Prevent row click event
+        const contractId = deleteButton.dataset.id;
+        if (contractId) {
+          handleDeleteContract(contractId);
+        }
+      }
+    });
+  }
+
+  // --- Event Listeners: Add New Contract Modal ---
+  if (addNewContractBtn && addNewContractModal) {
+    addNewContractBtn.addEventListener("click", () => {
+      resetAddContractForm(); // Reset form first
+
+      // Show modal immediately, load data in background
+      addNewContractModal.show();
+
+      // Load necessary data for the form
+      Promise.all([
+        loadVacantRoomsForModal(),
+        loadContractAmenitiesForModal(),
+        loadContractUtilitiesForModal()
+      ]).catch((error) => {
+        console.error(error);
+        showModalFeedback(
+          "addContractModalFeedback",
+          "Lỗi tải dữ liệu cần thiết cho biểu mẫu.",
+          "danger"
+        );
+      });
+    });
+  }
+  if (newContractRoomIdSelect) {
+    newContractRoomIdSelect.addEventListener("change", (event) => {
+      const selectedOption = event.target.options[event.target.selectedIndex];
+      const rentPrice = parseFloat(selectedOption.dataset.rentPrice || 0);
+
+      if (newContractRentPriceInput) {
+        newContractRentPriceInput.value = rentPrice;
+      }
+
+      baseContractDeposit = rentPrice;
+      updateContractDeposit();
+    });
+  }
+  if (newContractAmenitiesListDiv) {
+    newContractAmenitiesListDiv.addEventListener("change", (event) => {
+      if (event.target.classList.contains("contract-amenity-checkbox")) {
+        updateContractDeposit();
+      }
+    });
+  }
+  if (newContractUtilitiesListDiv) {
+    newContractUtilitiesListDiv.addEventListener("change", (event) => {
+      if (event.target.classList.contains("contract-utility-checkbox")) {
+        updateContractDeposit();
+      }
+    });
+  }
+  if (addNewContractModalElement) {
+    addNewContractModalElement.addEventListener(
+      "hidden.bs.modal",
+      resetAddContractForm
+    );
+  }
+  if (saveNewContractBtn) {
+    saveNewContractBtn.addEventListener("click", handleSaveNewContract);
+  }
+
   // --- Initial Page Load Logic ---
   async function initializePage() {
     showContent("rooms-tab-container"); // Default tab
 
-    await populateAddressFilter(); // Populate room filters
-    await fetchAndRenderUiForRoomsTab(); // Initial room data load
-    await fetchAndRenderUiForAmenitiesTab(); // Initial amenity data load
-    await fetchAndRenderUiForUtilitiesTab(); // Initial utility data load
+    await populateAddressFilter();
+    await fetchAndRenderUiForRoomsTab();
+
+    await fetchAndRenderUiForAmenitiesTab();
+    await fetchAndRenderUiForUtilitiesTab();
+
+    await populateOccupiedRoomFilterDropdown();
+    await fetchAndRenderUiForContractsTab();
   }
 
   initializePage(); // Execute initialization
