@@ -210,7 +210,7 @@
         </div>
 
         <!-- rooms menu item -->
-        <div id="rooms" class="rooms">
+        <div id="rooms" class="rooms" style="display: none;">
           <div
             class="rooms-title d-flex justify-content-center align-items-center"
           >
@@ -222,14 +222,13 @@
               <div class="filter-container">
                 <h5 class="filter-heading">Lọc phòng</h5>
 
-                <!-- Status Filter -->
+                <!-- Address Filter -->
                 <div class="filter-group">
-                  <label class="filter-label">Trạng thái:</label>
-                  <select id="statusFilter" class="form-select">
+                  <label class="filter-label">Địa chỉ:</label>
+                  <select id="addressFilter" class="form-select">
                     <option value="all">Tất cả</option>
-                    <option value="vacant">Trống</option>
-                    <option value="occupied">Đã thuê</option>
-                    <option value="unavailable">Không có sẵn</option>
+                    <!-- <option value="Nguyễn Văn Công">Nguyễn Văn Công</option>
+                    <option value="Dương Quảng Hàm">Dương Quảng Hàm</option> -->
                   </select>
                 </div>
 
@@ -253,16 +252,6 @@
                   </div>
                 </div>
 
-                <!-- Address Filter -->
-                <div class="filter-group">
-                  <label class="filter-label">Địa chỉ:</label>
-                  <select id="addressFilter" class="form-select">
-                    <option value="all">Tất cả</option>
-                    <!-- <option value="Nguyễn Văn Công">Nguyễn Văn Công</option>
-                    <option value="Dương Quảng Hàm">Dương Quảng Hàm</option> -->
-                  </select>
-                </div>
-
                 <!-- Capacity Filter -->
                 <div class="filter-group">
                   <label for="occupantNumberRange" class="filter-label"
@@ -283,8 +272,21 @@
                   </div>
                 </div>
 
+                <!-- Status Filter -->
+                <div class="filter-group">
+                  <label class="filter-label">Trạng thái:</label>
+                  <select id="statusFilter" class="form-select">
+                    <option value="all">Tất cả</option>
+                    <option value="vacant">Trống</option>
+                    <option value="occupied">Đã thuê</option>
+                    <option value="unavailable">Không có sẵn</option>
+                  </select>
+                </div>
+
                 <!-- Apply Filter Button (Optional, for clarity) -->
-                <button id="applyFilters" class="apply-filters-btn btn w-100">Áp dụng</button>
+                <button id="applyFilters" class="apply-filters-btn btn w-100">
+                  Áp dụng
+                </button>
               </div>
             </div>
 
@@ -304,7 +306,7 @@
         </div>
 
         <!-- amenities and utilities menu item -->
-        <div id="amenities-utilities" class="amenities-utilities">
+        <div id="amenities-utilities" class="amenities-utilities"  style="display: none;">
           <div class="amenities-container">
             <div
               class="amenities-title d-flex justify-content-center align-items-center"
@@ -358,7 +360,7 @@
         </div>
 
         <!-- contact menu item -->
-        <div id="contact" class="contact">
+        <div id="contact" class="contact"  style="display: none;">
           <div
             class="contact-title d-flex justify-content-center align-items-center"
           >

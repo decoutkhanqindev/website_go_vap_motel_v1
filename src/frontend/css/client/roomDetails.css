@@ -230,10 +230,10 @@ body {
   color: green;
 }
 .status-occupied {
-  color: red;
+  color: orange;
 }
 .status-unavailable {
-  color: orange;
+  color: red;
 }
 .cost-living {
   margin-top: 20px;

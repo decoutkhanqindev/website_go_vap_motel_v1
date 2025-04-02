@@ -233,10 +233,10 @@ body {
   color: green;
 }
 .status-occupied {
-  color: red;
+  color: orange;
 }
 .status-unavailable {
-  color: orange;
+  color: red;
 }
 .room-image,
 .amenity-image,
