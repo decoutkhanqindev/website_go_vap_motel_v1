@@ -131,7 +131,7 @@ body {
 .remove-image-btn:hover {
   opacity: 1;
 }
-#addRoomModalFeedback {
+#editRoomModalFeedback {
   margin-bottom: 1rem;
 }
 .was-validated .form-control:invalid,

@@ -1246,7 +1246,7 @@ document.addEventListener("DOMContentLoaded", () => {
         rooms.forEach((room) => {
           const option = document.createElement("option");
           option.value = room._id; // Use room ID as value
-          option.textContent = `P. ${room.roomNumber || "N/A"} - ${
+          option.textContent = `P. ${room.roomNumber || "N/A"} - ĐC. ${
             room.address || "N/A"
           }`;
           contractRoomFilterSelect.appendChild(option);
@@ -1351,7 +1351,6 @@ document.addEventListener("DOMContentLoaded", () => {
         : "N/A";
 
       const room = await RoomService.getRoomById(contract.roomId);
-      const roomNumber = room.roomNumber;
 
       let statusText = "Không xác định";
       let statusClass = "status-unknown";
@@ -1373,7 +1372,7 @@ document.addEventListener("DOMContentLoaded", () => {
       row.innerHTML = `
         <td>${sequentialNumber}</td>
         <td>${contract.contractCode || "N/A"}</td>
-        <td>${roomNumber || "N/A"}</td>
+        <td>P. ${room.roomNumber || "N/A"} - ĐC. ${room.address || "N/A"}</td>
         <td class="text-center">${formattedStartDate}</td>
         <td class="text-center">${formattedEndDate}</td>
         <td class="text-center">
@@ -1521,7 +1520,7 @@ document.addEventListener("DOMContentLoaded", () => {
         rooms.forEach((room) => {
           const option = document.createElement("option");
           option.value = room._id;
-          option.textContent = `P. ${room.roomNumber || "N/A"} - ${
+          option.textContent = `P. ${room.roomNumber || "N/A"} - ĐC. ${
             room.address || "N/A"
           }`;
           // Store rent price directly on the option for easy access
@@ -1715,6 +1714,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (saveNewContractSpinner)
       saveNewContractSpinner.style.display = "inline-block";
 
+    const amenityIds = Array.from(
+      document.querySelectorAll(
+        '#newContractAmenitiesList input[type="checkbox"]:checked'
+      )
+    ).map((cb) => cb.value);
+
     // Collect data
     const contractData = {
       roomId: newContractRoomIdSelect.value,
@@ -1722,6 +1727,7 @@ document.addEventListener("DOMContentLoaded", () => {
       endDate: newContractEndDateInput.value,
       rentPrice: parseInt(newContractRentPriceInput.value || 0, 10),
       deposit: parseInt(newContractDepositInput.value || 0, 10),
+      amenities: amenityIds,
       status: "active"
     };
 
@@ -1813,7 +1819,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (addNewRoomButton && addNewRoomModal) {
     addNewRoomButton.addEventListener("click", () => {
       resetAddRoomForm();
-      Promise.all([loadAmenitiesForModal()]) // Load data before showing
+      Promise.all([loadAmenitiesForModal(), loadUtilitiesForModal()]) // Load data before showing
         .then(() => {
           addNewRoomModal.show();
         })
@@ -1978,8 +1984,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // Load necessary data for the form
       Promise.all([
         loadVacantRoomsForModal(),
-        loadContractAmenitiesForModal(),
-        loadContractUtilitiesForModal()
+        loadContractAmenitiesForModal()
+        // loadContractUtilitiesForModal()
       ]).catch((error) => {
         console.error(error);
         showModalFeedback(

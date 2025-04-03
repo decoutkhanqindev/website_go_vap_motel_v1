@@ -466,7 +466,8 @@
                       <tr>
                         <th scope="col">STT</th>
                         <th scope="col">Mã hợp đồng</th>
-                        <th scope="col">Số phòng</th>
+                        <th scope="col">Phòng</th>
+                        <!-- <th scope="col">Địa chỉ</th> -->
                         <th scope="col" class="text-center">Ngày bắt đầu</th>
                         <th scope="col" class="text-center">Ngày kết thúc</th>
                         <th scope="col" class="text-center">Trạng thái</th>
@@ -665,7 +666,7 @@
                   <div class="col-md-6">
                     <!-- Amenities -->
                     <div class="mb-3">
-                      <label class="form-label">Tiện nghi:</label>
+                      <label class="form-label">Tiện nghi cung cấp:</label>
                       <div
                         id="newRoomAmenitiesList"
                         class="checklist-container"
@@ -677,7 +678,7 @@
 
                     <!-- Utilities -->
                     <div class="mb-3">
-                      <label class="form-label">Tiện ích:</label>
+                      <label class="form-label">Tiện ích cung cấp:</label>
                       <div
                         id="newRoomUtilitiesList"
                         class="checklist-container"
@@ -1021,40 +1022,6 @@
                     <div class="invalid-feedback">Vui lòng chọn phòng.</div>
                   </div>
 
-                  <!-- Start Date -->
-                  <div class="mb-3">
-                    <label
-                      for="newContractStartDate"
-                      class="form-label required"
-                      >Ngày bắt đầu:</label
-                    >
-                    <input
-                      type="date"
-                      class="form-control"
-                      id="newContractStartDate"
-                      required
-                    />
-                    <div class="invalid-feedback">
-                      Vui lòng chọn ngày bắt đầu.
-                    </div>
-                  </div>
-
-                  <!-- End Date -->
-                  <div class="mb-3">
-                    <label for="newContractEndDate" class="form-label required"
-                      >Ngày kết thúc:</label
-                    >
-                    <input
-                      type="date"
-                      class="form-control"
-                      id="newContractEndDate"
-                      required
-                    />
-                    <div class="invalid-feedback">
-                      Vui lòng chọn ngày kết thúc.
-                    </div>
-                  </div>
-
                   <!-- Rent Price (Prefill from Room recommended, but editable) -->
                   <div class="mb-3">
                     <label
@@ -1094,9 +1061,7 @@
                       Vui lòng nhập tiền cọc hợp lệ (lớn hơn hoặc bằng 0).
                     </div>
                   </div>
-                </div>
 
-                <div class="col-md-6">
                   <div class="mb-3">
                     <label class="form-label"
                       >Tiện nghi bao gồm (tính vào cọc):</label
@@ -1107,6 +1072,42 @@
                     >
                       <!-- Checkboxes will be loaded here by JS -->
                       <p class="text-muted small m-0">Đang tải tiện nghi...</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <!-- Start Date -->
+                  <div class="mb-3">
+                    <label
+                      for="newContractStartDate"
+                      class="form-label required"
+                      >Ngày bắt đầu:</label
+                    >
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="newContractStartDate"
+                      required
+                    />
+                    <div class="invalid-feedback">
+                      Vui lòng chọn ngày bắt đầu.
+                    </div>
+                  </div>
+
+                  <!-- End Date -->
+                  <div class="mb-3">
+                    <label for="newContractEndDate" class="form-label required"
+                      >Ngày kết thúc:</label
+                    >
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="newContractEndDate"
+                      required
+                    />
+                    <div class="invalid-feedback">
+                      Vui lòng chọn ngày kết thúc.
                     </div>
                   </div>
                 </div>
