@@ -46,11 +46,14 @@ class InvoiceController {
 
       if (
         !data.roomId ||
+        !data.rentAmount ||
         !data.issueDate ||
         !data.dueDate ||
         !data.electricity ||
         !data.water ||
-        !data.paymentStatus
+        !data.utilities ||
+        !data.paymentStatus ||
+        !data.paymentMethod
       ) {
         return next(new ApiError(400, "No form data found."));
       }
@@ -75,12 +78,15 @@ class InvoiceController {
 
       if (
         !data.roomId &&
+        !data.rentAmount &&
         !data.issueDate &&
         !data.dueDate &&
         !data.electricity &&
         !data.water &&
+        !data.utilities &&
         !data.paymentStatus &&
-        !data.paymentMethod
+        !data.paymentMethod &&
+        !data.paymentDate
       ) {
         return next(new ApiError(400, "At least one field must be updated."));
       }

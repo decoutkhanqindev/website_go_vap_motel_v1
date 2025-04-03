@@ -48,6 +48,12 @@ const contractSchema = new Schema(
         ref: "Amenity"
       }
     ],
+    utilities: [
+      {
+        type: ObjectId,
+        ref: "Utility"
+      }
+    ],
     // term: {
     //   type: String,
     //   required: true

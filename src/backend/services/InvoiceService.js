@@ -11,6 +11,8 @@ class InvoiceService {
       logger.info(`InvoiceService.InvoiceService() is called.`);
       let query = Invoice.find();
 
+      if (filter.invoiceCode)
+        query = query.where("invoiceCode").equals(filter.invoiceCode);
       if (filter.roomId) query = query.where("roomId").equals(filter.roomId);
       if (filter.issueDate)
         query = query.where("issueDate").equals(filter.issueDate);
@@ -197,7 +199,7 @@ class InvoiceService {
           paymentMethod: paymentMethod
         },
         {
-          new: true 
+          new: true
         }
       );
       if (!updatedInvoice) {

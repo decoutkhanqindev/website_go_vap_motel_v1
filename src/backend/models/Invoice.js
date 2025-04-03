@@ -85,8 +85,8 @@ const invoiceSchema = new Schema(
       type: String,
       required: false,
       index: true,
-      enum: ["cash", "bank transfer"],
-      default: "cash"
+      enum: ["all", "cash", "banking"],
+      default: "all"
     },
     paymentDate: {
       type: Date,

@@ -83,7 +83,8 @@ class ContractController {
         !data.rentPrice &&
         !data.deposit &&
         !data.status &&
-        !data.amenities
+        !data.amenities &&
+        !data.utilities
       ) {
         return next(new ApiError(400, "At least one field must be updated."));
       }
