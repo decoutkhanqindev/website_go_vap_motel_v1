@@ -1,4 +1,3 @@
-const moment = require("moment-timezone");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
@@ -43,6 +42,12 @@ const contractSchema = new Schema(
       type: Number,
       required: true
     },
+    amenities: [
+      {
+        type: ObjectId,
+        ref: "Amenity"
+      }
+    ],
     // term: {
     //   type: String,
     //   required: true

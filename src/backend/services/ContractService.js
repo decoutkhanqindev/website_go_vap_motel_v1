@@ -46,6 +46,11 @@ class ContractService {
   static async isExsits(roomId, startDate, dueDate) {
     try {
       logger.info(`ContractService.isExsits() is called.`);
+      const room = await RoomService.getRoomById(roomId);
+      if (room.status === "occupied") {
+        throw new ApiError(400, "Room is already occupied.");
+      }
+      
       const contract = await Contract.findOne({
         roomId: roomId,
         startDate: startDate,
@@ -60,7 +65,7 @@ class ContractService {
 
   static async generateContractCode(roomNumber, startDate, endDate) {
     try {
-      logger.info(`InvoiceService.generateInvoiceCode() is called.`);
+      logger.info(`ContractService.generateContractCode() is called.`);
       const formatStartDate = moment(startDate).format("YYYYMMDD");
       const formatEndDate = moment(endDate).format("YYYYMMDD");
 
@@ -81,7 +86,7 @@ class ContractService {
       return newContractCode;
     } catch (error) {
       logger.info(
-        `InvoiceService.generateInvoiceCode() has an error:\n${error}`
+        `ContractService.generateContractCode() has an error:\n${error}`
       );
       throw error;
     }
@@ -122,16 +127,29 @@ class ContractService {
 
   static async updateContract(id, data) {
     try {
-      logger.info("ContractService.deleteContract() is called.");
+      logger.info("ContractService.updateContract() is called.");
+
+      const existingContract = await ContractService.getContractById(id);
+      if (data.roomId && data.roomId !== existingContract.roomId) {
+        await RoomService.updateRoom(existingContract.roomId, {
+          status: "vacant"
+        });
+
+        await RoomService.updateRoom(data.roomId, {
+          status: "occupied"
+        });
+      }
+
       const updatedContract = await Contract.findByIdAndUpdate(id, data, {
         new: true
       });
       if (!updatedContract) {
         throw new ApiError(404, `No contract found matching id ${id}.`);
       }
+
       return updatedContract;
     } catch (error) {
-      logger.error(`ContractService.deleteContract() have error:\n${error}`);
+      logger.error(`ContractService.updateContract() have error:\n${error}`);
       throw error;
     }
   }
@@ -140,6 +158,7 @@ class ContractService {
     try {
       logger.info("ContractService.deleteContract() is called.");
       const deletedContract = await Contract.findByIdAndDelete(id);
+
       if (!deletedContract) {
         throw new ApiError(404, `No contract found matching id ${id}.`);
       }
