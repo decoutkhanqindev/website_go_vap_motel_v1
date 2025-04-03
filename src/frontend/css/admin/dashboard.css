@@ -89,7 +89,8 @@ body {
 .rooms-tab-title,
 .amenities-tab-title,
 .utilities-tab-title,
-.contracts-tab-title {
+.contracts-tab-title,
+.invoices-tab-title {
   border-radius: 5px;
   font-size: 32px;
   color: #fff;
@@ -153,8 +154,11 @@ body {
 #addNewAmenityBtn,
 #addNewUtilityBtn,
 #applyContractFilters,
+#applyInvoiceFilters,
 #addNewContractBtn,
-#searchContractsBtn {
+#searchContractBtn,
+#addNewInvoiceBtn,
+#searchInvoiceBtn {
   color: white;
   background-color: #4da1a9;
 }
@@ -162,7 +166,8 @@ body {
 .room-table,
 .amenity-table,
 .utility-table,
-.contract-table {
+.contract-table,
+.invoice-table {
   margin-bottom: 0;
   border-radius: 10px;
   border: 2px solid #a5bfcc;
@@ -170,7 +175,8 @@ body {
 .room-table thead.table-header-bg,
 .amenity-table thead.table-header-bg,
 .utility-table thead.table-header-bg,
-.contract-table thead.table-header-bg {
+.contract-table thead.table-header-bg,
+.invoice-table thead.table-header-bg {
   background-color: #a5bfcc;
   color: white;
   font-weight: bold;
@@ -183,13 +189,15 @@ body {
 }
 .amenity-table tbody tr,
 .utility-table tbody tr,
-.contract-table tbody tr {
+.contract-table tbody tr,
+.invoice-table tbody tr {
   cursor: default;
 }
 .room-table tbody tr:hover,
 .amenity-table tbody tr:hover,
 .utility-table tbody tr:hover,
-.contract-table tbody tr:hover {
+.contract-table tbody tr:hover,
+.invoice-table tbody tr:hover {
   background-color: #e7f2f8;
 }
 .room-table td,
@@ -199,42 +207,39 @@ body {
 .utility-table td,
 .utility-table th,
 .contract-table td,
-.contract-table th {
+.contract-table th,
+.invoice-table td,
+.invoice-table th {
   vertical-align: middle;
   padding: 0.75rem;
 }
 .room-table .text-end,
 .amenity-table .text-end,
 .utility-table .text-end,
-.contract-table .text-end {
+.contract-table .text-end .invoicet-table .text-end {
   text-align: right;
 }
 .room-table .text-center,
 .amenity-table .text-center,
 .utility-table .text-center,
-.contract-table .text-center {
+.contract-table .text-center,
+.invoice-table .text-center {
   text-align: center;
 }
-.status-vacant {
-  color: green;
-  font-weight: bold;
-}
-.status-occupied {
-  color: orange;
-  font-weight: bold;
-}
-.status-unavailable {
-  color: red;
-  font-weight: bold;
-}
+.status-vacant,
+.status-paid,
 .status-active {
   color: green;
   font-weight: bold;
 }
+.status-occupied,
+.status-pending,
 .status-expired {
   color: orange;
   font-weight: bold;
 }
+.status-unavailable,
+.status-overdue,
 .status-terminated {
   color: red;
   font-weight: bold;
@@ -348,14 +353,16 @@ body {
 #cancelRoomBtn,
 #cancelAmenityBtn,
 #cancelUtilityBtn,
-#cancelContractBtn {
+#cancelContractBtn,
+#cancelInvoiceBtn {
   color: white;
   background-color: #dc3545;
 }
 #saveNewRoomBtn,
 #saveNewAmenityBtn,
 #saveNewUtilityBtn,
-#saveNewContractBtn {
+#saveNewContractBtn,
+#saveNewInvoiceBtn {
   color: white;
   background-color: #4da1a9;
 }

@@ -2,6 +2,7 @@ import RoomService from "../services/RoomService.js";
 import AmenityService from "../services/AmenityService.js";
 import UtilityService from "../services/UtilityService.js";
 import ContractService from "../services/ContractService.js";
+import InvoiceService from "../services/InvoiceService.js";
 
 // --- Global Scope: State Variables ---
 // --- State for Rooms Tab ---
@@ -47,6 +48,22 @@ let allAmenitiesData = [];
 let allUtilitiesData = [];
 let baseContractDeposit = 0;
 let allRoomsForFilter = [];
+
+// --- State for Invoices Tab ---
+let invoiceCurrentPage = 1;
+let totalInvoices = 0;
+const invoicesPerPage = 10;
+let currentInvoiceData = [];
+let allOccupiedRoomsForInvoiceFilter = [];
+let activeContractUtilities = [];
+let activeContractRentPrice = 0;
+
+// --- Store mapping for Payment Method name ---
+const paymentMethodMap = {
+  all: "Tất cả",
+  cash: "Tiền mặt",
+  banking: "Chuyển khoản"
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- DOM Element Selectors ---
@@ -191,6 +208,78 @@ document.addEventListener("DOMContentLoaded", () => {
     "newContractUtilitiesList"
   );
 
+  // --- Selectors: Invoices Tab UI ---
+  const invoiceTableBody = document.getElementById("invoiceTableBody");
+  const invoicePaginationContainer =
+    document.getElementById("invoicePagination");
+  const searchInvoiceInput = document.getElementById("searchInvoiceInput");
+  const searchInvoiceBtn = document.getElementById("searchInvoiceBtn"); // Corrected ID from HTML
+  const invoiceRoomFilterSelect = document.getElementById("invoiceRoomFilter");
+  const invoiceIssueDateFilter = document.getElementById(
+    "invoiceIssueDateFilter"
+  );
+  const invoiceDueDateFilter = document.getElementById("invoiceDueDateFilter");
+  const invoicePaymentMethodFilter = document.getElementById(
+    "invoicePaymentMethodFilter"
+  );
+  const invoicePaymentDateFilter = document.getElementById(
+    "invoicePaymentDateFilter"
+  );
+  const invoicePaymentStatusFilter = document.getElementById(
+    "invoicePaymentStatusFilter"
+  );
+  const applyInvoiceFiltersBtn = document.getElementById("applyInvoiceFilters");
+  const addNewInvoiceBtn = document.getElementById("addNewInvoiceBtn");
+  // Add New Invoice Modal
+  const addNewInvoiceModalElement =
+    document.getElementById("addNewInvoiceModal");
+  const addInvoiceForm = document.getElementById("addInvoiceForm");
+  const newInvoiceRoomIdSelect = document.getElementById("newInvoiceRoomId");
+  const invoiceRoomSelectLoadingDiv = document.getElementById(
+    "invoiceRoomSelectLoading"
+  );
+  const newInvoiceRentAmountInput = document.getElementById(
+    "newInvoiceRentAmount"
+  );
+  const newInvoiceIssueDateInput = document.getElementById(
+    "newInvoiceIssueDate"
+  );
+  const newInvoiceDueDateInput = document.getElementById("newInvoiceDueDate");
+  const newInvoicePaymentMethodSelect = document.getElementById(
+    "newInvoicePaymentMethod"
+  );
+  const newInvoiceElecOldIndexInput = document.getElementById(
+    "newInvoiceElecOldIndex"
+  );
+  const newInvoiceElecNewIndexInput = document.getElementById(
+    "newInvoiceElecNewIndex"
+  );
+  const newInvoiceElecPricePerUnitInput = document.getElementById(
+    "newInvoiceElecPricePerUnit"
+  );
+  const newInvoiceWaterOldIndexInput = document.getElementById(
+    "newInvoiceWaterOldIndex"
+  );
+  const newInvoiceWaterNewIndexInput = document.getElementById(
+    "newInvoiceWaterNewIndex"
+  );
+  const newInvoiceWaterPricePerUnitInput = document.getElementById(
+    "newInvoiceWaterPricePerUnit"
+  );
+  const newInvoiceUtilitiesListDiv = document.getElementById(
+    "newInvoiceUtilitiesList"
+  );
+  const newInvoiceTotalAmountInput = document.getElementById(
+    "newInvoiceTotalAmount"
+  );
+  const newInvoiceNotesInput = document.getElementById("newInvoiceNotes");
+  const saveNewInvoiceBtn = document.getElementById("saveNewInvoiceBtn");
+  const addInvoiceModalFeedbackDiv = document.getElementById(
+    "addInvoiceModalFeedback"
+  );
+  const saveNewInvoiceSpinner =
+    saveNewInvoiceBtn?.querySelector(".spinner-border");
+
   // --- Initialize Bootstrap Modals ---
   const addNewRoomModal = addNewRoomModalElement
     ? new bootstrap.Modal(addNewRoomModalElement)
@@ -203,6 +292,9 @@ document.addEventListener("DOMContentLoaded", () => {
     : null;
   const addNewContractModal = addNewContractModalElement
     ? new bootstrap.Modal(addNewContractModalElement)
+    : null;
+  const addNewInvoiceModal = addNewInvoiceModalElement
+    ? new bootstrap.Modal(addNewInvoiceModalElement)
     : null;
 
   // --- Core UI Functions ---
@@ -1226,7 +1318,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Contracts Tab: Data Fetching & Filtering Logic ---
 
   // Function: Populates the room filter dropdown with all rooms.
-  async function populateOccupiedRoomFilterDropdown() {
+  async function populateContractRoomFilterDropdown() {
     if (!contractRoomFilterSelect) return;
 
     contractRoomFilterSelect.innerHTML =
@@ -1644,14 +1736,14 @@ document.addEventListener("DOMContentLoaded", () => {
       totalDeposit += parseFloat(checkbox.dataset.price || 0);
     });
 
-    // Add price of checked utilities
-    const checkedUtilities =
-      newContractUtilitiesListDiv?.querySelectorAll(
-        ".contract-utility-checkbox:checked"
-      ) || [];
-    checkedUtilities.forEach((checkbox) => {
-      totalDeposit += parseFloat(checkbox.dataset.price || 0);
-    });
+    // // Add price of checked utilities
+    // const checkedUtilities =
+    //   newContractUtilitiesListDiv?.querySelectorAll(
+    //     ".contract-utility-checkbox:checked"
+    //   ) || [];
+    // checkedUtilities.forEach((checkbox) => {
+    //   totalDeposit += parseFloat(checkbox.dataset.price || 0);
+    // });
 
     newContractDepositInput.value = totalDeposit;
   }
@@ -1719,6 +1811,11 @@ document.addEventListener("DOMContentLoaded", () => {
         '#newContractAmenitiesList input[type="checkbox"]:checked'
       )
     ).map((cb) => cb.value);
+    const utilityIds = Array.from(
+      document.querySelectorAll(
+        '#newContractUtilitiesList input[type="checkbox"]:checked'
+      )
+    ).map((cb) => cb.value);
 
     // Collect data
     const contractData = {
@@ -1728,6 +1825,7 @@ document.addEventListener("DOMContentLoaded", () => {
       rentPrice: parseInt(newContractRentPriceInput.value || 0, 10),
       deposit: parseInt(newContractDepositInput.value || 0, 10),
       amenities: amenityIds,
+      utilities: utilityIds,
       status: "active"
     };
 
@@ -1759,6 +1857,626 @@ document.addEventListener("DOMContentLoaded", () => {
     } finally {
       if (saveNewContractBtn) saveNewContractBtn.disabled = false;
       if (saveNewContractSpinner) saveNewContractSpinner.style.display = "none";
+    }
+  }
+
+  // --- Invoices Tab: Data Fetching & Filtering Logic ---
+
+  // Function: Populates the room filter dropdown for invoices (similar to contracts, might need adjustments based on needs)
+  async function populateInvoiceRoomFilterDropdown() {
+    if (!invoiceRoomFilterSelect) return;
+
+    invoiceRoomFilterSelect.innerHTML =
+      '<option value="all" selected>Tất cả phòng</option><option value="" disabled>Đang tải...</option>';
+    invoiceRoomFilterSelect.disabled = true;
+
+    try {
+      // Fetch rooms, potentially occupied ones or all depending on logic
+      // Using occupied rooms similar to contract filter for now
+      const rooms = await RoomService.getAllRooms({ status: "occupied" });
+      allOccupiedRoomsForInvoiceFilter = rooms; // Store globally
+
+      invoiceRoomFilterSelect.innerHTML =
+        '<option value="all" selected>Tất cả phòng</option>';
+
+      if (rooms && rooms.length > 0) {
+        rooms.forEach((room) => {
+          const option = document.createElement("option");
+          option.value = room._id; // Use room ID as value
+          option.textContent = `P. ${room.roomNumber || "N/A"} - ĐC. ${
+            room.address || "N/A"
+          }`;
+          invoiceRoomFilterSelect.appendChild(option);
+        });
+      }
+      invoiceRoomFilterSelect.disabled = false;
+    } catch (error) {
+      console.error("Error loading rooms for invoice filter:", error);
+      invoiceRoomFilterSelect.innerHTML =
+        '<option value="all" selected>Tất cả phòng</option><option value="" disabled>Lỗi tải phòng</option>';
+    }
+  }
+
+  // Function: Fetches invoice data based on filters/search and triggers UI rendering
+  async function fetchAndRenderUiForInvoicesTab() {
+    if (invoiceTableBody) {
+      invoiceTableBody.innerHTML = `<tr><td colspan="9" class="text-center">Đang tải dữ liệu hóa đơn...</td></tr>`; // Updated colspan
+    }
+    if (invoicePaginationContainer) {
+      invoicePaginationContainer.innerHTML = "";
+    }
+
+    try {
+      // Get filter values
+      const searchTerm = searchInvoiceInput
+        ? searchInvoiceInput.value.trim()
+        : "";
+      const selectedRoomId = invoiceRoomFilterSelect
+        ? invoiceRoomFilterSelect.value
+        : "all";
+      const issueDate = invoiceIssueDateFilter
+        ? invoiceIssueDateFilter.value
+        : "";
+      const dueDate = invoiceDueDateFilter ? invoiceDueDateFilter.value : "";
+      const paymentMethod = invoicePaymentMethodFilter
+        ? invoicePaymentMethodFilter.value
+        : "all";
+      const paymentDate = invoicePaymentDateFilter
+        ? invoicePaymentDateFilter.value
+        : "";
+      const paymentStatus = invoicePaymentStatusFilter
+        ? invoicePaymentStatusFilter.value
+        : "all";
+
+      // Build filter object
+      const filter = {};
+      if (searchTerm) filter.invoiceCode = searchTerm; // Assuming search by invoiceCode
+      if (selectedRoomId !== "all") filter.roomId = selectedRoomId;
+      if (issueDate) filter.issueDate = issueDate;
+      if (dueDate) filter.dueDate = dueDate;
+      if (paymentMethod !== "all") filter.paymentMethod = paymentMethod;
+      if (paymentDate) filter.paymentDate = paymentDate;
+      if (paymentStatus !== "all") filter.paymentStatus = paymentStatus;
+
+      // Fetch invoices with the filter object
+      const allMatchingInvoices = await InvoiceService.getAllInvoices(filter);
+
+      // Store and render
+      currentInvoiceData = allMatchingInvoices || [];
+      totalInvoices = currentInvoiceData.length;
+      renderInvoiceTableUI(); // Call the function to render the table
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+      if (invoiceTableBody) {
+        invoiceTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Lỗi khi tải dữ liệu hóa đơn.</td></tr>`; // Updated colspan
+      }
+      currentInvoiceData = [];
+      totalInvoices = 0;
+      renderInvoicePaginationUI(); // Render empty pagination on error
+    }
+  }
+
+  // --- Invoices Tab: UI Rendering Logic ---
+
+  // Function: Renders the invoice table based on current data and pagination
+  async function renderInvoiceTableUI() {
+    if (!invoiceTableBody) return;
+    invoiceTableBody.innerHTML = ""; // Clear previous rows
+
+    if (currentInvoiceData.length === 0) {
+      invoiceTableBody.innerHTML = `<tr><td colspan="9" class="text-center">Không tìm thấy hóa đơn nào phù hợp.</td></tr>`; // Updated colspan
+      renderInvoicePaginationUI();
+      return;
+    }
+
+    // Calculate start and end index for the current page
+    const startIndex = (invoiceCurrentPage - 1) * invoicesPerPage;
+    const endIndex = Math.min(startIndex + invoicesPerPage, totalInvoices);
+    const invoicesToDisplay = currentInvoiceData.slice(startIndex, endIndex);
+
+    // Fetch room details for the invoices being displayed (can be optimized)
+    const roomIds = [
+      ...new Set(invoicesToDisplay.map((inv) => inv.roomId))
+    ].filter(Boolean);
+    const roomDetailsMap = new Map();
+    if (roomIds.length > 0) {
+      try {
+        // In a real app, consider fetching these more efficiently, maybe one API call
+        const roomPromises = roomIds.map((id) => RoomService.getRoomById(id));
+        const roomResults = await Promise.allSettled(roomPromises);
+        roomResults.forEach((result, index) => {
+          if (result.status === "fulfilled" && result.value) {
+            roomDetailsMap.set(roomIds[index], result.value);
+          }
+        });
+      } catch (roomError) {
+        console.error("Error fetching room details for invoices:", roomError);
+        // Handle error, maybe show placeholder room info
+      }
+    }
+
+    invoicesToDisplay.forEach((invoice, index) => {
+      const row = document.createElement("tr");
+      row.dataset.id = invoice._id;
+      const sequentialNumber = startIndex + index + 1;
+
+      const roomInfo = roomDetailsMap.get(invoice.roomId);
+      const roomDisplay = roomInfo
+        ? `P. ${roomInfo.roomNumber || "N/A"} - ĐC. ${
+            roomInfo.address || "N/A"
+          }`
+        : "Phòng không xác định";
+
+      const formattedIssueDate = invoice.issueDate
+        ? new Date(invoice.issueDate).toLocaleDateString("vi-VN")
+        : "N/A";
+      const formattedDueDate = invoice.dueDate
+        ? new Date(invoice.dueDate).toLocaleDateString("vi-VN")
+        : "N/A";
+      const formattedPaymentDate = invoice.paymentDate
+        ? new Date(invoice.paymentDate).toLocaleDateString("vi-VN")
+        : "Chưa thanh toán";
+
+      const paymentMethodText =
+        paymentMethodMap[invoice.paymentMethod] || "Không rõ";
+
+      let statusText = "Không xác định";
+      let statusClass = "status-unknown";
+      switch (invoice.paymentStatus) {
+        case "pending":
+          statusText = "Đang chờ";
+          statusClass = "status-pending";
+          break;
+        case "paid":
+          statusText = "Đã thanh toán";
+          statusClass = "status-paid";
+          break;
+        case "overdue":
+          statusText = "Đã quá hạn";
+          statusClass = "status-overdue";
+          break;
+      }
+
+      row.innerHTML = `
+        <td>${sequentialNumber}</td>
+        <td>${invoice.invoiceCode || "N/A"}</td>
+        <td>${roomDisplay}</td>
+        <td class="text-center">${formattedIssueDate}</td>
+        <td class="text-center">${formattedDueDate}</td>
+        <td class="text-center">${paymentMethodText}</td>
+        <td class="text-center">${formattedPaymentDate}</td>
+        <td class="text-center">
+            <span class="${statusClass}">${statusText}</span>
+        </td>
+        <td class="text-center action-cell">
+            <button class="btn btn-sm btn-danger delete-invoice-btn" data-id="${
+              invoice._id
+            }">Xóa</button>
+        </td>
+      `;
+
+      row.addEventListener("click", (event) => {
+        if (event.target.closest(".action-cell")) return;
+        window.location.href = `/admin/invoice/details/${invoice._id}`;
+      });
+
+      invoiceTableBody.appendChild(row);
+    });
+
+    renderInvoicePaginationUI(); // Render pagination controls
+  }
+
+  // Function: Renders pagination controls for the invoice table
+  function renderInvoicePaginationUI() {
+    if (!invoicePaginationContainer) return;
+    invoicePaginationContainer.innerHTML = ""; // Clear previous pagination
+
+    const totalPages = Math.ceil(totalInvoices / invoicesPerPage);
+
+    if (totalPages <= 1) {
+      return; // No pagination needed
+    }
+
+    for (let i = 1; i <= totalPages; i++) {
+      const pageNumberItem = document.createElement("li");
+      pageNumberItem.classList.add("page-item");
+      if (i === invoiceCurrentPage) {
+        pageNumberItem.classList.add("active");
+      }
+
+      const pageNumberLink = document.createElement("a");
+      pageNumberLink.classList.add("page-link");
+      pageNumberLink.href = "#";
+      pageNumberLink.textContent = i;
+
+      pageNumberLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (i !== invoiceCurrentPage) {
+          invoiceCurrentPage = i;
+          renderInvoiceTableUI(); // Re-render the table for the new page
+        }
+      });
+
+      pageNumberItem.appendChild(pageNumberLink);
+      invoicePaginationContainer.appendChild(pageNumberItem);
+    }
+  }
+
+  // --- Invoices Tab: Delete Invoice Logic ---
+  async function handleDeleteInvoice(invoiceId) {
+    const confirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa hóa đơn này không?"
+    );
+    if (!confirmed) return;
+
+    const deleteButton = invoiceTableBody?.querySelector(
+      `.delete-invoice-btn[data-id="${invoiceId}"]`
+    );
+    const originalButtonText = deleteButton ? deleteButton.innerHTML : "Xóa";
+
+    if (deleteButton) {
+      deleteButton.disabled = true;
+      deleteButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xóa...`;
+    }
+
+    try {
+      await InvoiceService.deleteInvoice(invoiceId);
+
+      // Remove from local data and update total
+      const indexToRemove = currentInvoiceData.findIndex(
+        (inv) => inv._id === invoiceId
+      );
+      if (indexToRemove > -1) {
+        currentInvoiceData.splice(indexToRemove, 1);
+      }
+      totalInvoices = currentInvoiceData.length;
+
+      // Adjust current page if necessary
+      const totalPagesAfterDeletion = Math.ceil(
+        totalInvoices / invoicesPerPage
+      );
+      if (
+        invoiceCurrentPage > totalPagesAfterDeletion &&
+        totalPagesAfterDeletion > 0
+      ) {
+        invoiceCurrentPage = totalPagesAfterDeletion;
+      } else if (totalPagesAfterDeletion === 0) {
+        invoiceCurrentPage = 1;
+      }
+
+      renderInvoiceTableUI(); // Re-render the table
+      // Add success notification/toast if desired
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      const errorMsg = (
+        error?.response?.data?.message ||
+        error.message ||
+        "Không thể xóa hóa đơn"
+      ).toString();
+      alert(
+        `Lỗi khi xóa hóa đơn: ${
+          errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1)
+        }`
+      );
+    } finally {
+      if (deleteButton) {
+        deleteButton.disabled = false;
+        deleteButton.innerHTML = originalButtonText;
+      }
+    }
+  }
+
+  // --- Invoices Tab: Add New Invoice Modal Logic ---
+
+  // Function: Calculates and updates the total amount in the modal.
+  function calculateTotalAmount() {
+    if (!newInvoiceTotalAmountInput) return;
+
+    let total = 0;
+
+    // 1. Rent Amount (Lấy từ giá hợp đồng đã lưu)
+    total += activeContractRentPrice; // Sử dụng giá thuê từ hợp đồng
+
+    // 2. Electricity Cost
+    const elecOld = parseFloat(newInvoiceElecOldIndexInput?.value || 0);
+    const elecNew = parseFloat(newInvoiceElecNewIndexInput?.value || 0);
+    const elecPrice = parseFloat(newInvoiceElecPricePerUnitInput?.value || 0);
+    if (elecNew >= elecOld && elecPrice > 0) {
+      total += (elecNew - elecOld) * elecPrice;
+    }
+
+    // 3. Water Cost
+    const waterOld = parseFloat(newInvoiceWaterOldIndexInput?.value || 0);
+    const waterNew = parseFloat(newInvoiceWaterNewIndexInput?.value || 0);
+    const waterPrice = parseFloat(newInvoiceWaterPricePerUnitInput?.value || 0);
+    if (waterNew >= waterOld && waterPrice > 0) {
+      total += (waterNew - waterOld) * waterPrice;
+    }
+
+    // 4. Utilities Cost (Lấy từ các item đã render dựa trên contract)
+    const renderedUtilityItems =
+      newInvoiceUtilitiesListDiv?.querySelectorAll(".invoice-utility-item") ||
+      []; // Query các item đã render
+    renderedUtilityItems.forEach((item) => {
+      total += parseFloat(item.dataset.price || 0); // Lấy giá từ data-price
+    });
+
+    // Update the display
+    newInvoiceTotalAmountInput.value = total;
+  }
+
+  // Function: Loads utilities based on the active contract for the selected room.
+  async function loadUtilitiesForInvoiceModal(contractUtilityIds = []) {
+    if (!newInvoiceUtilitiesListDiv) return;
+    newInvoiceUtilitiesListDiv.innerHTML =
+      '<p class="text-muted small m-0">Đang tải tiện ích từ hợp đồng...</p>';
+    activeContractUtilities = []; // Reset global list for this invoice
+
+    // Fetch all utility details if not already available globally (nên fetch 1 lần ở initializePage)
+    if (!allUtilitiesData || allUtilitiesData.length === 0) {
+      try {
+        allUtilitiesData = await UtilityService.getAllUtilities();
+      } catch (error) {
+        console.error("Failed to fetch all utilities details:", error);
+        newInvoiceUtilitiesListDiv.innerHTML =
+          '<p class="text-danger small m-0">Lỗi tải chi tiết tiện ích.</p>';
+        return; // Stop if we can't get details
+      }
+    }
+
+    newInvoiceUtilitiesListDiv.innerHTML = ""; // Clear loading/previous
+
+    if (contractUtilityIds && contractUtilityIds.length > 0) {
+      const utilitiesToDisplay = [];
+      contractUtilityIds.forEach((contractUtilId) => {
+        const idToFind =
+          typeof contractUtilId === "object"
+            ? contractUtilId._id
+            : contractUtilId;
+        const utilityDetail = allUtilitiesData.find(
+          (util) => util._id === idToFind
+        );
+        if (utilityDetail) {
+          utilitiesToDisplay.push(utilityDetail); // Add detail object
+        } else {
+          console.warn(`Utility detail not found for ID: ${idToFind}`);
+        }
+      });
+
+      if (utilitiesToDisplay.length > 0) {
+        activeContractUtilities = utilitiesToDisplay.map((u) => u._id); // Store IDs globally for saving
+        utilitiesToDisplay.forEach((utility) => {
+          const div = document.createElement("div");
+          div.classList.add(
+            "form-check",
+            "form-check-sm",
+            "invoice-utility-item"
+          );
+          // Lưu giá vào data attribute
+          div.dataset.price = utility.price || 0;
+          const utilityName =
+            utilityNameMap[utility.name] ||
+            (utility.name
+              ? utility.name.charAt(0).toUpperCase() + utility.name.slice(1)
+              : "Tiện ích");
+          const priceDisplay = (utility.price || 0).toLocaleString("vi-VN");
+
+          div.innerHTML = `
+              <input class="form-check-input" type="checkbox" value="${utility._id}" id="invoice-utility-${utility._id}" checked disabled>
+              <label class="form-check-label" for="invoice-utility-${utility._id}">
+                  ${utilityName} (+${priceDisplay} VNĐ) 
+              </label>
+          `;
+          // Hoặc dạng text đơn giản:
+          // div.innerHTML = `
+          //     <span class="utility-name">${utilityName}</span>
+          //     <span class="utility-price float-end">(+${priceDisplay} VNĐ)</span>
+          // `;
+          // div.style.marginBottom = '0.3rem'; // Thêm khoảng cách nếu dùng span
+
+          newInvoiceUtilitiesListDiv.appendChild(div);
+        });
+      } else {
+        newInvoiceUtilitiesListDiv.innerHTML =
+          '<p class="text-muted small m-0">Hợp đồng không đăng ký tiện ích nào.</p>';
+      }
+    } else {
+      newInvoiceUtilitiesListDiv.innerHTML =
+        '<p class="text-muted small m-0">Hợp đồng không đăng ký tiện ích nào.</p>';
+    }
+
+    // Recalculate total after loading/clearing utilities
+    calculateTotalAmount();
+  }
+
+  // Function: Loads occupied rooms into the 'Add Invoice' modal dropdown.
+  async function loadOccupiedRoomsForInvoiceModal() {
+    if (!newInvoiceRoomIdSelect || !invoiceRoomSelectLoadingDiv) return;
+
+    newInvoiceRoomIdSelect.innerHTML =
+      '<option value="" selected disabled>Đang tải...</option>';
+    newInvoiceRoomIdSelect.disabled = true;
+    invoiceRoomSelectLoadingDiv.style.display = "block";
+
+    try {
+      const rooms = await RoomService.getAllRooms({ status: "occupied" });
+      const occupiedRoomsForInvoiceModal = rooms;
+
+      newInvoiceRoomIdSelect.innerHTML =
+        '<option value="" selected disabled>Chọn phòng...</option>';
+
+      if (rooms && rooms.length > 0) {
+        rooms.forEach((room) => {
+          const option = document.createElement("option");
+          option.value = room._id;
+          option.textContent = `P. ${room.roomNumber || "N/A"} - ĐC. ${
+            room.address || "N/A"
+          }`;
+          option.dataset.defaultRentPrice = room.rentPrice || 0;
+          newInvoiceRoomIdSelect.appendChild(option);
+        });
+        newInvoiceRoomIdSelect.disabled = false;
+      } else {
+        newInvoiceRoomIdSelect.innerHTML =
+          '<option value="" disabled>Không có phòng nào đang được thuê</option>';
+      }
+    } catch (error) {
+      console.error("Error loading occupied rooms for invoice modal:", error);
+      newInvoiceRoomIdSelect.innerHTML =
+        '<option value="" disabled>Lỗi tải phòng</option>';
+    } finally {
+      invoiceRoomSelectLoadingDiv.style.display = "none";
+    }
+  }
+
+  // Function: Resets the 'Add Invoice' form to its default state.
+  function resetAddInvoiceForm() {
+    if (addInvoiceForm) {
+      addInvoiceForm.reset();
+      addInvoiceForm.classList.remove("was-validated");
+    }
+    // Reset dropdowns
+    if (newInvoiceRoomIdSelect) {
+      newInvoiceRoomIdSelect.innerHTML =
+        '<option value="" selected disabled>Chọn phòng...</option>';
+      newInvoiceRoomIdSelect.disabled = true;
+    }
+    if (newInvoicePaymentMethodSelect) {
+      newInvoicePaymentMethodSelect.value = "cash";
+    }
+    // Clear calculated/prefilled fields
+    if (newInvoiceRentAmountInput) newInvoiceRentAmountInput.value = "";
+    if (newInvoiceTotalAmountInput) newInvoiceTotalAmountInput.value = "";
+    // Clear utility list and reset global state
+    if (newInvoiceUtilitiesListDiv)
+      newInvoiceUtilitiesListDiv.innerHTML =
+        '<p class="text-muted small m-0">Chọn phòng để tải tiện ích...</p>';
+    activeContractUtilities = [];
+    activeContractRentPrice = 0;
+
+    hideModalFeedback("addInvoiceModalFeedback");
+  }
+
+  // Function: Handles the submission of the 'Add New Invoice' form.
+  async function handleSaveNewInvoice() {
+    hideModalFeedback("addInvoiceModalFeedback");
+
+    // Basic form validation
+    if (
+      !addInvoiceForm ||
+      !addInvoiceForm.checkValidity() ||
+      !newInvoiceRoomIdSelect.value
+    ) {
+      if (addInvoiceForm) addInvoiceForm.classList.add("was-validated");
+      showModalFeedback(
+        "addInvoiceModalFeedback",
+        "Vui lòng điền đầy đủ các trường bắt buộc.",
+        "warning"
+      );
+      return;
+    }
+
+    const elecOld = parseFloat(newInvoiceElecOldIndexInput?.value || 0);
+    const elecNew = parseFloat(newInvoiceElecNewIndexInput?.value || 0);
+    const waterOld = parseFloat(newInvoiceWaterOldIndexInput?.value || 0);
+    const waterNew = parseFloat(newInvoiceWaterNewIndexInput?.value || 0);
+
+    if (elecNew < elecOld) {
+      showModalFeedback(
+        "addInvoiceModalFeedback",
+        "Chỉ số điện mới không được nhỏ hơn chỉ số cũ.",
+        "warning"
+      );
+      newInvoiceElecNewIndexInput?.classList.add("is-invalid");
+      return;
+    } else {
+      newInvoiceElecNewIndexInput?.classList.remove("is-invalid");
+    }
+
+    if (waterNew < waterOld) {
+      showModalFeedback(
+        "addInvoiceModalFeedback",
+        "Chỉ số nước mới không được nhỏ hơn chỉ số cũ.",
+        "warning"
+      );
+      newInvoiceWaterNewIndexInput?.classList.add("is-invalid");
+      return;
+    } else {
+      newInvoiceWaterNewIndexInput?.classList.remove("is-invalid");
+    }
+
+    const issueDate = newInvoiceIssueDateInput?.value;
+    const dueDate = newInvoiceDueDateInput?.value;
+    if (issueDate && dueDate && new Date(dueDate) < new Date(issueDate)) {
+      showModalFeedback(
+        "addInvoiceModalFeedback",
+        "Ngày hết hạn không được trước ngày phát hành.",
+        "warning"
+      );
+      newInvoiceDueDateInput?.classList.add("is-invalid");
+      return;
+    } else {
+      newInvoiceDueDateInput?.classList.remove("is-invalid");
+    }
+
+    if (addInvoiceForm) addInvoiceForm.classList.add("was-validated");
+
+    // Recalculate final total before sending
+    const finalTotalAmount = parseFloat(newInvoiceTotalAmountInput?.value || 0);
+
+    // UI feedback
+    if (saveNewInvoiceBtn) saveNewInvoiceBtn.disabled = true;
+    if (saveNewInvoiceSpinner)
+      saveNewInvoiceSpinner.style.display = "inline-block";
+
+    const invoiceData = {
+      roomId: newInvoiceRoomIdSelect.value,
+      issueDate: newInvoiceIssueDateInput.value,
+      dueDate: newInvoiceDueDateInput.value,
+      rentAmount: activeContractRentPrice,
+      electricity: {
+        oldIndex: elecOld,
+        newIndex: elecNew,
+        pricePerUnit: parseFloat(newInvoiceElecPricePerUnitInput.value || 0)
+      },
+      water: {
+        oldIndex: waterOld,
+        newIndex: waterNew,
+        pricePerUnit: parseFloat(newInvoiceWaterPricePerUnitInput.value || 0)
+      },
+      utilities: activeContractUtilities,
+      paymentMethod: newInvoicePaymentMethodSelect.value,
+      paymentStatus: "pending",
+      notes: newInvoiceNotesInput.value.trim()
+    };
+
+    try {
+      await InvoiceService.addNewInvoice(invoiceData);
+      showModalFeedback(
+        "addInvoiceModalFeedback",
+        "Thêm hóa đơn thành công!",
+        "success"
+      );
+      invoiceCurrentPage = 1;
+      await fetchAndRenderUiForInvoicesTab();
+      setTimeout(() => {
+        if (addNewInvoiceModal) addNewInvoiceModal.hide();
+      }, 1500);
+    } catch (error) {
+      console.error("Error adding new invoice:", error);
+      const errorMsg = (
+        error?.response?.data?.message ||
+        error.message ||
+        "Không thể thêm hóa đơn"
+      ).toString();
+      showModalFeedback(
+        "addInvoiceModalFeedback",
+        `Lỗi: ${errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1)}`,
+        "danger"
+      );
+    } finally {
+      if (saveNewInvoiceBtn) saveNewInvoiceBtn.disabled = false;
+      if (saveNewInvoiceSpinner) saveNewInvoiceSpinner.style.display = "none";
     }
   }
 
@@ -1984,8 +2702,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // Load necessary data for the form
       Promise.all([
         loadVacantRoomsForModal(),
-        loadContractAmenitiesForModal()
-        // loadContractUtilitiesForModal()
+        loadContractAmenitiesForModal(),
+        loadContractUtilitiesForModal()
       ]).catch((error) => {
         console.error(error);
         showModalFeedback(
@@ -2016,13 +2734,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-  if (newContractUtilitiesListDiv) {
-    newContractUtilitiesListDiv.addEventListener("change", (event) => {
-      if (event.target.classList.contains("contract-utility-checkbox")) {
-        updateContractDeposit();
-      }
-    });
-  }
+  // if (newContractUtilitiesListDiv) {
+  //   newContractUtilitiesListDiv.addEventListener("change", (event) => {
+  //     if (event.target.classList.contains("contract-utility-checkbox")) {
+  //       updateContractDeposit();
+  //     }
+  //   });
+  // }
   if (addNewContractModalElement) {
     addNewContractModalElement.addEventListener(
       "hidden.bs.modal",
@@ -2033,18 +2751,201 @@ document.addEventListener("DOMContentLoaded", () => {
     saveNewContractBtn.addEventListener("click", handleSaveNewContract);
   }
 
+  // Event Listeners: Invoices Tab Actions
+  if (searchInvoiceBtn) {
+    searchInvoiceBtn.addEventListener("click", () => {
+      invoiceCurrentPage = 1; // Reset page on new search/filter
+      fetchAndRenderUiForInvoicesTab();
+    });
+  }
+  if (searchInvoiceInput) {
+    searchInvoiceInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        invoiceCurrentPage = 1;
+        fetchAndRenderUiForInvoicesTab();
+      }
+    });
+  }
+  if (applyInvoiceFiltersBtn) {
+    applyInvoiceFiltersBtn.addEventListener("click", () => {
+      invoiceCurrentPage = 1;
+      fetchAndRenderUiForInvoicesTab();
+    });
+  }
+  if (invoiceTableBody) {
+    // Event delegation for delete buttons
+    invoiceTableBody.addEventListener("click", (event) => {
+      const deleteButton = event.target.closest(".delete-invoice-btn");
+
+      if (deleteButton) {
+        event.stopPropagation(); // Prevent row click
+        const invoiceId = deleteButton.dataset.id;
+        if (invoiceId) {
+          handleDeleteInvoice(invoiceId);
+        }
+      }
+    });
+  }
+
+  // Event Listeners: Add New Invoice Modal
+  if (addNewInvoiceBtn && addNewInvoiceModal) {
+    addNewInvoiceBtn.addEventListener("click", () => {
+      resetAddInvoiceForm(); // Reset trước
+      addNewInvoiceModal.show();
+      loadOccupiedRoomsForInvoiceModal().catch((error) => {
+        console.error("Error loading rooms for invoice modal:", error);
+        showModalFeedback(
+          "addInvoiceModalFeedback",
+          "Lỗi tải danh sách phòng.",
+          "danger"
+        );
+      });
+    });
+  }
+  if (addNewInvoiceModalElement) {
+    addNewInvoiceModalElement.addEventListener(
+      "hidden.bs.modal",
+      resetAddInvoiceForm
+    );
+  }
+  // Event Listeners: Add New Invoice Modal
+  if (addNewInvoiceBtn && addNewInvoiceModal) {
+    addNewInvoiceBtn.addEventListener("click", () => {
+      resetAddInvoiceForm();
+      addNewInvoiceModal.show();
+      // Load rooms and potentially utilities after showing modal
+      Promise.all([
+        loadOccupiedRoomsForInvoiceModal(),
+        loadUtilitiesForInvoiceModal()
+      ]).catch((error) => {
+        console.error("Error loading initial data for invoice modal:", error);
+        showModalFeedback(
+          "addInvoiceModalFeedback",
+          "Lỗi tải dữ liệu cần thiết cho form.",
+          "danger"
+        );
+      });
+    });
+  }
+
+  if (newInvoiceRoomIdSelect) {
+    newInvoiceRoomIdSelect.addEventListener("change", async (event) => {
+      const selectedRoomId = event.target.value;
+      const selectedOption = event.target.options[event.target.selectedIndex];
+      const defaultRentPrice = parseFloat(
+        selectedOption.dataset.defaultRentPrice || 0
+      );
+
+      newInvoiceUtilitiesListDiv.innerHTML =
+        '<p class="text-muted small m-0">Đang tìm hợp đồng...</p>';
+      activeContractUtilities = [];
+      activeContractRentPrice = defaultRentPrice;
+      if (newInvoiceRentAmountInput) {
+        newInvoiceRentAmountInput.value = activeContractRentPrice;
+      }
+      calculateTotalAmount();
+
+      if (!selectedRoomId) {
+        newInvoiceUtilitiesListDiv.innerHTML =
+          '<p class="text-muted small m-0">Vui lòng chọn phòng.</p>';
+        return;
+      }
+
+      try {
+        // Fetch active contract for the selected room
+        const contracts = await ContractService.getAllContracts({
+          roomId: selectedRoomId,
+          status: "active"
+        });
+
+        if (contracts && contracts.length > 0) {
+          const activeContract = contracts[0];
+          console.log("Active contract found:", activeContract);
+          activeContractUtilities = activeContract.utilities || [];
+          activeContractRentPrice =
+            activeContract.rentPrice || defaultRentPrice;
+
+          if (newInvoiceRentAmountInput) {
+            newInvoiceRentAmountInput.value = activeContractRentPrice;
+          }
+          await loadUtilitiesForInvoiceModal(activeContractUtilities);
+        } else {
+          console.log("No active contract found for room:", selectedRoomId);
+          newInvoiceUtilitiesListDiv.innerHTML =
+            '<p class="text-info small m-0">Không tìm thấy hợp đồng đang hoạt động cho phòng này.</p>';
+          activeContractUtilities = [];
+          activeContractRentPrice = defaultRentPrice;
+          if (newInvoiceRentAmountInput) {
+            newInvoiceRentAmountInput.value = activeContractRentPrice;
+          }
+          calculateTotalAmount();
+        }
+      } catch (error) {
+        console.error("Error fetching active contract:", error);
+        showModalFeedback(
+          "addInvoiceModalFeedback",
+          "Lỗi khi tải thông tin hợp đồng.",
+          "warning"
+        );
+        newInvoiceUtilitiesListDiv.innerHTML =
+          '<p class="text-danger small m-0">Lỗi tải tiện ích từ hợp đồng.</p>';
+        activeContractUtilities = [];
+        activeContractRentPrice = defaultRentPrice;
+        if (newInvoiceRentAmountInput) {
+          newInvoiceRentAmountInput.value = activeContractRentPrice;
+        }
+        calculateTotalAmount();
+      }
+    });
+  }
+
+  // Add listeners to inputs that affect the total amount
+  const calculationInputs = [
+    newInvoiceRentAmountInput,
+    newInvoiceElecOldIndexInput,
+    newInvoiceElecNewIndexInput,
+    newInvoiceElecPricePerUnitInput,
+    newInvoiceWaterOldIndexInput,
+    newInvoiceWaterNewIndexInput,
+    newInvoiceWaterPricePerUnitInput
+  ];
+  calculationInputs.forEach((input) => {
+    if (input) {
+      input.addEventListener("input", calculateTotalAmount);
+    }
+  });
+
+  if (addNewInvoiceModalElement) {
+    addNewInvoiceModalElement.addEventListener(
+      "hidden.bs.modal",
+      resetAddInvoiceForm
+    );
+  }
+  if (saveNewInvoiceBtn) {
+    saveNewInvoiceBtn.addEventListener("click", handleSaveNewInvoice);
+  }
+
   // --- Initial Page Load Logic ---
   async function initializePage() {
     showContent("rooms-tab-container"); // Default tab
 
+    // Initialize Rooms Tab
     await populateAddressFilter();
     await fetchAndRenderUiForRoomsTab();
 
+    // Initialize Amenities & Utilities Tab
     await fetchAndRenderUiForAmenitiesTab();
     await fetchAndRenderUiForUtilitiesTab();
 
-    await populateOccupiedRoomFilterDropdown();
+    // Initialize Contracts Tab
+    await populateContractRoomFilterDropdown(); // For contract filter
     await fetchAndRenderUiForContractsTab();
+
+    // Initialize Invoices Tab
+    await populateInvoiceRoomFilterDropdown(); // For invoice filter
+    await fetchAndRenderUiForInvoicesTab();
+
+    // ... Initialize other tabs as needed ...
   }
 
   initializePage(); // Execute initialization
