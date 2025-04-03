@@ -1,12 +1,14 @@
 import ContractService from "../services/ContractService.js";
 import RoomService from "../services/RoomService.js";
 import AmenityService from "../services/AmenityService.js";
+import UtilityService from "../services/UtilityService.js";
 
 // --- Global Scope: State Variables ---
 // --- State for Contract Editing ---
 let currentContractId = null;
 let currentContractData = null;
 let allAmenities = [];
+let allUtilities = [];
 let allVacantRooms = [];
 let originalRoomData = null;
 let baseContractDeposit = 0;
@@ -22,6 +24,13 @@ const amenityNameMap = {
   gas_stove: "Bếp ga"
 };
 
+// --- Store mapping for Utiltiy name ---
+const utilityNameMap = {
+  wifi: "Wifi",
+  parking: "Đỗ xe",
+  cleaning: "Vệ sinh hàng tuần"
+};
+
 document.addEventListener("DOMContentLoaded", () => {
   // --- DOM Element Selectors ---
 
@@ -33,7 +42,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const contractRentPriceInput = document.getElementById("contractRentPrice");
   const contractDepositInput = document.getElementById("contractDeposit");
   const contractAmenitiesListDiv = document.getElementById(
-    "ContractAmenitiesList"
+    "contractAmenitiesList"
+  );
+  const contractUtilitiesListDiv = document.getElementById(
+    "contractUtilitiesList"
   );
   const contractStartDateInput = document.getElementById("contractStartDate");
   const contractEndDateInput = document.getElementById("contractEndDate");
@@ -143,6 +155,47 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Function: Renders the utility checklist, marking items present in the current Contract.
+  function renderUtilitiesChecklist() {
+    if (!contractUtilitiesListDiv || !allUtilities.length) {
+      if (contractUtilitiesListDiv)
+        contractUtilitiesListDiv.innerHTML =
+          '<p class="text-muted small m-0">Không có tiện ích nào.</p>';
+      return;
+    }
+    contractUtilitiesListDiv.innerHTML = ""; // Clear previous
+
+    const contractUtilityIds = new Set(
+      currentContractData?.utilities?.map(
+        (u) => (typeof u === "string" ? u : u._id) 
+      ) || []
+    );
+
+    allUtilities.forEach((utility) => {
+      const isChecked = contractUtilityIds.has(utility._id);
+      const div = document.createElement("div");
+      div.classList.add("form-check", "form-check-sm");
+      const utilityDisplayName =
+        utilityNameMap[utility.name] ||
+        (utility.name
+          ? utility.name.charAt(0).toUpperCase() + utility.name.slice(1)
+          : "Tiện ích");
+      const priceDisplay = (utility.price || 0).toLocaleString("vi-VN");
+
+      div.innerHTML = `
+          <input class="form-check-input contract-utility-checkbox" type="checkbox" value="${
+            utility._id
+          }" id="edit-utility-${utility._id}" data-price="${
+        utility.price || 0
+      }" ${isChecked ? "checked" : ""}>
+          <label class="form-check-label" for="edit-utility-${
+            utility._id
+          }">${utilityDisplayName} (+${priceDisplay} VNĐ)</label>
+      `;
+      contractUtilitiesListDiv.appendChild(div);
+    });
+  }
+
   // Function: Renders the room selection dropdown (Vacant rooms + original room).
   async function renderRoomSelectionDropdown() {
     if (!contractRoomIdSelect || !roomSelectLoadingDiv) return;
@@ -219,7 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Data Fetching and Population ---
 
-  // Function: Fetches all necessary data (contract, amenities, rooms) and populates the form UI.
+  // Function: Fetches all necessary data (contract, amenities, utilities, rooms) and populates the form UI.
   async function fetchAndRenderUiContractDetails() {
     currentContractId = getContractIdFromUrl();
     if (!currentContractId) {
@@ -235,6 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentContractData = null;
     originalRoomData = null;
     allAmenities = [];
+    allUtilities = [];
     allVacantRooms = [];
     baseContractDeposit = 0;
 
@@ -243,15 +297,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (contractAmenitiesListDiv)
       contractAmenitiesListDiv.innerHTML =
         '<p class="text-muted small m-0">Đang tải tiện nghi...</p>';
+    if (contractUtilitiesListDiv)
+      contractUtilitiesListDiv.innerHTML =
+        '<p class="text-muted small m-0">Đang tải tiện ích...</p>';
 
     try {
-      const [contractDetails, amenities] = await Promise.all([
+      const [contractDetails, amenities, utilities] = await Promise.all([
         ContractService.getContractById(currentContractId),
-        AmenityService.getAllAmenities()
+        AmenityService.getAllAmenities(),
+        UtilityService.getAllUtilities()
       ]);
 
       currentContractData = contractDetails;
       allAmenities = amenities || [];
+      allUtilities = utilities || [];
 
       if (currentContractData.roomId) {
         originalRoomData = await RoomService.getRoomById(
@@ -266,12 +325,13 @@ document.addEventListener("DOMContentLoaded", () => {
       // Populate UI elements
       populateFormFieldsBasicInfo();
       renderAmenitiesChecklist();
+      renderUtilitiesChecklist();
       await renderRoomSelectionDropdown();
       updateContractDeposit();
 
       if (editContractForm) editContractForm.classList.remove("was-validated");
     } catch (error) {
-      console.error("Error fetching contract details:", error);
+      console.error(error);
       const errorMessage = (
         error?.response?.data?.message ||
         error.message ||
@@ -361,6 +421,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       // Collect current data from form
+      const updatedAmenityIds = Array.from(
+        contractAmenitiesListDiv?.querySelectorAll(
+          ".contract-amenity-checkbox:checked"
+        ) || []
+      ).map((cb) => cb.value);
+      const updatedUtilityIds = Array.from(
+        contractUtilitiesListDiv?.querySelectorAll(
+          ".contract-utility-checkbox:checked"
+        ) || []
+      ).map((cb) => cb.value);
+
       const updatedContractData = {
         roomId: contractRoomIdSelect.value,
         rentPrice: parseInt(contractRentPriceInput.value, 10) || 0,
@@ -368,11 +439,8 @@ document.addEventListener("DOMContentLoaded", () => {
         startDate: contractStartDateInput.value,
         endDate: contractEndDateInput.value,
         status: contractStatusSelect.value,
-        amenities: Array.from(
-          contractAmenitiesListDiv?.querySelectorAll(
-            ".contract-amenity-checkbox:checked"
-          ) || []
-        ).map((cb) => cb.value)
+        amenities: updatedAmenityIds,
+        utilities: updatedUtilityIds
       };
 
       // Compare with initial data
@@ -382,7 +450,13 @@ document.addEventListener("DOMContentLoaded", () => {
           typeof a === "string" ? a : a._id
         ) || []
       );
+      const initialUtilities = new Set(
+        currentContractData.utilities?.map((u) =>
+          typeof u === "string" ? u : u._id
+        ) || []
+      );
       const currentAmenities = new Set(updatedContractData.amenities);
+      const currentUtilities = new Set(updatedContractData.utilities);
 
       const initialStartDate = currentContractData.startDate
         ? currentContractData.startDate.substring(0, 10)
@@ -399,7 +473,9 @@ document.addEventListener("DOMContentLoaded", () => {
         updatedContractData.endDate !== initialEndDate ||
         updatedContractData.status !== currentContractData.status ||
         initialAmenities.size !== currentAmenities.size ||
-        ![...initialAmenities].every((id) => currentAmenities.has(id))
+        ![...initialAmenities].every((id) => currentAmenities.has(id)) ||
+        initialUtilities.size !== currentUtilities.size ||
+        ![...initialUtilities].every((id) => currentUtilities.has(id))
       ) {
         hasChanges = true;
       }
