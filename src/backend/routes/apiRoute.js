@@ -339,6 +339,13 @@ router.delete(
   verifyIsLandlord,
   ExpenseController.deleteReceiptImagesForExpense
 );
+router.patch(
+  // Mark as paid
+  "/expense/:id/paid",
+  verifyToken,
+  verifyIsLandlord,
+  ExpenseController.markExpenseIsPaid
+);
 
 // =======================================
 // repair request routes
