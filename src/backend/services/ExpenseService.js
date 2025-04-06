@@ -16,8 +16,15 @@ class ExpenseService {
         query = query.where("expenseCode").equals(filter.expenseCode);
       if (filter.expenseDate)
         query = query.where("expenseDate").equals(filter.expenseDate);
+      if (filter.dueDate) query = query.where("dueDate").equals(filter.dueDate);
       if (filter.category)
         query = query.where("category").equals(filter.category);
+      if (filter.paymentStatus)
+        query = query.where("paymentStatus").equals(filter.paymentStatus);
+      if (filter.paymentMethod)
+        query = query.where("paymentMethod").equals(filter.paymentMethod);
+      if (filter.paymentDate)
+        query = query.where("paymentDate").equals(filter.paymentDate);
 
       const expenses = await query;
       if (!expenses.length) {
@@ -109,7 +116,7 @@ class ExpenseService {
         const data = {
           expenseId: id,
           data: file.buffer,
-          contentType: file.mimetype,
+          contentType: file.mimetype
         };
         const addedExpenseImage =
           await ExpenseService.addNewExpenseReceiptImage(data);
@@ -119,7 +126,7 @@ class ExpenseService {
       const updatedExpense = await Expense.findByIdAndUpdate(
         id,
         {
-          $push: { receiptImages: { $each: newImages } },
+          $push: { receiptImages: { $each: newImages } }
         },
         { new: true }
       );
@@ -147,7 +154,7 @@ class ExpenseService {
       const updatedExpense = await Expense.findByIdAndUpdate(
         id,
         {
-          $pull: { receiptImages: { $in: receiptImageIds } },
+          $pull: { receiptImages: { $in: receiptImageIds } }
         },
         { new: true }
       );
@@ -160,28 +167,26 @@ class ExpenseService {
     }
   }
 
-  static async generateExpenseCode(roomNumber, expenseDate) {
+  static async generateExpenseCode(roomNumber, expenseDate, dueDate) {
     try {
       logger.info(`ExpenseService.generateExpenseCode() is called.`);
       const formatExpenseDate = moment(expenseDate).format("YYYYMMDD");
-      const revertExpenseDate = moment(expenseDate).format("DDMMYYYY");
+      const formatDueDate = moment(dueDate).format("YYYYMMDD");
 
       const lastExpense = await Expense.findOne().sort({ _id: -1 });
       if (!lastExpense)
-        return `${formatExpenseDate}${revertExpenseDate}${roomNumber}1`;
+        return `${formatExpenseDate}${formatDueDate}${roomNumber}1`;
 
       const lastExpenseCode = lastExpense.expenseCode;
       const lastExpenseNumber = parseInt(
         lastExpenseCode.slice(
-          formatExpenseDate.length +
-            revertExpenseDate.length +
-            roomNumber.length
+          formatExpenseDate.length + formatDueDate.length + roomNumber.length
         ),
         10
       );
 
       const newExpenseNumber = lastExpenseNumber + 1;
-      const newExpenseCode = `${formatExpenseDate}${revertExpenseDate}${roomNumber}${newExpenseNumber}`;
+      const newExpenseCode = `${formatExpenseDate}${formatDueDate}${roomNumber}${newExpenseNumber}`;
       return newExpenseCode;
     } catch (error) {
       logger.info(
@@ -194,14 +199,15 @@ class ExpenseService {
   static async addNewExpense(data, receiptImageFiles) {
     try {
       logger.info("ExpenseService.addNewExpense() is called.");
-      const { roomId, expenseCode, expenseDate } = data;
+      const { roomId, expenseCode, expenseDate, dueDate } = data;
 
       if (!expenseCode) {
         const room = await RoomService.getRoomById(roomId);
         const roomNumber = room.roomNumber;
         data.expenseCode = await ExpenseService.generateExpenseCode(
           roomNumber,
-          expenseDate
+          expenseDate,
+          dueDate
         );
       }
 
@@ -233,7 +239,7 @@ class ExpenseService {
     try {
       logger.info("ExpenseService.updatedExpense() is called.");
       const updatedExpense = await Expense.findByIdAndUpdate(id, data, {
-        new: true,
+        new: true
       });
       if (!updatedExpense) {
         throw new ApiError(404, `No expense found matching id ${id}.`);
@@ -263,6 +269,30 @@ class ExpenseService {
       return deletedExpense;
     } catch (error) {
       logger.error(`ExpenseService.deleteExpense() have error:\n${error}`);
+      throw error;
+    }
+  }
+
+  static async markExpenseIsPaid(id, paymentMethod) {
+    try {
+      logger.info("ExpenseService.markExpenseIsPaid() is called.");
+      const updatedExpense = await Expense.findByIdAndUpdate(
+        id,
+        {
+          paymentStatus: "paid",
+          paymentDate: new Date(),
+          paymentMethod: paymentMethod
+        },
+        {
+          new: true
+        }
+      );
+      if (!updatedExpense) {
+        throw new ApiError(404, `No expense found matching id ${id}.`);
+      }
+      return updatedExpense;
+    } catch (error) {
+      logger.error(`ExpenseService.markExpenseIsPaid() have error:\n${error}`);
       throw error;
     }
   }

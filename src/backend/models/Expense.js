@@ -8,18 +8,23 @@ const expenseSchema = new Schema(
       type: ObjectId,
       required: true,
       ref: "Room",
-      index: true,
+      index: true
     },
     expenseCode: {
       type: String,
       required: true,
       unique: true,
       trim: true,
-      index: true,
+      index: true
     },
     expenseDate: {
       type: Date,
-      required: true,
+      required: true
+    },
+    dueDate: {
+      type: Date,
+      index: true,
+      required: true
     },
     category: {
       type: String,
@@ -27,36 +32,49 @@ const expenseSchema = new Schema(
       trim: true,
       index: true,
       enum: ["repair", "maintenance", "purchase"],
-      default: "repair",
+      default: "repair"
     },
     amount: {
       type: Number,
       required: true,
-      min: 0,
+      min: 0
     },
-    description: {
+    paymentStatus: {
+      type: String,
+      required: true,
+      index: true,
+      enum: ["pending", "paid", "overdue"],
+      default: "pending"
+    },
+    paymentMethod: {
       type: String,
       required: false,
-      trim: true,
-      default: "",
+      index: true,
+      enum: ["all", "cash", "banking"],
+      default: "all"
+    },
+    paymentDate: {
+      type: Date,
+      required: false,
+      index: true
     },
     receiptImages: [
       {
         type: ObjectId,
-        ref: "ExpenseImage",
-      },
+        ref: "ExpenseImage"
+      }
     ],
-    notes: {
+    description: {
       type: String,
       required: false,
       trim: true,
-      default: "",
-    },
+      default: ""
+    }
   },
   {
     collection: "expenses",
     versionKey: false,
-    timestamps: true,
+    timestamps: true
   }
 );
 

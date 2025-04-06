@@ -12,7 +12,11 @@ class ExpenseController {
       if (query.roomId) filter.roomId = query.roomId;
       if (query.expenseCode) filter.expenseCode = query.expenseCode;
       if (query.expenseDate) filter.expenseDate = query.expenseDate;
+      if (query.dueDate) filter.dueDate = query.dueDate;
       if (query.category) filter.category = query.category;
+      if (query.paymentStatus) filter.paymentStatus = query.paymentStatus;
+      if (query.paymentMethod) filter.paymentMethod = query.paymentMethod;
+      if (query.paymentDate) filter.paymentDate = query.paymentDate;
 
       const expenses = await ExpenseService.getAllExpenses(filter);
       res.status(200).json(expenses);
@@ -130,7 +134,15 @@ class ExpenseController {
       const data = req.body;
       const receiptImageFiles = req.files;
 
-      if (!data.roomId || !data.expenseDate || !data.category || !data.amount) {
+      if (
+        !data.roomId ||
+        !data.expenseDate ||
+        !data.dueDate ||
+        !data.category ||
+        !data.amount ||
+        !data.paymentStatus ||
+        !data.paymentMethod 
+      ) {
         return next(new ApiError(400, "No form data found."));
       }
 
@@ -158,10 +170,13 @@ class ExpenseController {
       if (
         !data.roomId &&
         !data.expenseDate &&
+        !data.dueDate &&
         !data.category &&
         !data.amount &&
-        !data.description &&
-        !data.notes
+        !data.paymentStatus &&
+        !data.paymentMethod &&
+        !data.paymentDate &&
+        !data.description
       ) {
         return next(new ApiError(400, "At least one field must be updated."));
       }
@@ -185,6 +200,33 @@ class ExpenseController {
       res.status(200).json(deletedExpense);
     } catch (error) {
       logger.error(`ExpenseController.deleteExpense() have error:\n${error}`);
+      next(error);
+    }
+  }
+
+  static async markExpenseIsPaid(req, res, next) {
+    try {
+      logger.info("ExpenseController.markExpenseIsPaid() is called.");
+      const id = req.params.id;
+      const paymentMethod = req.body.paymentMethod;
+
+      if (!id) {
+        return next(new ApiError(400, "Param id must be provided."));
+      }
+
+      if (!paymentMethod) {
+        return next(new ApiError(400, "Payment method must be provided."));
+      }
+
+      const updatedExpense = await ExpenseService.markExpenseIsPaid(
+        id,
+        paymentMethod
+      );
+      res.status(200).json(updatedExpense);
+    } catch (error) {
+      logger.error(
+        `ExpenseController.markExpenseIsPaid() have error:\n${error}`
+      );
       next(error);
     }
   }
