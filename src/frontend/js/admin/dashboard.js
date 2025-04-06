@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const contractPaginationContainer =
     document.getElementById("contractPagination");
   const searchContractInput = document.getElementById("searchContractInput");
-  const searchContractsBtn = document.getElementById("searchContractsBtn");
+  const searchContractBtn = document.getElementById("searchContractBtn");
   const contractRoomFilterSelect =
     document.getElementById("contractRoomFilter");
   const contractStartDateFilter = document.getElementById(
@@ -1349,7 +1349,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       contractRoomFilterSelect.disabled = false;
     } catch (error) {
-      console.error("Error loading rooms for filter:", error);
+      console.error(error);
       contractRoomFilterSelect.innerHTML =
         '<option value="all" selected>Tất cả phòng</option><option value="" disabled>Lỗi tải phòng</option>';
     }
@@ -1569,7 +1569,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       renderContractTableUI();
     } catch (error) {
-      console.error("Error deleting contract:", error);
+      console.error(error);
       const errorMsg = (
         error?.response?.data?.message ||
         error.message ||
@@ -1891,7 +1891,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       invoiceRoomFilterSelect.disabled = false;
     } catch (error) {
-      console.error("Error loading rooms for invoice filter:", error);
+      console.error(error);
       invoiceRoomFilterSelect.innerHTML =
         '<option value="all" selected>Tất cả phòng</option><option value="" disabled>Lỗi tải phòng</option>';
     }
@@ -1946,7 +1946,7 @@ document.addEventListener("DOMContentLoaded", () => {
       totalInvoices = currentInvoiceData.length;
       renderInvoiceTableUI(); // Call the function to render the table
     } catch (error) {
-      console.error("Error fetching invoices:", error);
+      console.error(error);
       if (invoiceTableBody) {
         invoiceTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Lỗi khi tải dữ liệu hóa đơn.</td></tr>`; // Updated colspan
       }
@@ -1990,8 +1990,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
       } catch (roomError) {
-        console.error("Error fetching room details for invoices:", roomError);
-        // Handle error, maybe show placeholder room info
+        console.error(roomError);
       }
     }
 
@@ -2147,7 +2146,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderInvoiceTableUI(); // Re-render the table
       // Add success notification/toast if desired
     } catch (error) {
-      console.error("Error deleting invoice:", error);
+      console.error(error);
       const errorMsg = (
         error?.response?.data?.message ||
         error.message ||
@@ -2217,7 +2216,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         allUtilitiesData = await UtilityService.getAllUtilities();
       } catch (error) {
-        console.error("Failed to fetch all utilities details:", error);
+        console.error(error);
         newInvoiceUtilitiesListDiv.innerHTML =
           '<p class="text-danger small m-0">Lỗi tải chi tiết tiện ích.</p>';
         return; // Stop if we can't get details
@@ -2321,7 +2320,7 @@ document.addEventListener("DOMContentLoaded", () => {
           '<option value="" disabled>Không có phòng nào đang được thuê</option>';
       }
     } catch (error) {
-      console.error("Error loading occupied rooms for invoice modal:", error);
+      console.error(error);
       newInvoiceRoomIdSelect.innerHTML =
         '<option value="" disabled>Lỗi tải phòng</option>';
     } finally {
@@ -2463,7 +2462,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (addNewInvoiceModal) addNewInvoiceModal.hide();
       }, 1500);
     } catch (error) {
-      console.error("Error adding new invoice:", error);
+      console.error(error);
       const errorMsg = (
         error?.response?.data?.message ||
         error.message ||
@@ -2654,8 +2653,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Event Listeners: Contracts Tab Actions
-  if (searchContractsBtn) {
-    searchContractsBtn.addEventListener("click", () => {
+  if (searchContractBtn) {
+    searchContractBtn.addEventListener("click", () => {
       contractCurrentPage = 1; // Reset to first page on new search/filter
       fetchAndRenderUiForContractsTab();
     });
@@ -2758,6 +2757,7 @@ document.addEventListener("DOMContentLoaded", () => {
       fetchAndRenderUiForInvoicesTab();
     });
   }
+
   if (searchInvoiceInput) {
     searchInvoiceInput.addEventListener("keypress", function (e) {
       if (e.key === "Enter") {
@@ -2766,12 +2766,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+  
   if (applyInvoiceFiltersBtn) {
     applyInvoiceFiltersBtn.addEventListener("click", () => {
       invoiceCurrentPage = 1;
       fetchAndRenderUiForInvoicesTab();
     });
   }
+
   if (invoiceTableBody) {
     // Event delegation for delete buttons
     invoiceTableBody.addEventListener("click", (event) => {
@@ -2793,7 +2795,7 @@ document.addEventListener("DOMContentLoaded", () => {
       resetAddInvoiceForm(); // Reset trước
       addNewInvoiceModal.show();
       loadOccupiedRoomsForInvoiceModal().catch((error) => {
-        console.error("Error loading rooms for invoice modal:", error);
+        console.error(error);
         showModalFeedback(
           "addInvoiceModalFeedback",
           "Lỗi tải danh sách phòng.",
@@ -2818,7 +2820,7 @@ document.addEventListener("DOMContentLoaded", () => {
         loadOccupiedRoomsForInvoiceModal(),
         loadUtilitiesForInvoiceModal()
       ]).catch((error) => {
-        console.error("Error loading initial data for invoice modal:", error);
+        console.error(error);
         showModalFeedback(
           "addInvoiceModalFeedback",
           "Lỗi tải dữ liệu cần thiết cho form.",
@@ -2832,27 +2834,44 @@ document.addEventListener("DOMContentLoaded", () => {
     newInvoiceRoomIdSelect.addEventListener("change", async (event) => {
       const selectedRoomId = event.target.value;
       const selectedOption = event.target.options[event.target.selectedIndex];
+      // Get default rent price from the selected option's data attribute
       const defaultRentPrice = parseFloat(
-        selectedOption.dataset.defaultRentPrice || 0
+        selectedOption?.dataset.defaultRentPrice || 0
       );
 
-      newInvoiceUtilitiesListDiv.innerHTML =
-        '<p class="text-muted small m-0">Đang tìm hợp đồng...</p>';
-      activeContractUtilities = [];
-      activeContractRentPrice = defaultRentPrice;
-      if (newInvoiceRentAmountInput) {
-        newInvoiceRentAmountInput.value = activeContractRentPrice;
+      // --- Reset fields while loading new data ---
+      if (newInvoiceUtilitiesListDiv) {
+        newInvoiceUtilitiesListDiv.innerHTML =
+          '<p class="text-muted small m-0">Đang tải dữ liệu phòng...</p>';
       }
-      calculateTotalAmount();
+      activeContractUtilities = [];
+      activeContractRentPrice = defaultRentPrice; // Start with default
+      if (newInvoiceRentAmountInput) {
+        newInvoiceRentAmountInput.value = activeContractRentPrice; // Update display
+      }
+      // Clear old indices initially
+      if (newInvoiceElecOldIndexInput) newInvoiceElecOldIndexInput.value = "";
+      if (newInvoiceWaterOldIndexInput) newInvoiceWaterOldIndexInput.value = "";
+      calculateTotalAmount(); // Recalculate with cleared/default values
 
       if (!selectedRoomId) {
-        newInvoiceUtilitiesListDiv.innerHTML =
-          '<p class="text-muted small m-0">Vui lòng chọn phòng.</p>';
+        // Handle case where selection is cleared or invalid
+        if (newInvoiceUtilitiesListDiv) {
+          newInvoiceUtilitiesListDiv.innerHTML =
+            '<p class="text-muted small m-0">Vui lòng chọn phòng.</p>';
+        }
+        // Keep rent at 0 or default? Let's keep default price as derived from option dataset
+        if (newInvoiceRentAmountInput)
+          newInvoiceRentAmountInput.value = defaultRentPrice;
+        activeContractRentPrice = defaultRentPrice; // Ensure state matches UI
+        if (newInvoiceElecOldIndexInput) newInvoiceElecOldIndexInput.value = 0; // Set to 0 if no room
+        if (newInvoiceWaterOldIndexInput)
+          newInvoiceWaterOldIndexInput.value = 0; // Set to 0 if no room
+        calculateTotalAmount();
         return;
       }
 
       try {
-        // Fetch active contract for the selected room
         const contracts = await ContractService.getAllContracts({
           roomId: selectedRoomId,
           status: "active"
@@ -2860,40 +2879,84 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (contracts && contracts.length > 0) {
           const activeContract = contracts[0];
-          console.log("Active contract found:", activeContract);
           activeContractUtilities = activeContract.utilities || [];
           activeContractRentPrice =
             activeContract.rentPrice || defaultRentPrice;
-
-          if (newInvoiceRentAmountInput) {
-            newInvoiceRentAmountInput.value = activeContractRentPrice;
-          }
-          await loadUtilitiesForInvoiceModal(activeContractUtilities);
+          await loadUtilitiesForInvoiceModal(activeContractUtilities); // Load utilities based on contract
         } else {
-          console.log("No active contract found for room:", selectedRoomId);
-          newInvoiceUtilitiesListDiv.innerHTML =
-            '<p class="text-info small m-0">Không tìm thấy hợp đồng đang hoạt động cho phòng này.</p>';
+          console.log(selectedRoomId);
           activeContractUtilities = [];
-          activeContractRentPrice = defaultRentPrice;
-          if (newInvoiceRentAmountInput) {
-            newInvoiceRentAmountInput.value = activeContractRentPrice;
-          }
-          calculateTotalAmount();
+          activeContractRentPrice = defaultRentPrice; // Use room's default rent
+          loadUtilitiesForInvoiceModal([]); // Clear/show message for utilities
         }
-      } catch (error) {
-        console.error("Error fetching active contract:", error);
-        showModalFeedback(
-          "addInvoiceModalFeedback",
-          "Lỗi khi tải thông tin hợp đồng.",
-          "warning"
-        );
-        newInvoiceUtilitiesListDiv.innerHTML =
-          '<p class="text-danger small m-0">Lỗi tải tiện ích từ hợp đồng.</p>';
-        activeContractUtilities = [];
-        activeContractRentPrice = defaultRentPrice;
         if (newInvoiceRentAmountInput) {
           newInvoiceRentAmountInput.value = activeContractRentPrice;
         }
+
+        const roomInvoices = await InvoiceService.getAllInvoices({
+          roomId: selectedRoomId
+        });
+
+        if (roomInvoices && roomInvoices.length > 0) {
+          // Sort by issueDate descending to find the most recent
+          roomInvoices.sort(
+            (a, b) => new Date(b.issueDate) - new Date(a.issueDate)
+          );
+          const latestPreviousInvoice = roomInvoices[0];
+
+          // Pre-fill Old Index from the New Index of the previous invoice
+          if (
+            latestPreviousInvoice.electricity &&
+            latestPreviousInvoice.electricity.newIndex !== undefined
+          ) {
+            if (newInvoiceElecOldIndexInput) {
+              newInvoiceElecOldIndexInput.value =
+                latestPreviousInvoice.electricity.newIndex;
+            }
+          } else {
+            // If electricity data or newIndex is missing on the last invoice, default to 0
+            if (newInvoiceElecOldIndexInput)
+              newInvoiceElecOldIndexInput.value = 0;
+          }
+
+          if (
+            latestPreviousInvoice.water &&
+            latestPreviousInvoice.water.newIndex !== undefined
+          ) {
+            if (newInvoiceWaterOldIndexInput) {
+              newInvoiceWaterOldIndexInput.value =
+                latestPreviousInvoice.water.newIndex;
+            }
+          } else {
+            // If water data or newIndex is missing on the last invoice, default to 0
+            if (newInvoiceWaterOldIndexInput)
+              newInvoiceWaterOldIndexInput.value = 0;
+          }
+        } else {
+          // No previous invoices found for this room
+          // Set old indices to 0 if this is the first invoice
+          if (newInvoiceElecOldIndexInput)
+            newInvoiceElecOldIndexInput.value = 0;
+          if (newInvoiceWaterOldIndexInput)
+            newInvoiceWaterOldIndexInput.value = 0;
+        }
+      } catch (error) {
+        console.error(error);
+        showModalFeedback(
+          "Lỗi khi tải thông tin hợp đồng hoặc hóa đơn cũ.",
+          "warning"
+        );
+        // Reset relevant fields on error to avoid using stale data
+        loadUtilitiesForInvoiceModal([]); // Clear utilities display
+        if (newInvoiceRentAmountInput)
+          newInvoiceRentAmountInput.value = defaultRentPrice; // Use default rent
+        activeContractRentPrice = defaultRentPrice; // Sync state
+        if (newInvoiceElecOldIndexInput) newInvoiceElecOldIndexInput.value = ""; // Clear indices
+        if (newInvoiceWaterOldIndexInput)
+          newInvoiceWaterOldIndexInput.value = "";
+      } finally {
+        // --- Step 3: Recalculate Total ---
+        // Always recalculate after all potential updates
         calculateTotalAmount();
       }
     });

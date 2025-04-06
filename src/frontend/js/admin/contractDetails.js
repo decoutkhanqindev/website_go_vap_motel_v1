@@ -229,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
             originalRoomData._id === room._id
               ? `P. ${room.roomNumber || "N/A"} - ĐC. ${
                   room.address || "N/A"
-                } (Phòng hiện tại)`
+                } (Phòng gốc hợp đồng)`
               : `P. ${room.roomNumber || "N/A"} - ĐC. ${room.address || "N/A"}`;
           option.dataset.rentPrice = room.rentPrice || 0;
           // Mark the contract's current room as selected
