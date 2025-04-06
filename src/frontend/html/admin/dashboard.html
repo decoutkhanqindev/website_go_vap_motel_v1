@@ -676,7 +676,187 @@
           id="expenses-tab-container"
           class="expenses-tab-container"
           style="display: none"
-        ></div>
+        >
+          <div
+            class="expenses-tab-title d-flex justify-content-center align-items-center"
+          >
+            QUẢN LÝ DANH SÁCH CHI PHÍ
+          </div>
+
+          <!-- Search Section -->
+          <div class="search-container my-3">
+            <div class="input-group">
+              <input
+                type="text"
+                id="searchExpenseInput"
+                class="form-control"
+                placeholder="Tìm theo mã chi phí"
+                aria-label="Tìm kiếm chi phí"
+              />
+              <button id="searchExpenseBtn" class="btn h-100" type="button">
+                Tìm kiếm
+              </button>
+            </div>
+          </div>
+
+          <!-- Row for Filters and Table -->
+          <div class="row">
+            <!-- Left Column: Filters & Add Button -->
+            <div class="col-md-3">
+              <div class="filter-container">
+                <h5 class="filter-heading">Lọc chi phí</h5>
+
+                <!-- Room Filter (Occupied/Relevant Rooms) -->
+                <div class="filter-group">
+                  <label for="expenseRoomFilter" class="filter-label"
+                    >Phòng:</label
+                  >
+                  <select id="expenseRoomFilter" class="form-select">
+                    <option value="all" selected>Tất cả phòng</option>
+                    <!-- Options sẽ được load bằng JS (lý tưởng là chỉ phòng có người thuê hoặc đã từng có chi phí) -->
+                    <option value="" disabled>Đang tải...</option>
+                  </select>
+                </div>
+
+                <!-- Expense Date Filter -->
+                <div class="filter-group">
+                  <label for="expenseDateFilter" class="filter-label"
+                    >Ngày phát sinh:</label
+                  >
+                  <input
+                    type="date"
+                    id="expenseDateFilter"
+                    class="form-control"
+                    placeholder="mm/dd/yyyy"
+                  />
+                </div>
+
+                <!-- Due Date Filter -->
+                <div class="filter-group">
+                  <label for="expenseDueDateFilter" class="filter-label"
+                    >Ngày hết hạn:</label
+                  >
+                  <input
+                    type="date"
+                    id="expenseDueDateFilter"
+                    class="form-control"
+                    placeholder="mm/dd/yyyy"
+                  />
+                </div>
+
+                <!-- Category Filter -->
+                <div class="filter-group">
+                  <label class="filter-label">Danh mục:</label>
+                  <select id="expenseCategoryFilter" class="form-select">
+                    <option value="all" selected>Tất cả</option>
+                    <option value="repair">Sửa chữa</option>
+                    <option value="maintenance">Bảo trì</option>
+                    <option value="purchase">Mua sắm</option>
+                  </select>
+                </div>
+
+                <!-- Payment Method Filter -->
+                <div class="filter-group">
+                  <label class="filter-label">Phương thức thanh toán:</label>
+                  <select id="expensePaymentMethodFilter" class="form-select">
+                    <option value="all">Tất cả</option>
+                    <option value="cash">Tiền mặt</option>
+                    <option value="banking">Chuyển khoản</option>
+                    <!-- 'all' is default in schema, might not be selectable -->
+                  </select>
+                </div>
+
+                <!-- Payment Date Filter -->
+                <div class="filter-group">
+                  <label for="expensePaymentDateFilter" class="filter-label"
+                    >Ngày thanh toán:</label
+                  >
+                  <input
+                    type="date"
+                    id="expensePaymentDateFilter"
+                    class="form-control"
+                    placeholder="mm/dd/yyyy"
+                  />
+                </div>
+
+                <!-- Payment Status Filter -->
+                <div class="filter-group">
+                  <label class="filter-label">Trạng thái thanh toán:</label>
+                  <select id="expensePaymentStatusFilter" class="form-select">
+                    <option value="all" selected>Tất cả</option>
+                    <option value="pending">Đang chờ</option>
+                    <option value="paid">Đã thanh toán</option>
+                    <option value="overdue">Đã quá hạn</option>
+                  </select>
+                </div>
+
+                <!-- Apply Filter Button -->
+                <button
+                  id="applyExpenseFilters"
+                  class="apply-filters-btn btn w-100"
+                >
+                  Áp dụng lọc
+                </button>
+              </div>
+
+              <!-- Add New Expense Button -->
+              <div class="mt-3">
+                <button
+                  id="addNewExpenseBtn"
+                  class="add-expense-btn btn w-100"
+                  data-bs-toggle="modal"
+                  data-bs-target="#addNewExpenseModal"
+                >
+                  Thêm chi phí mới
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Column: Expense List & Pagination -->
+            <div class="col-md-9">
+              <!-- Expense List Table -->
+              <div class="expense-list-container table-responsive">
+                <table
+                  class="table table-hover table-striped align-middle expense-table"
+                >
+                  <thead class="table-header-bg">
+                    <tr>
+                      <th scope="col">STT</th>
+                      <th scope="col">Mã chi phí</th>
+                      <th scope="col">Phòng</th>
+                      <th scope="col" class="text-center">Ngày phát sinh</th>
+                      <th scope="col" class="text-center">Ngày hết hạn</th>
+                      <th scope="col" class="text-center">Danh mục</th>
+                      <th scope="col" class="text-center">Phương thức TT</th>
+                      <th scope="col" class="text-center">Ngày thanh toán</th>
+                      <th scope="col" class="text-center">Trạng thái TT</th>
+                      <th scope="col" class="text-center"></th>
+                      <!-- For delete button -->
+                    </tr>
+                  </thead>
+                  <tbody id="expenseTableBody">
+                    <tr>
+                      <td colspan="10" class="text-center">
+                        Đang tải dữ liệu...
+                      </td>
+                    </tr>
+                    <!-- Expense data rows will be added here by JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <nav aria-label="Expense list page navigation">
+                <ul
+                  class="pagination justify-content-center mt-3"
+                  id="expensePagination"
+                >
+                  <!-- Pagination items -->
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
 
         <div
           id="users-tab-container"
@@ -1617,6 +1797,205 @@
                 style="display: none"
               ></span>
               Lưu hóa đơn
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add New Expense Modal -->
+    <div
+      class="modal fade"
+      id="addNewExpenseModal"
+      tabindex="-1"
+      aria-labelledby="addNewExpenseModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addNewExpenseModalLabel">
+              Thêm chi phí mới
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="addExpenseForm" novalidate>
+              <!-- Feedback Area -->
+              <div
+                id="addExpenseModalFeedback"
+                class="alert"
+                role="alert"
+                style="display: none"
+              ></div>
+
+              <div class="row">
+                <!-- Left Column -->
+                <div class="col-md-6">
+                  <!-- Room Selection (Required) -->
+                  <div class="mb-3">
+                    <label for="newExpenseRoomId" class="form-label required"
+                      >Phòng:</label
+                    >
+                    <select class="form-select" id="newExpenseRoomId" required>
+                      <option value="" selected disabled>Chọn phòng...</option>
+                      <!-- Options will be loaded dynamically by JS -->
+                    </select>
+                    <div id="expenseRoomSelectLoading" style="display: none">
+                      Đang tải danh sách phòng...
+                    </div>
+                    <div class="invalid-feedback">Vui lòng chọn phòng.</div>
+                  </div>
+
+                  <!-- Amount -->
+                  <div class="mb-3">
+                    <label for="newExpenseAmount" class="form-label required"
+                      >Số tiền (VNĐ):</label
+                    >
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="newExpenseAmount"
+                      min="0"
+                      required
+                    />
+                    <div class="invalid-feedback">
+                      Vui lòng nhập số tiền hợp lệ (lớn hơn hoặc bằng 0).
+                    </div>
+                  </div>
+
+                  <!-- Category (Required) -->
+                  <div class="mb-3">
+                    <label for="newExpenseCategory" class="form-label required"
+                      >Danh mục:</label
+                    >
+                    <select
+                      class="form-select"
+                      id="newExpenseCategory"
+                      required
+                    >
+                      <option value="" selected disabled>
+                        Chọn danh mục...
+                      </option>
+                      <option value="repair">Sửa chữa</option>
+                      <option value="maintenance">Bảo trì</option>
+                      <option value="purchase">Mua sắm</option>
+                    </select>
+                    <div class="invalid-feedback">Vui lòng chọn danh mục.</div>
+                  </div>
+
+                  <!-- Description (Optional) -->
+                  <div class="mb-3">
+                    <label for="newExpenseDescription" class="form-label"
+                      >Mô tả thêm:</label
+                    >
+                    <textarea
+                      class="form-control"
+                      id="newExpenseDescription"
+                      rows="3"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-md-6">
+                  <!-- Expense Date (Required) -->
+                  <div class="mb-3">
+                    <label for="newExpenseDate" class="form-label required"
+                      >Ngày phát sinh:</label
+                    >
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="newExpenseDate"
+                      required
+                    />
+                    <div class="invalid-feedback">
+                      Vui lòng chọn ngày phát sinh chi phí.
+                    </div>
+                  </div>
+
+                  <!-- Due Date (Required) -->
+                  <div class="mb-3">
+                    <label for="newExpenseDueDate" class="form-label required"
+                      >Ngày hết hạn:</label
+                    >
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="newExpenseDueDate"
+                      required
+                    />
+                    <div class="invalid-feedback">
+                      Vui lòng chọn ngày hết hạn.
+                    </div>
+                  </div>
+
+                  <!-- Payment Method -->
+                  <div class="mb-3">
+                    <label for="newExpensePaymentMethod" class="form-label"
+                      >Phương thức thanh toán:</label
+                    >
+                    <select class="form-select" id="newExpensePaymentMethod">
+                      <option value="all" selected>Tất cả</option>
+                      <option value="cash">Tiền mặt</option>
+                      <option value="banking">Chuyển khoản</option>
+                    </select>
+                    <!-- No invalid-feedback needed as it's optional -->
+                  </div>
+
+                  <!-- Receipt Images -->
+                  <div class="mb-3">
+                    <label class="form-label">Ảnh hóa đơn/Biên lai:</label>
+                    <input
+                      type="file"
+                      class="form-control d-none"
+                      id="newExpenseImagesInput"
+                      multiple
+                      accept="image/*"
+                    />
+                    <!-- Trigger button -->
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary btn-sm mb-2"
+                      id="selectExpenseImagesBtn"
+                    >
+                      Chọn ảnh...
+                    </button>
+                    <div
+                      id="newExpenseImagePreview"
+                      class="image-preview-container mt-2"
+                    >
+                      <!-- Image previews will be shown here -->
+                    </div>
+                    <!-- No invalid-feedback needed as it's optional -->
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="cancel-btn btn"
+              id="cancelExpenseBtn"
+              data-bs-dismiss="modal"
+            >
+              Hủy
+            </button>
+            <button type="button" class="save-btn btn" id="saveNewExpenseBtn">
+              <span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+                style="display: none"
+              ></span>
+              Lưu chi phí
             </button>
           </div>
         </div>

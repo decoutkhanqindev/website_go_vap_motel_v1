@@ -3,6 +3,7 @@ import AmenityService from "../services/AmenityService.js";
 import UtilityService from "../services/UtilityService.js";
 import ContractService from "../services/ContractService.js";
 import InvoiceService from "../services/InvoiceService.js";
+import ExpenseService from "../services/ExpenseService.js";
 
 // --- Global Scope: State Variables ---
 // --- State for Rooms Tab ---
@@ -63,6 +64,29 @@ const paymentMethodMap = {
   all: "Tất cả",
   cash: "Tiền mặt",
   banking: "Chuyển khoản"
+};
+
+// --- State for Expenses Tab ---
+let expenseCurrentPage = 1;
+let totalExpenses = 0;
+const expensesPerPage = 10;
+let currentExpenseData = [];
+let allRoomsForExpenseFilter = [];
+let selectedExpenseImageFiles = [];
+
+// --- Store mapping for Expense Category name ---
+const expenseCategoryMap = {
+  repair: "Sửa chữa",
+  maintenance: "Bảo trì",
+  purchase: "Mua sắm"
+  // Add more categories if needed
+};
+
+// --- Store mapping for Expense Payment Status name ---
+const expensePaymentStatusMap = {
+  pending: "Đang chờ",
+  paid: "Đã thanh toán",
+  overdue: "Đã quá hạn"
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -280,6 +304,64 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveNewInvoiceSpinner =
     saveNewInvoiceBtn?.querySelector(".spinner-border");
 
+  // --- Selectors: Expenses Tab UI ---
+  const expenseTableBody = document.getElementById("expenseTableBody");
+  const expensePaginationContainer =
+    document.getElementById("expensePagination");
+  const searchExpenseInput = document.getElementById("searchExpenseInput");
+  const searchExpenseBtn = document.getElementById("searchExpenseBtn");
+  const expenseRoomFilterSelect = document.getElementById("expenseRoomFilter");
+  const expenseDateFilter = document.getElementById("expenseDateFilter");
+  const expenseDueDateFilter = document.getElementById("expenseDueDateFilter");
+  const expenseCategoryFilter = document.getElementById(
+    "expenseCategoryFilter"
+  );
+  const expensePaymentMethodFilter = document.getElementById(
+    "expensePaymentMethodFilter"
+  );
+  const expensePaymentDateFilter = document.getElementById(
+    "expensePaymentDateFilter"
+  );
+  const expensePaymentStatusFilter = document.getElementById(
+    "expensePaymentStatusFilter"
+  );
+  const applyExpenseFiltersBtn = document.getElementById("applyExpenseFilters");
+  const addNewExpenseBtn = document.getElementById("addNewExpenseBtn");
+  // Add New Expense Modal
+  const addNewExpenseModalElement =
+    document.getElementById("addNewExpenseModal");
+  const addExpenseForm = document.getElementById("addExpenseForm");
+  const expenseRoomSelectLoadingDiv = document.getElementById(
+    "expenseRoomSelectLoading"
+  );
+  const newExpenseRoomIdSelect = document.getElementById("newExpenseRoomId");
+  const newExpenseAmountInput = document.getElementById("newExpenseAmount");
+  const newExpenseCategorySelect =
+    document.getElementById("newExpenseCategory");
+  const newExpenseDescriptionInput = document.getElementById(
+    "newExpenseDescription"
+  );
+  const newExpenseDateInput = document.getElementById("newExpenseDate");
+  const newExpenseDueDateInput = document.getElementById("newExpenseDueDate");
+  const newExpenseImagesInput = document.getElementById(
+    "newExpenseImagesInput"
+  );
+  const newExpensePaymentMethodSelect = document.getElementById(
+    "newExpensePaymentMethod"
+  );
+  const selectExpenseImagesBtn = document.getElementById(
+    "selectExpenseImagesBtn"
+  );
+  const newExpenseImagePreviewDiv = document.getElementById(
+    "newExpenseImagePreview"
+  );
+  const saveNewExpenseBtn = document.getElementById("saveNewExpenseBtn");
+  const addExpenseModalFeedbackDiv = document.getElementById(
+    "addExpenseModalFeedback"
+  );
+  const saveNewExpenseSpinner =
+    saveNewExpenseBtn?.querySelector(".spinner-border");
+
   // --- Initialize Bootstrap Modals ---
   const addNewRoomModal = addNewRoomModalElement
     ? new bootstrap.Modal(addNewRoomModalElement)
@@ -295,6 +377,9 @@ document.addEventListener("DOMContentLoaded", () => {
     : null;
   const addNewInvoiceModal = addNewInvoiceModalElement
     ? new bootstrap.Modal(addNewInvoiceModalElement)
+    : null;
+  const addNewExpenseModal = addNewExpenseModalElement
+    ? new bootstrap.Modal(addNewExpenseModalElement)
     : null;
 
   // --- Core UI Functions ---
@@ -2251,7 +2336,6 @@ document.addEventListener("DOMContentLoaded", () => {
             "form-check-sm",
             "invoice-utility-item"
           );
-          // Lưu giá vào data attribute
           div.dataset.price = utility.price || 0;
           const utilityName =
             utilityNameMap[utility.name] ||
@@ -2476,6 +2560,576 @@ document.addEventListener("DOMContentLoaded", () => {
     } finally {
       if (saveNewInvoiceBtn) saveNewInvoiceBtn.disabled = false;
       if (saveNewInvoiceSpinner) saveNewInvoiceSpinner.style.display = "none";
+    }
+  }
+
+  // --- Expenses Tab: Data Fetching & Filtering Logic ---
+
+  // Function: Populates the room filter dropdown on the main Expenses tab.
+  async function populateExpenseRoomFilterDropdown() {
+    if (!expenseRoomFilterSelect) return;
+
+    expenseRoomFilterSelect.innerHTML =
+      '<option value="all" selected>Tất cả phòng (Đã thuê)</option><option value="" disabled>Đang tải...</option>'; // Cập nhật text mặc định
+    expenseRoomFilterSelect.disabled = true;
+
+    try {
+      const rooms = await RoomService.getAllRooms({ status: "occupied" });
+      allRoomsForExpenseFilter = rooms;
+
+      expenseRoomFilterSelect.innerHTML =
+        '<option value="all" selected>Tất cả phòng</option>'; // Reset
+
+      if (rooms && rooms.length > 0) {
+        rooms.forEach((room) => {
+          const option = document.createElement("option");
+          option.value = room._id;
+          option.textContent = `P. ${room.roomNumber || "N/A"} - ĐC. ${
+            room.address || "N/A"
+          }`;
+          expenseRoomFilterSelect.appendChild(option);
+        });
+      } else {
+        expenseRoomFilterSelect.innerHTML +=
+          '<option value="" disabled>Không có phòng nào đang được thuê</option>';
+      }
+      expenseRoomFilterSelect.disabled = false;
+    } catch (error) {
+      console.error("Error populating expense room filter:", error);
+      expenseRoomFilterSelect.innerHTML =
+        '<option value="all" selected>Tất cả phòng</option><option value="" disabled>Lỗi tải phòng</option>';
+      allRoomsForExpenseFilter = [];
+    }
+  }
+
+  // Function: Fetches expense data based on current filters and search term.
+  async function fetchAndRenderUiForExpensesTab() {
+    if (expenseTableBody) {
+      expenseTableBody.innerHTML = `<tr><td colspan="10" class="text-center">Đang tải dữ liệu chi phí...</td></tr>`; // Colspan matches table header
+    }
+    if (expensePaginationContainer) {
+      expensePaginationContainer.innerHTML = "";
+    }
+
+    try {
+      // Gather filter values from UI elements
+      const searchTerm = searchExpenseInput?.value.trim() || "";
+      const selectedRoomId = expenseRoomFilterSelect?.value || "all";
+      const expenseDate = expenseDateFilter?.value || "";
+      const dueDate = expenseDueDateFilter?.value || "";
+      const category = expenseCategoryFilter?.value || "all";
+      const paymentMethod = expensePaymentMethodFilter?.value || "all";
+      const paymentDate = expensePaymentDateFilter?.value || "";
+      const paymentStatus = expensePaymentStatusFilter?.value || "all";
+
+      // Construct filter object for the API call
+      const filter = {};
+      if (searchTerm) filter.expenseCode = searchTerm; // Ensure backend supports search by code
+      if (selectedRoomId !== "all") filter.roomId = selectedRoomId;
+      if (expenseDate) filter.expenseDate = expenseDate; // Use API expected key
+      if (dueDate) filter.dueDate = dueDate;
+      if (category !== "all") filter.category = category;
+      if (paymentMethod !== "all") filter.paymentMethod = paymentMethod;
+      if (paymentDate) filter.paymentDate = paymentDate;
+      if (paymentStatus !== "all") filter.paymentStatus = paymentStatus;
+
+      // Fetch expenses from the service
+      const allMatchingExpenses = await ExpenseService.getAllExpenses(filter);
+
+      // Update state and render UI
+      currentExpenseData = allMatchingExpenses || [];
+      totalExpenses = currentExpenseData.length;
+      renderExpenseTableUI(); // Render the table with fetched data
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+      if (expenseTableBody) {
+        expenseTableBody.innerHTML = `<tr><td colspan="10" class="text-center text-danger">Lỗi khi tải dữ liệu chi phí.</td></tr>`;
+      }
+      currentExpenseData = [];
+      totalExpenses = 0;
+      renderExpensePaginationUI(); // Still render pagination controls (which will be empty)
+    }
+  }
+
+  // --- Expenses Tab: UI Rendering Logic ---
+
+  // Function: Renders the HTML table rows for the expenses based on the current page and data.
+  async function renderExpenseTableUI() {
+    if (!expenseTableBody) return;
+    expenseTableBody.innerHTML = ""; // Clear previous content
+
+    if (currentExpenseData.length === 0) {
+      expenseTableBody.innerHTML = `<tr><td colspan="10" class="text-center">Không tìm thấy chi phí nào phù hợp.</td></tr>`;
+      renderExpensePaginationUI(); // Ensure pagination is cleared or shows nothing
+      return;
+    }
+
+    // Calculate pagination indices
+    const startIndex = (expenseCurrentPage - 1) * expensesPerPage;
+    const endIndex = Math.min(startIndex + expensesPerPage, totalExpenses);
+    const expensesToDisplay = currentExpenseData.slice(startIndex, endIndex);
+
+    const roomIds = [
+      ...new Set(expensesToDisplay.map((exp) => exp.roomId))
+    ].filter(Boolean); // Get unique, valid room IDs
+    const roomDetailsMap = new Map();
+    if (roomIds.length > 0) {
+      try {
+        // Fetch details for only the rooms needed for the current page
+        const roomPromises = roomIds.map((id) => RoomService.getRoomById(id));
+        const roomResults = await Promise.allSettled(roomPromises);
+        roomResults.forEach((result, index) => {
+          if (result.status === "fulfilled" && result.value) {
+            roomDetailsMap.set(roomIds[index], result.value); // Map ID to room object
+          } else if (result.status === "rejected") {
+            console.warn(
+              `Failed to fetch room details for ID: ${roomIds[index]}`,
+              result.reason
+            );
+          }
+        });
+      } catch (roomError) {
+        console.error(
+          "Error fetching room details for expenses table:",
+          roomError
+        );
+        // Continue rendering, but room names might show as 'N/A'
+      }
+    }
+
+    // Generate table rows
+    expensesToDisplay.forEach((expense, index) => {
+      const row = document.createElement("tr");
+      row.dataset.id = expense._id; // Store ID for potential actions
+      const sequentialNumber = startIndex + index + 1;
+
+      // Get room display text safely
+      const roomInfo = roomDetailsMap.get(expense.roomId);
+      const roomDisplay = roomInfo
+        ? `P. ${roomInfo.roomNumber || "N/A"} - ĐC. ${
+            roomInfo.address || "N/A"
+          }`
+        : expense.roomId
+        ? "ID phòng: " + expense.roomId.slice(-6)
+        : "Không có phòng"; // Fallback
+
+      // Format dates and values for display
+      const formattedExpenseDate = expense.expenseDate
+        ? new Date(expense.expenseDate).toLocaleDateString("vi-VN")
+        : "N/A";
+      const formattedDueDate = expense.dueDate
+        ? new Date(expense.dueDate).toLocaleDateString("vi-VN")
+        : "N/A";
+      const formattedPaymentDate = expense.paymentDate
+        ? new Date(expense.paymentDate).toLocaleDateString("vi-VN")
+        : "Chưa thanh toán"; // Display text if no payment date
+
+      // Use maps for readable text
+      const categoryText =
+        expenseCategoryMap[expense.category] || expense.category || "Không rõ";
+      const paymentMethodText =
+        paymentMethodMap[expense.paymentMethod] ||
+        (expense.paymentStatus === "paid" ? "Không rõ" : "Chưa thanh toán");
+      const paymentStatusText =
+        expensePaymentStatusMap[expense.paymentStatus] ||
+        expense.paymentStatus ||
+        "Không rõ";
+      const paymentStatusClass = `status-${expense.paymentStatus || "unknown"}`; // CSS class for styling
+
+      // Populate row cells (ensure order matches HTML thead)
+      row.innerHTML = `
+            <td>${sequentialNumber}</td>
+            <td>${expense.expenseCode || "N/A"}</td>
+            <td>${roomDisplay}</td>
+            <td class="text-center">${formattedExpenseDate}</td>
+            <td class="text-center">${formattedDueDate}</td>
+            <td class="text-center">${categoryText}</td>
+            <td class="text-center">${paymentMethodText}</td>
+            <td class="text-center">${formattedPaymentDate}</td>
+            <td class="text-center">
+                <span class="${paymentStatusClass}">${paymentStatusText}</span>
+            </td>
+            <td class="text-center action-cell">
+                <button class="btn btn-sm btn-danger delete-expense-btn" data-id="${
+                  expense._id
+                }" title="Xóa chi phí">Xóa</button>
+            </td>
+          `;
+
+      // Add click listener to the row (navigate to details page, avoiding action cell)
+      row.addEventListener("click", (event) => {
+        if (event.target.closest(".action-cell")) {
+          return; // Don't navigate if clicking within the action cell
+        }
+        // Redirect to the expense details page (adjust URL as needed)
+        window.location.href = `/admin/expense/details/${expense._id}`;
+      });
+
+      expenseTableBody.appendChild(row);
+    });
+
+    renderExpensePaginationUI(); // Update pagination controls
+  }
+
+  // Funtion: Renders the pagination controls based on the total number of expenses.
+  function renderExpensePaginationUI() {
+    if (!expensePaginationContainer) return;
+    expensePaginationContainer.innerHTML = ""; // Clear existing controls
+
+    const totalPages = Math.ceil(totalExpenses / expensesPerPage);
+
+    if (totalPages <= 1) {
+      return; // No pagination needed if 0 or 1 page
+    }
+
+    // Create pagination links
+    for (let i = 1; i <= totalPages; i++) {
+      const pageNumberItem = document.createElement("li");
+      pageNumberItem.classList.add("page-item");
+      if (i === expenseCurrentPage) {
+        pageNumberItem.classList.add("active"); // Highlight current page
+      }
+
+      const pageNumberLink = document.createElement("a");
+      pageNumberLink.classList.add("page-link");
+      pageNumberLink.href = "#"; // Prevent page jump
+      pageNumberLink.textContent = i;
+
+      // Add click listener to change page
+      pageNumberLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (i !== expenseCurrentPage) {
+          expenseCurrentPage = i;
+          renderExpenseTableUI(); // Re-render table for the new page
+        }
+      });
+
+      pageNumberItem.appendChild(pageNumberLink);
+      expensePaginationContainer.appendChild(pageNumberItem);
+    }
+  }
+
+  // --- Expenses Tab: Delete Expense Logic ---
+  async function handleDeleteExpense(expenseId) {
+    // Confirmation dialog
+    const confirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa chi phí này không?"
+    );
+    if (!confirmed) return;
+
+    const deleteButton = expenseTableBody?.querySelector(
+      `.delete-expense-btn[data-id="${expenseId}"]`
+    );
+    const originalButtonText = deleteButton ? deleteButton.innerHTML : "Xóa";
+
+    // Show loading state on button
+    if (deleteButton) {
+      deleteButton.disabled = true;
+      deleteButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xóa...`;
+    }
+
+    try {
+      // Call the service to delete the expense
+      await ExpenseService.deleteExpense(expenseId);
+
+      // --- Update local state and UI ---
+      // Remove from the data array
+      const indexToRemove = currentExpenseData.findIndex(
+        (exp) => exp._id === expenseId
+      );
+      if (indexToRemove > -1) {
+        currentExpenseData.splice(indexToRemove, 1);
+      }
+      totalExpenses = currentExpenseData.length; // Update total count
+
+      // Adjust current page if the last item on a page was deleted
+      const totalPagesAfterDeletion = Math.ceil(
+        totalExpenses / expensesPerPage
+      );
+      if (
+        expenseCurrentPage > totalPagesAfterDeletion &&
+        totalPagesAfterDeletion > 0
+      ) {
+        expenseCurrentPage = totalPagesAfterDeletion;
+      } else if (totalPagesAfterDeletion === 0) {
+        expenseCurrentPage = 1; // Reset to page 1 if no expenses left
+      }
+
+      // Re-render the table and pagination
+      renderExpenseTableUI();
+
+      // Optional: Show success toast/notification
+      // Example: showToast("Xóa chi phí thành công!");
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+      const errorMsg = (
+        error?.response?.data?.message ||
+        error.message ||
+        "Đã xảy ra lỗi không mong muốn."
+      ).toString();
+      // Show error alert to the user
+      alert(
+        `Lỗi khi xóa chi phí: ${
+          errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1)
+        }`
+      );
+      // Restore button state on error
+      if (deleteButton) {
+        deleteButton.disabled = false;
+        deleteButton.innerHTML = originalButtonText;
+      }
+    }
+  }
+
+  // --- Expenses Tab: Add New Expense Modal Logic ---
+
+  // Function: Loads ONLY OCCUPIED rooms into the 'Add Expense' modal's dropdown.
+  async function loadRoomsForExpenseModal() {
+    if (!newExpenseRoomIdSelect || !expenseRoomSelectLoadingDiv) return;
+
+    // Show loading state
+    newExpenseRoomIdSelect.innerHTML =
+      '<option value="" selected disabled>Đang tải danh sách phòng đang thuê...</option>';
+    newExpenseRoomIdSelect.disabled = true;
+    expenseRoomSelectLoadingDiv.style.display = "block";
+
+    try {
+      const rooms = await RoomService.getAllRooms({ status: "occupied" });
+
+      newExpenseRoomIdSelect.innerHTML =
+        '<option value="" selected disabled>Chọn phòng...</option>'; // Reset placeholder
+
+      if (rooms && rooms.length > 0) {
+        rooms.forEach((room) => {
+          const option = document.createElement("option");
+          option.value = room._id;
+          option.textContent = `P. ${room.roomNumber || "N/A"} - ĐC. ${
+            room.address || "N/A"
+          }`;
+          newExpenseRoomIdSelect.appendChild(option);
+        });
+        newExpenseRoomIdSelect.disabled = false; // Enable select
+      } else {
+        // CHỈNH SỬA: Cập nhật thông báo
+        newExpenseRoomIdSelect.innerHTML =
+          '<option value="" disabled>Không có phòng nào đang được thuê để chọn</option>';
+      }
+    } catch (error) {
+      console.error("Error loading occupied rooms for expense modal:", error);
+      newExpenseRoomIdSelect.innerHTML =
+        '<option value="" disabled>Lỗi tải danh sách phòng</option>';
+    } finally {
+      expenseRoomSelectLoadingDiv.style.display = "none"; // Hide loading indicator
+    }
+  }
+
+  // Function: Renders previews of selected images (receipts) in the 'Add Expense' modal,
+  // matching the style of other image previews.
+  function renderExpenseImagePreviews() {
+    if (!newExpenseImagePreviewDiv) return;
+    newExpenseImagePreviewDiv.innerHTML = ""; // Clear previous previews
+
+    selectedExpenseImageFiles.forEach((file, index) => {
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        // Create preview element using the SAME structure and classes as other previews
+        const previewItem = document.createElement("div");
+        previewItem.classList.add("image-preview-item"); // Use the standard class
+        previewItem.innerHTML = `
+          <img src="${e.target.result}" alt="Preview ${file.name}">
+          <button type="button" class="remove-image-btn" data-index="${index}" title="Xóa ảnh này">×</button>
+        `; // Use standard button class and structure
+
+        // Add event listener to the remove button for this specific image
+        previewItem
+          .querySelector(".remove-image-btn") // Target the standard class
+          .addEventListener("click", (event) => {
+            // Find the index from the button clicked
+            const indexToRemove = parseInt(
+              event.target.getAttribute("data-index"),
+              10
+            );
+            // Check if index is valid before splicing
+            if (
+              !isNaN(indexToRemove) &&
+              indexToRemove >= 0 &&
+              indexToRemove < selectedExpenseImageFiles.length
+            ) {
+              selectedExpenseImageFiles.splice(indexToRemove, 1); // Remove file from array
+              renderExpenseImagePreviews(); // Re-render previews with updated array and indices
+            } else {
+              console.error(
+                "Invalid index found on remove image button:",
+                indexToRemove
+              );
+            }
+          });
+        newExpenseImagePreviewDiv.appendChild(previewItem);
+      };
+
+      reader.onerror = (error) => {
+        console.error(`Error reading file ${file.name}:`, error);
+        // Keep error display simple and consistent
+        const errorPreviewItem = document.createElement("div");
+        errorPreviewItem.classList.add(
+          "image-preview-item",
+          "text-danger",
+          "p-2",
+          "border",
+          "border-danger"
+        );
+        errorPreviewItem.textContent = `Lỗi: ${file.name}`;
+        errorPreviewItem.style.maxWidth = "80px"; // Optional: constrain width for consistency
+        errorPreviewItem.style.wordBreak = "break-word";
+        newExpenseImagePreviewDiv.appendChild(errorPreviewItem);
+      };
+
+      reader.readAsDataURL(file); // Start reading the file
+    });
+
+    // Display message if no images are selected (consistent message)
+    if (selectedExpenseImageFiles.length === 0) {
+      newExpenseImagePreviewDiv.innerHTML =
+        '<p class="text-muted small mb-0">Chưa chọn ảnh nào.</p>'; // Match other modals
+    }
+  }
+
+  // Function: Handles the selection of new image files for the expense.
+  function handleExpenseImageSelection(event) {
+    const files = Array.from(event.target.files);
+    selectedExpenseImageFiles.push(...files);
+    renderExpenseImagePreviews(); // Update the UI
+    event.target.value = null;
+  }
+
+  // Function: Resets the 'Add New Expense' modal form to its default state.
+  function resetAddExpenseForm() {
+    if (addExpenseForm) {
+      addExpenseForm.reset(); // Reset form fields
+      addExpenseForm.classList.remove("was-validated"); // Remove validation styling
+    }
+
+    // Reset room dropdown specifically
+    if (newExpenseRoomIdSelect) {
+      newExpenseRoomIdSelect.innerHTML =
+        '<option value="" selected disabled>--- Chọn phòng ---</option>';
+      newExpenseRoomIdSelect.disabled = true; // Keep disabled until loaded
+    }
+
+    // Reset image state
+    selectedExpenseImageFiles = []; // Clear the array of selected files
+    renderExpenseImagePreviews(); // Clear the image preview area
+
+    // Hide any previous feedback messages
+    hideModalFeedback("addExpenseModalFeedback");
+  }
+
+  // Function: Handles the submission of the 'Add New Expense' form.
+  // Collects data into an object, gathers image files, and calls the ExpenseService.
+  async function handleSaveNewExpense() {
+    hideModalFeedback("addExpenseModalFeedback"); // Clear previous messages
+
+    // --- Step 1: Form Validation ---
+    if (!addExpenseForm || !addExpenseForm.checkValidity()) {
+      if (addExpenseForm) addExpenseForm.classList.add("was-validated");
+      showModalFeedback(
+        "addExpenseModalFeedback",
+        "Vui lòng điền đầy đủ thông tin vào các trường bắt buộc (*).",
+        "warning"
+      );
+      return; // Stop submission if basic validation fails
+    }
+
+    // --- Step 2: Specific Field Validations ---
+    const amount = parseFloat(newExpenseAmountInput?.value || 0);
+    if (isNaN(amount) || amount <= 0) {
+      showModalFeedback(
+        "addExpenseModalFeedback",
+        "Số tiền chi phí phải là một số lớn hơn 0.",
+        "warning"
+      );
+      newExpenseAmountInput?.classList.add("is-invalid"); // Highlight field
+      return;
+    } else {
+      newExpenseAmountInput?.classList.remove("is-invalid");
+    }
+
+    const expenseDate = newExpenseDateInput?.value;
+    const dueDate = newExpenseDueDateInput?.value;
+    if (expenseDate && dueDate && new Date(dueDate) < new Date(expenseDate)) {
+      showModalFeedback(
+        "addExpenseModalFeedback",
+        "Ngày hết hạn thanh toán không được trước ngày phát sinh chi phí.",
+        "warning"
+      );
+      newExpenseDueDateInput?.classList.add("is-invalid");
+      return;
+    } else {
+      newExpenseDueDateInput?.classList.remove("is-invalid");
+    }
+
+    if (addExpenseForm) addExpenseForm.classList.add("was-validated"); // Mark validated if all checks pass
+
+    // --- Step 3: Prepare Data Object and Image Files Array ---
+    const expenseData = {
+      roomId: newExpenseRoomIdSelect.value,
+      amount: amount, // Use validated amount
+      category: newExpenseCategorySelect.value,
+      description: newExpenseDescriptionInput.value.trim(),
+      expenseDate: newExpenseDateInput.value,
+      dueDate: newExpenseDueDateInput.value,
+      paymentMethod: newExpensePaymentMethodSelect.value,
+      paymentStatus: "pending",
+      description: newExpenseDescriptionInput.value.trim()
+    };
+
+    // The image files are already collected in the global `selectedExpenseImageFiles` array
+
+    // --- Step 4: API Call & Feedback ---
+    // Show loading state
+    if (saveNewExpenseBtn) saveNewExpenseBtn.disabled = true;
+    if (saveNewExpenseSpinner)
+      saveNewExpenseSpinner.style.display = "inline-block";
+
+    try {
+      // Call the service with the data object and the image files array
+      // The ExpenseService.addNewExpense handles creating FormData internally
+      await ExpenseService.addNewExpense(
+        expenseData,
+        selectedExpenseImageFiles
+      );
+
+      // Success: Show feedback, refresh list, close modal
+      showModalFeedback(
+        "addExpenseModalFeedback",
+        "Thêm chi phí mới thành công!",
+        "success"
+      );
+      expenseCurrentPage = 1; // Go to first page to likely see the new item
+      await fetchAndRenderUiForExpensesTab(); // Refresh the expenses table
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        if (addNewExpenseModal) addNewExpenseModal.hide();
+        // Form reset is handled by the 'hidden.bs.modal' event listener
+      }, 1500);
+    } catch (error) {
+      console.error("Error saving new expense:", error);
+      const errorMsg = (
+        error?.response?.data?.message || // Check for detailed error from backend
+        error.message ||
+        "Không thể lưu chi phí. Vui lòng thử lại."
+      ).toString();
+      showModalFeedback(
+        "addExpenseModalFeedback",
+        `Lỗi: ${errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1)}`,
+        "danger"
+      );
+    } finally {
+      // Always re-enable button and hide spinner
+      if (saveNewExpenseBtn) saveNewExpenseBtn.disabled = false;
+      if (saveNewExpenseSpinner) saveNewExpenseSpinner.style.display = "none";
     }
   }
 
@@ -2766,7 +3420,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-  
+
   if (applyInvoiceFiltersBtn) {
     applyInvoiceFiltersBtn.addEventListener("click", () => {
       invoiceCurrentPage = 1;
@@ -2988,6 +3642,93 @@ document.addEventListener("DOMContentLoaded", () => {
     saveNewInvoiceBtn.addEventListener("click", handleSaveNewInvoice);
   }
 
+  // Event Listeners: Expenses Tab Filters & Actions
+  if (searchExpenseBtn) {
+    searchExpenseBtn.addEventListener("click", () => {
+      expenseCurrentPage = 1; // Reset to page 1 on filter/search
+      fetchAndRenderUiForExpensesTab();
+    });
+  }
+
+  if (searchExpenseInput) {
+    // Allow searching on Enter key press
+    searchExpenseInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        expenseCurrentPage = 1;
+        fetchAndRenderUiForExpensesTab();
+      }
+    });
+  }
+
+  if (applyExpenseFiltersBtn) {
+    applyExpenseFiltersBtn.addEventListener("click", () => {
+      expenseCurrentPage = 1;
+      fetchAndRenderUiForExpensesTab();
+    });
+  }
+
+  // Event Listener: Expense Table (using delegation for delete buttons)
+  if (expenseTableBody) {
+    expenseTableBody.addEventListener("click", (event) => {
+      // Check if the clicked element is a delete button
+      const deleteButton = event.target.closest(".delete-expense-btn");
+      if (deleteButton) {
+        event.stopPropagation(); // Prevent row click listener from firing
+        const expenseId = deleteButton.dataset.id;
+        if (expenseId) {
+          handleDeleteExpense(expenseId); // Call delete handler
+        } else {
+          console.warn("Delete button clicked but no expense ID found.");
+        }
+      }
+    });
+  }
+
+  // Event Listeners: Add New Expense Modal
+  if (addNewExpenseBtn && addNewExpenseModal) {
+    addNewExpenseBtn.addEventListener("click", () => {
+      resetAddExpenseForm(); // Reset form before showing
+      addNewExpenseModal.show();
+      loadRoomsForExpenseModal().catch((error) => {
+        console.error("Failed to pre-load rooms for expense modal:", error);
+        showModalFeedback(
+          "addExpenseModalFeedback",
+          "Lỗi khi tải danh sách phòng. Vui lòng thử đóng và mở lại.",
+          "danger"
+        );
+      });
+    });
+  }
+
+  // Reset form when the modal is fully hidden
+  if (addNewExpenseModalElement) {
+    addNewExpenseModalElement.addEventListener(
+      "hidden.bs.modal",
+      resetAddExpenseForm
+    );
+  }
+
+  // Trigger file input when the custom "Select Images" button is clicked
+  if (selectExpenseImagesBtn && newExpenseImagesInput) {
+    selectExpenseImagesBtn.addEventListener(
+      "click",
+      () => newExpenseImagesInput.click() // Open file dialog
+    );
+  }
+
+  // Handle file selection when the hidden file input changes
+  if (newExpenseImagesInput) {
+    newExpenseImagesInput.addEventListener(
+      "change",
+      handleExpenseImageSelection
+    );
+  }
+
+  // Save new expense when the modal's save button is clicked
+  if (saveNewExpenseBtn) {
+    saveNewExpenseBtn.addEventListener("click", handleSaveNewExpense);
+  }
+
   // --- Initial Page Load Logic ---
   async function initializePage() {
     showContent("rooms-tab-container"); // Default tab
@@ -3007,6 +3748,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initialize Invoices Tab
     await populateInvoiceRoomFilterDropdown(); // For invoice filter
     await fetchAndRenderUiForInvoicesTab();
+
+    // Initialize Expense Tab
+    await populateExpenseRoomFilterDropdown(); // For expense filter
+    await fetchAndRenderUiForExpensesTab();
 
     // ... Initialize other tabs as needed ...
   }
