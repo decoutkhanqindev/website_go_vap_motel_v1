@@ -190,7 +190,7 @@ class InvoiceService {
 
   static async markInvoiceIsPaid(id, paymentMethod) {
     try {
-      logger.info("InvoiceService.deleteInvoice() is called.");
+      logger.info("InvoiceService.markInvoiceIsPaid() is called.");
       const updatedInvoice = await Invoice.findByIdAndUpdate(
         id,
         {
@@ -207,7 +207,7 @@ class InvoiceService {
       }
       return updatedInvoice;
     } catch (error) {
-      logger.error(`InvoiceService.deleteInvoice() have error:\n${error}`);
+      logger.error(`InvoiceService.markInvoiceIsPaid() have error:\n${error}`);
       throw error;
     }
   }
