@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nhà trọ Gò Vấp</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="shortcut icon" href="/assets/logo.jpg" type="IMAGE" />
+    <!-- Link đến file CSS mới -->
+    <link rel="stylesheet" href="/css/admin/invoiceDetails.css" />
+  </head>
+  <body>
+    <!-- header  -->
+    <header class="header-bg py-3">
+      <div
+        class="container-fluid d-flex justify-content-center align-items-center"
+      >
+        <div class="header-logo">
+          <img src="/assets/logo_no_text.png" alt="Logo Nhà trọ" />
+        </div>
+        <h1 class="header-text text-center mb-0">NHÀ TRỌ GÒ VẤP</h1>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="container mt-4">
+        <div
+          class="invoice-details-title d-flex justify-content-center align-items-center"
+        >
+          THÔNG TIN CHI TIẾT
+        </div>
+        <!-- Thay đổi class wrapper chính -->
+        <div class="invoice-details">
+          <!-- Sử dụng cấu trúc tương tự Contract: modal-content trực tiếp -->
+          <div class="modal-content">
+            <div class="modal-body">
+              <!-- Form chỉnh sửa hóa đơn -->
+              <form id="editInvoiceForm" novalidate>
+                <!-- Feedback Area -->
+                <div
+                  id="editInvoiceModalFeedback"
+                  class="alert"
+                  role="alert"
+                  style="display: none"
+                ></div>
+
+                <div class="row">
+                  <!-- Left Column -->
+                  <div class="col-md-6">
+                    <!-- Invoice Code -->
+                    <div class="mb-3">
+                      <label for="invoiceCode" class="form-label"
+                        >Mã hóa đơn:</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="invoiceCode"
+                        readonly
+                        placeholder="N/A"
+                      />
+                      <!-- Mã hóa đơn thường không cho sửa -->
+                    </div>
+
+                    <!-- Room Selection -->
+                    <div class="mb-3">
+                      <label for="invoiceRoomId" class="form-label required"
+                        >Phòng:</label
+                      >
+                      <select class="form-select" id="invoiceRoomId" required>
+                        <option value="" selected disabled>
+                          Chọn phòng...
+                        </option>
+                        <!-- Options will be loaded dynamically by JS -->
+                        <!-- Example: <option value="room_id_1">Phòng 101 - Địa chỉ A</option> -->
+                      </select>
+                      <!-- Use a unique ID for loading indicator -->
+                      <div id="invoiceRoomSelectLoading" style="display: none">
+                        Đang tải danh sách phòng...
+                      </div>
+                      <div class="invalid-feedback">Vui lòng chọn phòng.</div>
+                    </div>
+
+                    <!-- Rent Amount  -->
+                    <div class="mb-3">
+                      <label for="invoiceRentAmount" class="form-label required"
+                        >Tiền thuê (VNĐ):</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="invoiceRentAmount"
+                        min="0"
+                        step="50000"
+                        required
+                      />
+                      <div class="invalid-feedback">
+                        Vui lòng nhập giá thuê hợp lệ (lớn hơn hoặc bằng 0).
+                      </div>
+                      <small class="form-text text-muted"
+                        >Giá thuê có thể cập nhật khi đổi phòng.</small
+                      >
+                      <!-- Added note -->
+                    </div>
+
+                    <!-- Issue Date -->
+                    <div class="mb-3">
+                      <label for="invoiceIssueDate" class="form-label required"
+                        >Ngày phát hành:</label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="invoiceIssueDate"
+                        required
+                      />
+                      <div class="invalid-feedback">
+                        Vui lòng chọn ngày phát hành.
+                      </div>
+                    </div>
+
+                    <!-- Due Date -->
+                    <div class="mb-3">
+                      <label for="invoiceDueDate" class="form-label required"
+                        >Ngày hết hạn:</label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="invoiceDueDate"
+                        required
+                      />
+                      <div class="invalid-feedback">
+                        Vui lòng chọn ngày hết hạn.
+                      </div>
+                    </div>
+
+                    <!-- Payment Status -->
+                    <div class="mb-3">
+                      <label
+                        for="invoicePaymentStatus"
+                        class="form-label required"
+                        >Trạng thái thanh toán:</label
+                      >
+                      <select
+                        class="form-select"
+                        id="invoicePaymentStatus"
+                        required
+                      >
+                        <option value="pending">Đang chờ</option>
+                        <option value="paid">Đã thanh toán</option>
+                        <option value="overdue">Đã quá hạn</option>
+                        <!-- Optional status -->
+                      </select>
+                      <div class="invalid-feedback">
+                        Vui lòng chọn trạng thái thanh toán.
+                      </div>
+                    </div>
+
+                    <!-- Payment Date (Only enable/show if status is 'paid') -->
+                    <div
+                      class="mb-3"
+                      id="paymentDateGroup"
+                      style="display: none"
+                    >
+                      <!-- Initially hidden -->
+                      <label for="invoicePaymentDate" class="form-label"
+                        >Ngày thanh toán:</label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="invoicePaymentDate"
+                      />
+                      <div class="invalid-feedback">
+                        Vui lòng chọn ngày thanh toán hợp lệ.
+                      </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="mb-3">
+                      <label for="invoicePaymentMethod" class="form-label"
+                        >Phương thức thanh toán:</label
+                      >
+                      <!-- Make not required maybe? Only relevant if paid -->
+                      <select class="form-select" id="invoicePaymentMethod">
+                        <!-- Chuẩn hóa ID -->
+                        <option value="" selected disabled>
+                          Chọn phương thức...
+                        </option>
+                        <!-- Default empty -->
+                        <option value="all">Tất cả</option>
+                        <option value="cash">Tiền mặt</option>
+                        <option value="banking">Chuyển khoản</option>
+                        <!-- Optional -->
+                      </select>
+                      <div class="invalid-feedback">
+                        Vui lòng chọn phương thức thanh toán.
+                      </div>
+                    </div>
+
+                    <!-- Total Amount (Calculated, display only) -->
+                    <div class="mb-3">
+                      <label for="invoiceTotalAmount" class="form-label"
+                        >Tổng cộng (VNĐ):</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="invoiceTotalAmount"
+                        readonly
+                        placeholder="Sẽ tự động tính toán..."
+                      />
+                      <small class="form-text text-muted"
+                        >Tổng tiền sẽ được tính tự động.</small
+                      >
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                      <label for="invoiceNotes" class="form-label"
+                        >Ghi chú:</label
+                      >
+                      <textarea
+                        class="form-control"
+                        id="invoiceNotes"
+                        rows="2"
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <!-- Right Column -->
+                  <div class="col-md-6">
+                    <!-- Electricity -->
+                    <fieldset class="border p-3 mb-3">
+                      <legend class="w-auto px-2 form-label required">
+                        Tiền điện
+                      </legend>
+                      <div class="mb-2">
+                        <label
+                          for="invoiceElecOldIndex"
+                          class="form-label required small mb-1"
+                          >Chỉ số cũ:</label
+                        >
+                        <input
+                          type="number"
+                          class="form-control form-control-sm"
+                          id="invoiceElecOldIndex"
+                          min="0"
+                          required
+                        />
+                        <div class="invalid-feedback small">
+                          Nhập chỉ số cũ.
+                        </div>
+                      </div>
+                      <div class="mb-2">
+                        <label
+                          for="invoiceElecNewIndex"
+                          class="form-label required small mb-1"
+                          >Chỉ số mới:</label
+                        >
+                        <input
+                          type="number"
+                          class="form-control form-control-sm"
+                          id="invoiceElecNewIndex"
+                          min="0"
+                          required
+                        />
+                        <div class="invalid-feedback small">
+                          Nhập chỉ số mới (phải lớn hơn hoặc bằng chỉ số cũ).
+                        </div>
+                      </div>
+                      <div class="mb-0">
+                        <label
+                          for="invoiceElecPricePerUnit"
+                          class="form-label required small mb-1"
+                          >Đơn giá (VNĐ/kWh):</label
+                        >
+                        <input
+                          type="number"
+                          class="form-control form-control-sm"
+                          id="invoiceElecPricePerUnit"
+                          min="0"
+                          step="100"
+                          required
+                        />
+                        <div class="invalid-feedback small">
+                          Nhập đơn giá điện.
+                        </div>
+                      </div>
+                    </fieldset>
+
+                    <!-- Water -->
+                    <fieldset class="border p-3 mb-3">
+                      <legend class="w-auto px-2 form-label required">
+                        Tiền nước
+                      </legend>
+                      <div class="mb-2">
+                        <label
+                          for="invoiceWaterOldIndex"
+                          class="form-label required small mb-1"
+                          >Chỉ số cũ:</label
+                        >
+                        <input
+                          type="number"
+                          class="form-control form-control-sm"
+                          id="invoiceWaterOldIndex"
+                          min="0"
+                          required
+                        />
+                        <div class="invalid-feedback small">
+                          Nhập chỉ số cũ.
+                        </div>
+                      </div>
+                      <div class="mb-2">
+                        <label
+                          for="invoiceWaterNewIndex"
+                          class="form-label required small mb-1"
+                          >Chỉ số mới:</label
+                        >
+                        <!-- Changed ID -->
+                        <input
+                          type="number"
+                          class="form-control form-control-sm"
+                          id="invoiceWaterNewIndex"
+                          min="0"
+                          required
+                        />
+                        <div class="invalid-feedback small">
+                          Nhập chỉ số mới (phải lớn hơn hoặc bằng chỉ số cũ).
+                        </div>
+                      </div>
+                      <div class="mb-0">
+                        <label
+                          for="invoiceWaterPricePerUnit"
+                          class="form-label required small mb-1"
+                          >Đơn giá (VNĐ/m³):</label
+                        >
+                        <input
+                          type="number"
+                          class="form-control form-control-sm"
+                          id="invoiceWaterPricePerUnit"
+                          min="0"
+                          step="100"
+                          required
+                        />
+                        <div class="invalid-feedback small">
+                          Nhập đơn giá nước.
+                        </div>
+                      </div>
+                    </fieldset>
+
+                    <!-- Utilities  -->
+                    <div class="mb-3">
+                      <label class="form-label">Tiện ích đã bao gồm:</label>
+                      <div
+                        id="invoiceUtilitiesList"
+                        class="checklist-container"
+                      >
+                        <!-- Utilities loaded here should be read-only -->
+                        <p class="text-muted small m-0">Đang tải tiện ích...</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <!-- Footer của form với các nút hành động -->
+            <div class="modal-footer">
+              <!-- Nút "Đánh dấu đã thanh toán" có thể là nút chính -->
+              <button type="button" class="btn btn-success" id="markAsPaidBtn">
+                <!-- Changed ID slightly -->
+                <span
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                  style="display: none"
+                >
+                </span>
+                Đánh dấu Đã thanh toán
+              </button>
+              <!-- Nút Hủy quay về -->
+              <button
+                type="button"
+                class="btn cancel-btn"
+                id="cancelChangesBtn"
+              >
+                Hủy
+              </button>
+              <!-- Nút Lưu thay đổi cho các thông tin khác -->
+              <button type="button" class="btn save-btn" id="saveChangesBtn">
+                <span
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                  style="display: none"
+                >
+                </span>
+                Lưu chỉnh sửa
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <footer class="footer-bg py-4">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <p class="footer-copyright mb-2">
+              © 2025 Nhà trọ Gò Vấp. All rights reserved.
+            </p>
+            <p class="footer-contact mb-2">
+              Liên hệ: 0123 456 789 (Mr. A) | Email: lienhe@nhathogovap.com
+            </p>
+            <p class="footer-policy">
+              <a href="#">Chính sách bảo mật</a>
+            </p>
+          </div>
+          <div class="col-md-6 d-flex justify-content-end align-items-center">
+            <div class="footer-social">
+              <a
+                href="https://www.facebook.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+              >
+                <img
+                  src="/assets/logo_fb.png"
+                  alt="Facebook"
+                  class="social-icon"
+                />
+              </a>
+              <a
+                href="https://www.youtube.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Youtube"
+              >
+                <img
+                  src="/assets/logo_ytb.png"
+                  alt="YouTube"
+                  class="social-icon"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="module" src="/js/admin/invoiceDetails.js"></script>
+  </body>
+</html>
