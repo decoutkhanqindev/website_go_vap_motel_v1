@@ -9,6 +9,7 @@ class InvoiceController {
       const query = req.query;
       const filter = {};
 
+      if (query.invoiceCode) filter.invoiceCode = query.invoiceCode;
       if (query.roomId) filter.roomId = query.roomId;
       if (query.issueDate) filter.issueDate = query.issueDate;
       if (query.dueDate) filter.dueDate = query.dueDate;

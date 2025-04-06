@@ -8,7 +8,7 @@ const Invoice = require("../models/Invoice");
 class InvoiceService {
   static async getAllInvoices(filter = {}) {
     try {
-      logger.info(`InvoiceService.InvoiceService() is called.`);
+      logger.info(`InvoiceService.getAllInvoices() is called.`);
       let query = Invoice.find();
 
       if (filter.invoiceCode)
@@ -30,7 +30,7 @@ class InvoiceService {
       }
       return invoices;
     } catch (error) {
-      logger.info(`InvoiceService.InvoiceService() have error:\n${error}`);
+      logger.info(`InvoiceService.getAllInvoices() have error:\n${error}`);
       throw error;
     }
   }
@@ -194,7 +194,7 @@ class InvoiceService {
       const updatedInvoice = await Invoice.findByIdAndUpdate(
         id,
         {
-          paymentStatus: "Paid",
+          paymentStatus: "paid",
           paymentDate: new Date(),
           paymentMethod: paymentMethod
         },
