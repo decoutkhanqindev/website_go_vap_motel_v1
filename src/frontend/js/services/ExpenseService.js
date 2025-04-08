@@ -36,7 +36,7 @@ class ExpenseService {
   static async getExpenseReceiptImageById(id) {
     try {
       // Không cần headers thủ công
-      const response = await api.get(`/amenity/image/${id}`);
+      const response = await api.get(`/expense/receiptImage/${id}`);
       return response.data;
     } catch (error) {
       throw error;
