@@ -91,7 +91,8 @@ body {
 .utilities-tab-title,
 .contracts-tab-title,
 .invoices-tab-title,
-.expenses-tab-title {
+.expenses-tab-title,
+.users-tab-title {
   border-radius: 5px;
   font-size: 32px;
   color: #fff;
@@ -162,7 +163,10 @@ body {
 #searchInvoiceBtn,
 #applyExpenseFilters,
 #addNewExpenseBtn,
-#searchExpenseBtn {
+#searchExpenseBtn,
+#applyUserFilters,
+#searchUserBtn,
+#addNewUserBtn {
   color: white;
   background-color: #4da1a9;
 }
@@ -172,7 +176,8 @@ body {
 .utility-table,
 .contract-table,
 .invoice-table,
-.expense-table {
+.expense-table,
+.user-table {
   margin-bottom: 0;
   border-radius: 10px;
   border: 2px solid #a5bfcc;
@@ -182,7 +187,8 @@ body {
 .utility-table thead.table-header-bg,
 .contract-table thead.table-header-bg,
 .invoice-table thead.table-header-bg,
-.expense-table thead.table-header-bg {
+.expense-table thead.table-header-bg,
+.user-table thead.table-header-bg {
   background-color: #a5bfcc;
   color: white;
   font-weight: bold;
@@ -197,7 +203,8 @@ body {
 .utility-table tbody tr,
 .contract-table tbody tr,
 .invoice-table tbody tr,
-.expense-table tbody tr {
+.expense-table tbody tr,
+.user-table tbody tr {
   cursor: default;
 }
 .room-table tbody tr:hover,
@@ -205,7 +212,8 @@ body {
 .utility-table tbody tr:hover,
 .contract-table tbody tr:hover,
 .invoice-table tbody tr:hover,
-.expense-table tbody tr:hover {
+.expense-table tbody tr:hover,
+.user-table tbody tr:hover {
   background-color: #e7f2f8;
 }
 .room-table td,
@@ -219,7 +227,8 @@ body {
 .invoice-table td,
 .invoice-table th,
 .expense-table td,
-.expense-table th {
+.user-table td,
+.user-table th {
   vertical-align: middle;
   padding: 0.75rem;
 }
@@ -228,7 +237,7 @@ body {
 .utility-table .text-end,
 .contract-table .text-end,
 .invoice-table .text-end,
-.expense-table .text-end {
+.user-table .text-end {
   text-align: right;
 }
 .room-table .text-center,
@@ -236,7 +245,8 @@ body {
 .utility-table .text-center,
 .contract-table .text-center,
 .invoice-table .text-center,
-.expense-table .text-center {
+.expense-table .text-center,
+.user-table .text-center {
   text-align: center;
 }
 .status-vacant,
@@ -368,7 +378,8 @@ body {
 #cancelUtilityBtn,
 #cancelContractBtn,
 #cancelInvoiceBtn,
-#cancelExpenseBtn {
+#cancelExpenseBtnm,
+#cancelUserBtn {
   color: white;
   background-color: #dc3545;
 }
@@ -377,9 +388,35 @@ body {
 #saveNewUtilityBtn,
 #saveNewContractBtn,
 #saveNewInvoiceBtn,
-#saveNewExpenseBtn {
+#saveNewExpenseBtn,
+#saveNewUserBtn {
   color: white;
   background-color: #4da1a9;
+}
+
+.password-input-container {
+  position: relative;
+  display: flex; /* Optional: helps if input needs specific alignment */
+  align-items: center; /* Optional: Vertically center icon with input */
+}
+.password-input-container .form-control,
+.password-input-container .password-input { /* Target the input inside */
+  padding-right: 40px; /* Make space for the icon */
+   width: 100%; /* Ensure input takes full width */
+}
+.password-toggle-icon {
+  position: absolute;
+  right: 10px; /* Adjust as needed */
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  width: 20px; /* Adjust size as needed */
+  height: auto;
+  opacity: 0.7; /* Optional: slightly transparent */
+  transition: opacity 0.2s;
+}
+.password-toggle-icon:hover {
+  opacity: 1; /* Optional: full opacity on hover */
 }
 
 .footer-bg {

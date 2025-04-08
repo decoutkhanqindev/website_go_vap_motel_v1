@@ -4,6 +4,7 @@ import UtilityService from "../services/UtilityService.js";
 import ContractService from "../services/ContractService.js";
 import InvoiceService from "../services/InvoiceService.js";
 import ExpenseService from "../services/ExpenseService.js";
+import UserService from "../services/UserService.js";
 
 // --- Global Scope: State Variables ---
 // --- State for Rooms Tab ---
@@ -87,6 +88,17 @@ const expensePaymentStatusMap = {
   pending: "Đang chờ",
   paid: "Đã thanh toán",
   overdue: "Đã quá hạn"
+};
+
+// --- State for Users Tab ---
+let userCurrentPage = 1;
+let totalUsers = 0;
+const usersPerPage = 10;
+let currentUserData = [];
+
+const roleMap = {
+  landlord: "Chủ trọ",
+  tenant: "Người thuê"
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -362,6 +374,42 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveNewExpenseSpinner =
     saveNewExpenseBtn?.querySelector(".spinner-border");
 
+  // --- Selectors: Users Tab UI ---
+  const userTableBody = document.getElementById("userTableBody");
+  const userPaginationContainer = document.getElementById("userPagination");
+  const searchUserInput = document.getElementById("searchUserInput");
+  const searchUserBtn = document.getElementById("searchUserBtn");
+  const userRoleFilter = document.getElementById("userRoleFilter");
+  const applyUserFiltersBtn = document.getElementById("applyUserFilters");
+  const addNewUserBtn = document.getElementById("addNewUserBtn");
+  // Add New User Modal
+  const addNewUserModalElement = document.getElementById("addNewUserModal");
+  const addUserForm = document.getElementById("addUserForm");
+  const newUserRoleSelect = document.getElementById("newUserRole");
+  const newUsernameInput = document.getElementById("newUsername");
+  const newUserPasswordInput = document.getElementById("newUserPassword");
+  const newUserConfirmPasswordInput = document.getElementById(
+    "newUserConfirmPassword"
+  );
+  const newUserPhoneInput = document.getElementById("newUserPhone");
+  const saveNewUserBtn = document.getElementById("saveNewUserBtn");
+  const addUserModalFeedbackDiv = document.getElementById(
+    "addUserModalFeedback"
+  );
+  const newUserPasswordFeedbackDiv = document.getElementById(
+    "newUserPasswordFeedback"
+  );
+  const confirmPasswordFeedbackDiv = document.getElementById(
+    "confirmPasswordFeedback"
+  );
+  const saveNewUserSpinner = saveNewUserBtn?.querySelector(".spinner-border");
+  const newUserPasswordToggle = document.getElementById(
+    "newUserPasswordToggle"
+  );
+  const newUserConfirmPasswordToggle = document.getElementById(
+    "newUserConfirmPasswordToggle"
+  );
+
   // --- Initialize Bootstrap Modals ---
   const addNewRoomModal = addNewRoomModalElement
     ? new bootstrap.Modal(addNewRoomModalElement)
@@ -381,8 +429,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const addNewExpenseModal = addNewExpenseModalElement
     ? new bootstrap.Modal(addNewExpenseModalElement)
     : null;
+  const addNewUserModal = addNewUserModalElement
+    ? new bootstrap.Modal(addNewUserModalElement)
+    : null;
 
   // --- Core UI Functions ---
+
+  // Function: Toggles password input visibility and updates the toggle icon.
+  function togglePasswordVisibility(passwordInput, toggleIcon) {
+    if (!passwordInput || !toggleIcon) return;
+    const isPassword = passwordInput.type === "password";
+    passwordInput.type = isPassword ? "text" : "password";
+    toggleIcon.src = isPassword
+      ? "/assets/logo_hint_password.png"
+      : "/assets/logo_no_hint_password.png"; // Check paths
+    toggleIcon.alt = isPassword ? "Hide password" : "Show password";
+  }
 
   // Function: Manages displaying content sections based on navigation clicks
   function showContent(targetId) {
@@ -3133,6 +3195,332 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // --- Users Tab: Data Fetching & Filtering Logic ---
+
+  // Function: Fetches user data based on filters/search and triggers UI rendering
+  async function fetchAndRenderUiForUsersTab() {
+    // Display loading state
+    if (userTableBody)
+      userTableBody.innerHTML = `<tr><td colspan="5" class="text-center">Loading user data...</td></tr>`; // Colspan = 5
+    if (userPaginationContainer) userPaginationContainer.innerHTML = "";
+
+    try {
+      // Get filter values
+      const searchTerm = searchUserInput?.value.trim() || "";
+      const role = userRoleFilter?.value || "all";
+      const filter = {};
+      if (searchTerm) filter.username = searchTerm;
+      if (role !== "all") filter.role = role;
+
+      // Fetch data via API service
+      const allMatchingUsers = await UserService.getAllUsers(filter); // Assumes UserService is imported
+
+      // Update state
+      currentUserData = allMatchingUsers || [];
+      totalUsers = currentUserData.length;
+
+      // Render table and pagination
+      renderUserTableUI();
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      const errorMsg =
+        error.response?.data?.message || error.message || "Unknown error";
+      // Display error state
+      if (userTableBody)
+        userTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error loading users: ${errorMsg}</td></tr>`; // Colspan = 5
+      currentUserData = [];
+      totalUsers = 0;
+      renderUserPaginationUI(); // Render empty pagination
+    }
+  }
+
+  // --- Users Tab: UI Rendering Logic ---
+
+  // Function: Renders the user table based on current data and pagination
+  function renderUserTableUI() {
+    if (!userTableBody) return;
+    userTableBody.innerHTML = ""; // Clear previous content
+
+    // Handle empty data case
+    if (currentUserData.length === 0) {
+      userTableBody.innerHTML = `<tr><td colspan="5" class="text-center">No users found matching the criteria.</td></tr>`; // Colspan = 5
+      renderUserPaginationUI();
+      return;
+    }
+
+    // Paginate data
+    const startIndex = (userCurrentPage - 1) * usersPerPage;
+    const endIndex = Math.min(startIndex + usersPerPage, totalUsers);
+    const usersToDisplay = currentUserData.slice(startIndex, endIndex);
+
+    // Create table rows
+    usersToDisplay.forEach((user, index) => {
+      const row = document.createElement("tr");
+      row.dataset.id = user.username; // Use username as unique ID for actions
+      const sequentialNumber = startIndex + index + 1;
+      const roleText = roleMap[user.role] || user.role || "Unknown";
+
+      row.innerHTML = `
+            <td>${sequentialNumber}</td>
+            <td>${roleText}</td>
+            <td>${user.username || "N/A"}</td>
+            <td>${user.phone || "N/A"}</td>
+            <td class="text-center action-cell">
+                 <button class="btn btn-sm btn-danger delete-user-btn" data-id="${
+                   user.username
+                 }" title="Delete User">Xóa</button>
+            </td>
+        `;
+      userTableBody.appendChild(row);
+
+      row.addEventListener("click", (event) => {
+        if (event.target.closest(".action-cell")) {
+          return; 
+        }
+        window.location.href = `/admin/user/details/${user._id}`;
+      });
+    });
+
+    renderUserPaginationUI(); // Render pagination controls
+  }
+
+  // Function: Renders pagination controls for the user table
+  function renderUserPaginationUI() {
+    if (!userPaginationContainer) return;
+    userPaginationContainer.innerHTML = ""; // Clear previous pagination
+
+    const totalPages = Math.ceil(totalUsers / usersPerPage);
+    if (totalPages <= 1) return; // No pagination needed
+
+    // Create page links
+    for (let i = 1; i <= totalPages; i++) {
+      const pageNumberItem = document.createElement("li");
+      pageNumberItem.classList.add(
+        "page-item",
+        i === userCurrentPage ? "active" : ""
+      );
+      const pageNumberLink = document.createElement("a");
+      pageNumberLink.classList.add("page-link");
+      pageNumberLink.href = "#";
+      pageNumberLink.textContent = i;
+      pageNumberLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (i !== userCurrentPage) {
+          userCurrentPage = i;
+          renderUserTableUI(); // Re-render table for new page
+        }
+      });
+      pageNumberItem.appendChild(pageNumberLink);
+      userPaginationContainer.appendChild(pageNumberItem);
+    }
+  }
+
+  // --- Users Tab: Delete User Logic ---
+  async function handleDeleteUser(username) {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete user "${username}"? This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    // Provide UI feedback (loading state)
+    const deleteButton = userTableBody?.querySelector(
+      `.delete-user-btn[data-id="${username}"]`
+    );
+    const originalButtonText = deleteButton ? deleteButton.innerHTML : "Delete";
+    if (deleteButton) {
+      deleteButton.disabled = true;
+      deleteButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...`;
+    }
+
+    try {
+      // Call API to delete
+      await UserService.deleteUser(username);
+
+      // Update local data and UI
+      const indexToRemove = currentUserData.findIndex(
+        (user) => user.username === username
+      );
+      if (indexToRemove > -1) currentUserData.splice(indexToRemove, 1);
+      totalUsers = currentUserData.length;
+
+      // Adjust current page if necessary
+      const totalPagesAfterDeletion = Math.ceil(totalUsers / usersPerPage);
+      if (
+        userCurrentPage > totalPagesAfterDeletion &&
+        totalPagesAfterDeletion > 0
+      ) {
+        userCurrentPage = totalPagesAfterDeletion;
+      } else if (totalPagesAfterDeletion === 0) {
+        userCurrentPage = 1;
+      }
+
+      // Re-render the table/pagination
+      renderUserTableUI();
+      // Optional: Show success notification
+    } catch (error) {
+      console.error(`Error deleting user ${username}:`, error);
+      const errorMsg = (
+        error?.response?.data?.message ||
+        error.message ||
+        "An unexpected error occurred."
+      ).toString();
+      alert(
+        `Error deleting user "${username}": ${
+          errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1)
+        }`
+      );
+      // Restore button state on error
+      if (deleteButton) {
+        deleteButton.disabled = false;
+        deleteButton.innerHTML = originalButtonText;
+      }
+    }
+  }
+
+  // --- Users Tab: Add New User Modal Logic ---
+
+  // Function: Resets the 'Add User' form to its default state
+  function resetAddUserForm() {
+    if (addUserForm) {
+      addUserForm.reset();
+      addUserForm.classList.remove("was-validated");
+    }
+    if (newUserRoleSelect) newUserRoleSelect.value = "tenant";
+    if (newUserPasswordInput) {
+      newUserPasswordInput.classList.remove("is-invalid");
+      newUserPasswordInput.type = "password";
+    }
+    if (newUserConfirmPasswordInput) {
+      newUserConfirmPasswordInput.classList.remove("is-invalid");
+      newUserConfirmPasswordInput.type = "password";
+    }
+    if (confirmPasswordFeedbackDiv)
+      confirmPasswordFeedbackDiv.textContent = "Vui lòng xác nhận mật khẩu.";
+    // Reset specific password feedback
+    if (newUserPasswordFeedbackDiv) {
+      newUserPasswordFeedbackDiv.textContent = "Vui lòng nhập mật khẩu.";
+    }
+    // Reset toggle icons
+    if (newUserPasswordToggle) {
+      newUserPasswordToggle.src = "/assets/logo_no_hint_password.png";
+      newUserPasswordToggle.alt = "Hiện mật khẩu";
+    }
+    if (newUserConfirmPasswordToggle) {
+      newUserConfirmPasswordToggle.src = "/assets/logo_no_hint_password.png";
+      newUserConfirmPasswordToggle.alt = "Hiện mật khẩu";
+    }
+    hideModalFeedback("addUserModalFeedback");
+  }
+
+  // Function: Handles the submission of the 'Add New User' form
+  async function handleSaveNewUser() {
+    hideModalFeedback("addUserModalFeedback"); // Clear previous general feedback
+    // Reset individual field validation states before re-validating
+    if (newUserPasswordInput)
+      newUserPasswordInput.classList.remove("is-invalid");
+    if (newUserConfirmPasswordInput)
+      newUserConfirmPasswordInput.classList.remove("is-invalid");
+    if (confirmPasswordFeedbackDiv)
+      confirmPasswordFeedbackDiv.textContent = "Vui lòng xác nhận mật khẩu."; // Default Vietnamese msg
+    if (confirmPasswordFeedbackDiv)
+      confirmPasswordFeedbackDiv.textContent = "Vui lòng nhập mật khẩu."; // Reset specific password feedback
+
+    // --- Step 1: Basic Form Validation (Checks required) ---
+    if (!addUserForm || !addUserForm.checkValidity()) {
+      if (addUserForm) addUserForm.classList.add("was-validated");
+      showModalFeedback(
+        "addUserModalFeedback",
+        "Vui lòng điền đầy đủ các trường bắt buộc.",
+        "warning"
+      );
+      return; // Stop if required fields are missing
+    }
+
+    // --- Step 2: Password Length Check ---
+    const passwordValue = newUserPasswordInput.value;
+    if (passwordValue.length < 8) {
+      showModalFeedback(
+        "addUserModalFeedback",
+        "Mật khẩu phải có ít nhất 8 ký tự.", // Specific error message
+        "warning"
+      );
+      // Mark the password field as invalid
+      if (newUserPasswordInput)
+        newUserPasswordInput.classList.add("is-invalid");
+      // Optionally update the specific feedback div under the password input
+      if (passwordFeedbackDiv) {
+        passwordFeedbackDiv.textContent = "Mật khẩu phải có ít nhất 8 ký tự.";
+      }
+      return; // Stop submission
+    }
+
+    // --- Step 3: Password Confirmation Check ---
+    const confirmPasswordValue = newUserConfirmPasswordInput.value;
+    if (passwordValue !== confirmPasswordValue) {
+      showModalFeedback(
+        "addUserModalFeedback",
+        "Mật khẩu và mật khẩu xác nhận không khớp.",
+        "warning"
+      );
+      if (newUserPasswordInput)
+        newUserPasswordInput.classList.add("is-invalid");
+      if (newUserConfirmPasswordInput)
+        newUserConfirmPasswordInput.classList.add("is-invalid");
+      if (confirmPasswordFeedbackDiv)
+        confirmPasswordFeedbackDiv.textContent =
+          "Mật khẩu xác nhận không khớp.";
+      return; // Stop submission
+    }
+
+    // --- Step 4: Show Loading State ---
+    if (saveNewUserBtn) saveNewUserBtn.disabled = true;
+    if (saveNewUserSpinner) saveNewUserSpinner.style.display = "inline-block";
+
+    // --- Step 5: Prepare Data for API ---
+    const userData = {
+      username: newUsernameInput.value.trim(),
+      password: passwordValue, // Send only the original password
+      phone: newUserPhoneInput.value.trim(),
+      role: newUserRoleSelect.value
+    };
+
+    // --- Step 6: Call API ---
+    try {
+      await UserService.addNewUser(userData); // Assuming UserService is imported
+
+      // --- Success Actions ---
+      showModalFeedback(
+        "addUserModalFeedback",
+        "Thêm người dùng mới thành công!",
+        "success"
+      );
+      userCurrentPage = 1; // Go to first page
+      await fetchAndRenderUiForUsersTab(); // Refresh the user list table
+
+      // Close modal after delay
+      setTimeout(() => {
+        if (addNewUserModal) addNewUserModal.hide();
+      }, 1500);
+    } catch (error) {
+      // --- Error Handling ---
+      console.error("Error adding new user:", error);
+      const errorMsg = (
+        error?.response?.data?.message ||
+        error.message ||
+        "Không thể thêm người dùng. Vui lòng thử lại."
+      ).toString();
+      showModalFeedback(
+        "addUserModalFeedback",
+        `Lỗi: ${errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1)}`,
+        "danger"
+      );
+    } finally {
+      // --- Step 7: Reset Loading State ---
+      if (saveNewUserBtn) saveNewUserBtn.disabled = false;
+      if (saveNewUserSpinner) saveNewUserSpinner.style.display = "none";
+    }
+  }
+
   // --- Event Listener Setup ---
 
   // Event Listeners: Navigation
@@ -3729,6 +4117,84 @@ document.addEventListener("DOMContentLoaded", () => {
     saveNewExpenseBtn.addEventListener("click", handleSaveNewExpense);
   }
 
+  // Event Listeners: Users Tab Filters & Actions
+  // Search button click
+  if (searchUserBtn) {
+    searchUserBtn.addEventListener("click", () => {
+      userCurrentPage = 1;
+      fetchAndRenderUiForUsersTab();
+    });
+  }
+
+  // Search input Enter key press
+  if (searchUserInput) {
+    searchUserInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        userCurrentPage = 1;
+        fetchAndRenderUiForUsersTab();
+      }
+    });
+  }
+
+  // Apply filters button click
+  if (applyUserFiltersBtn) {
+    applyUserFiltersBtn.addEventListener("click", () => {
+      userCurrentPage = 1;
+      fetchAndRenderUiForUsersTab();
+    });
+  }
+
+  // Event Listener: User Table Delete Button
+  if (userTableBody) {
+    userTableBody.addEventListener("click", (event) => {
+      const deleteButton = event.target.closest(".delete-user-btn");
+      if (deleteButton) {
+        event.stopPropagation();
+        const username = deleteButton.dataset.id;
+        if (username) handleDeleteUser(username);
+      }
+    });
+  }
+
+  // Event Listeners: Add New User Modal
+  // Open modal button click
+  if (addNewUserBtn && addNewUserModal) {
+    addNewUserBtn.addEventListener("click", () => {
+      resetAddUserForm();
+      addNewUserModal.show();
+    });
+  }
+
+  // Reset form when modal is hidden
+  if (addNewUserModalElement) {
+    addNewUserModalElement.addEventListener(
+      "hidden.bs.modal",
+      resetAddUserForm
+    );
+  }
+
+  // Save button click inside modal
+  if (saveNewUserBtn) {
+    saveNewUserBtn.addEventListener("click", handleSaveNewUser);
+  }
+
+  // Password toggle icon clicks
+  if (newUserPasswordToggle && newUserPasswordInput) {
+    newUserPasswordToggle.addEventListener("click", () =>
+      togglePasswordVisibility(newUserPasswordInput, newUserPasswordToggle)
+    );
+  }
+  if (newUserConfirmPasswordToggle && newUserConfirmPasswordInput) {
+    newUserConfirmPasswordToggle.addEventListener("click", () =>
+      togglePasswordVisibility(
+        newUserConfirmPasswordInput,
+        newUserConfirmPasswordToggle
+      )
+    );
+  }
+
+  // Event Listeners: Add New User Modal (Thêm sau)
+
   // --- Initial Page Load Logic ---
   async function initializePage() {
     showContent("rooms-tab-container"); // Default tab
@@ -3749,9 +4215,12 @@ document.addEventListener("DOMContentLoaded", () => {
     await populateInvoiceRoomFilterDropdown(); // For invoice filter
     await fetchAndRenderUiForInvoicesTab();
 
-    // Initialize Expense Tab
+    // Initialize Expenses Tab
     await populateExpenseRoomFilterDropdown(); // For expense filter
     await fetchAndRenderUiForExpensesTab();
+
+    // Initialize Users Tab
+    await fetchAndRenderUiForUsersTab();
 
     // ... Initialize other tabs as needed ...
   }

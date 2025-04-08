@@ -862,7 +862,112 @@
           id="users-tab-container"
           class="users-tab-container"
           style="display: none"
-        ></div>
+        >
+          <div
+            class="users-tab-title d-flex justify-content-center align-items-center"
+          >
+            QUẢN LÝ DANH SÁCH NGƯỜI DÙNG
+          </div>
+
+          <!-- Search Section -->
+          <div class="search-container my-3">
+            <div class="input-group">
+              <input
+                type="text"
+                id="searchUserInput"
+                class="form-control"
+                placeholder="Tìm theo tài khoản"
+                aria-label="Tìm kiếm người dùng"
+              />
+              <button id="searchUserBtn" class="btn h-100" type="button">
+                Tìm kiếm
+              </button>
+            </div>
+          </div>
+
+          <!-- Row for Filters and Table -->
+          <div class="row">
+            <!-- Left Column: Filters -->
+            <div class="col-md-3">
+              <div class="filter-container">
+                <h5 class="filter-heading">Lọc người dùng</h5>
+                <!-- Heading mới -->
+
+                <!-- Role Filter -->
+                <div class="filter-group">
+                  <label for="userRoleFilter" class="filter-label"
+                    >Vai trò:</label
+                  >
+                  <select id="userRoleFilter" class="form-select">
+                    <option value="all" selected>Tất cả</option>
+                    <option value="landlord">Chủ trọ</option>
+                    <option value="tenant">Người thuê</option>
+                  </select>
+                </div>
+
+                <!-- Apply Filter Button -->
+                <button
+                  id="applyUserFilters"
+                  class="apply-filters-btn btn w-100"
+                >
+                  Áp dụng lọc
+                </button>
+              </div>
+
+              <!-- Add New User Button -->
+
+              <div class="mt-3">
+                <button id="addNewUserBtn" class="add-user-btn btn w-100">
+                  Thêm người dùng mới
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Column: User List & Pagination -->
+            <div class="col-md-9">
+              <!-- User List Table -->
+              <div class="user-list-container table-responsive">
+                <!-- Class container mới (tùy chọn) -->
+                <table
+                  class="table table-hover table-striped align-middle user-table"
+                >
+                  <thead class="table-header-bg">
+                    <tr>
+                      <th scope="col">STT</th>
+                      <th scope="col">Vai trò</th>
+                      <th scope="col">Tài khoản</th>
+                      <!-- Header mới -->
+                      <th scope="col">Số điện thoại</th>
+                      <!-- Header mới -->
+                      <th scope="col" class="text-center"></th>
+                      <!-- Header cho nút xóa -->
+                    </tr>
+                  </thead>
+                  <tbody id="userTableBody">
+                    <!-- ID tbody mới -->
+                    <tr>
+                      <td colspan="5" class="text-center">
+                        <!-- Cập nhật colspan="4" -->
+                        Đang tải dữ liệu người dùng...
+                      </td>
+                    </tr>
+                    <!-- User data rows will be added here by JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <nav aria-label="User list page navigation">
+                <ul
+                  class="pagination justify-content-center mt-3"
+                  id="userPagination"
+                >
+                  <!-- Pagination items -->
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
 
         <div
           id="notifications-tab-container"
@@ -1996,6 +2101,153 @@
                 style="display: none"
               ></span>
               Lưu chi phí
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add New User Modal -->
+    <div
+      class="modal fade"
+      id="addNewUserModal"
+      tabindex="-1"
+      aria-labelledby="addNewUserModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-md modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addNewUserModalLabel">
+              Thêm người dùng mới
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="addUserForm" novalidate>
+              <!-- Feedback Area -->
+              <div
+                id="addUserModalFeedback"
+                class="alert"
+                role="alert"
+                style="display: none"
+              ></div>
+
+              <!-- Role -->
+              <div class="mb-3">
+                <label for="newUserRole" class="form-label required"
+                  >Vai trò:</label
+                >
+                <select class="form-select" id="newUserRole" required>
+                  <option value="tenant" selected>Người thuê</option>
+                  <option value="landlord">Chủ trọ</option>
+                </select>
+                <div class="invalid-feedback">Vui lòng chọn vai trò.</div>
+              </div>
+
+              <!-- Username -->
+              <div class="mb-3">
+                <label for="newUsername" class="form-label required"
+                  >Tài khoản:</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="newUsername"
+                  required
+                />
+                <div class="invalid-feedback">Vui lòng nhập tài khoản.</div>
+              </div>
+
+              <!-- Password -->
+              <div class="mb-3">
+                <label for="newUserPassword" class="form-label required"
+                  >Mật khẩu:</label
+                >
+                <!-- Add container div -->
+                <div class="password-input-container">
+                  <input
+                    type="password"
+                    class="form-control password-input"
+                    id="newUserPassword"
+                    required
+                    autocomplete="new-password"
+                  />
+                  <!-- Add toggle icon -->
+                  <img
+                    src="/assets/logo_no_hint_password.png"
+                    alt="Hiện mật khẩu"
+                    class="password-toggle-icon"
+                    id="newUserPasswordToggle"
+                  />
+                </div>
+                <div class="invalid-feedback" id="newUserPasswordFeedback">Vui lòng nhập mật khẩu.</div>
+              </div>
+
+              <!-- Confirm Password -->
+              <div class="mb-3">
+                <label for="newUserConfirmPassword" class="form-label required"
+                  >Xác nhận mật khẩu:</label
+                >
+                <!-- Add container div -->
+                <div class="password-input-container">
+                  <input
+                    type="password"
+                    class="form-control password-input"
+                    id="newUserConfirmPassword"
+                    required
+                    autocomplete="new-password"
+                  />
+                  <img
+                    src="/assets/logo_no_hint_password.png"
+                    alt="Hiện mật khẩu"
+                    class="password-toggle-icon"
+                    id="newUserConfirmPasswordToggle"
+                  />
+                </div>
+                <div class="invalid-feedback" id="confirmPasswordFeedback">
+                  Vui lòng xác nhận mật khẩu.
+                </div>
+              </div>
+
+              <!-- Phone Number -->
+              <div class="mb-3">
+                <label for="newUserPhone" class="form-label required"
+                  >Số điện thoại:</label
+                >
+                <input
+                  type="tel"
+                  class="form-control"
+                  id="newUserPhone"
+                  required
+                />
+                <div class="invalid-feedback">Vui lòng nhập số điện thoại.</div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="cancel-btn btn"
+              id="cancelUserBtn"
+              data-bs-dismiss="modal"
+            >
+              Hủy
+            </button>
+            <button type="button" class="save-btn btn" id="saveNewUserBtn">
+              <!-- ID mới -->
+              <span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+                style="display: none"
+              ></span>
+              Lưu người dùng
             </button>
           </div>
         </div>
