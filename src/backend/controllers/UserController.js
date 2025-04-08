@@ -8,7 +8,9 @@ class UserController {
       logger.info(`UserController.getAllUsers() is called.`);
       const query = req.query;
       const filter = {};
+      
       if (query.role) filter.role = query.role;
+      if (query.username) filter.username = query.username;
 
       const users = await UserService.getAllUsers(filter);
       res.status(200).json(users);

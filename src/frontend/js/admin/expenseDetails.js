@@ -11,7 +11,7 @@ let imageIdsToRemove = []; // Stores IDs of EXISTING images marked for removal
 
 // --- Mappings ---
 const paymentMethodMap = {
-  all: "Tất cả", // Default empty option text
+  all: "Tất cả",
   cash: "Tiền mặt",
   banking: "Chuyển khoản"
 };

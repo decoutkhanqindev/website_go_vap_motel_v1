@@ -11,7 +11,9 @@ class UserService {
     try {
       logger.info(`UserService.getAllUsers() is called.`);
       let query = User.find();
+      
       if (filter.role) query = query.where("role").equals(filter.role);
+      if(filter.username) query = query.where("username").equals(filter.username);
 
       const users = await query;
       if (!users.length)
