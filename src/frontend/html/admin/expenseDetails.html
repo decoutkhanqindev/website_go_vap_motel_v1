@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nhà trọ Gò Vấp</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="shortcut icon" href="/assets/logo.jpg" type="IMAGE" />
+    <link rel="stylesheet" href="/css/admin/expenseDetails.css" />
+  </head>
+  <body>
+    <!-- header -->
+    <header class="header-bg py-3">
+      <div
+        class="container-fluid d-flex justify-content-center align-items-center"
+      >
+        <div class="header-logo">
+          <img src="/assets/logo_no_text.png" alt="Logo Nhà trọ" />
+        </div>
+        <h1 class="header-text text-center mb-0">NHÀ TRỌ GÒ VẤP</h1>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="container mt-4">
+        <div
+          class="expense-details-title d-flex justify-content-center align-items-center"
+        >
+          THÔNG TIN CHI TIẾT CHI PHÍ
+        </div>
+        <div class="expense-details">
+          <div class="modal-content">
+            <!-- Reuse modal structure for layout -->
+            <div class="modal-body">
+              <form id="editExpenseForm" novalidate>
+                <div
+                  id="editExpenseFeedback"
+                  class="alert"
+                  role="alert"
+                  style="display: none"
+                ></div>
+
+                <div class="row">
+                  <!-- Left Column -->
+                  <div class="col-md-6">
+                    <!-- Expense Code (Readonly) -->
+                    <div class="mb-3">
+                      <label for="expenseCode" class="form-label"
+                        >Mã chi phí:</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="expenseCode"
+                        readonly
+                        placeholder="N/A"
+                      />
+                    </div>
+
+                    <!-- Room Selection (Required) -->
+                    <div class="mb-3">
+                      <label for="expenseRoomId" class="form-label required"
+                        >Phòng:</label
+                      >
+                      <select class="form-select" id="expenseRoomId" required>
+                        <option value="" selected disabled>
+                          Chọn phòng...
+                        </option>
+                        <!-- Options loaded by JS -->
+                      </select>
+                      <div id="expenseRoomSelectLoading" style="display: none">
+                        Đang tải danh sách phòng...
+                      </div>
+                      <div class="invalid-feedback">Vui lòng chọn phòng.</div>
+                    </div>
+
+                    <!-- Amount (Required) -->
+                    <div class="mb-3">
+                      <label for="expenseAmount" class="form-label required"
+                        >Số tiền (VNĐ):</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="expenseAmount"
+                        min="0"
+                        required
+                      />
+                      <div class="invalid-feedback">
+                        Vui lòng nhập số tiền hợp lệ (lớn hơn hoặc bằng 0).
+                      </div>
+                    </div>
+
+                    <!-- Category (Required) -->
+                    <div class="mb-3">
+                      <label for="expenseCategory" class="form-label required"
+                        >Danh mục:</label
+                      >
+                      <select class="form-select" id="expenseCategory" required>
+                        <option value="" selected disabled>
+                          Chọn danh mục...
+                        </option>
+                        <option value="repair">Sửa chữa</option>
+                        <option value="maintenance">Bảo trì</option>
+                        <option value="purchase">Mua sắm</option>
+                      </select>
+                      <div class="invalid-feedback">
+                        Vui lòng chọn danh mục chi phí.
+                      </div>
+                    </div>
+
+                    <!-- Payment Status (Required) -->
+                    <div class="mb-3">
+                      <label
+                        for="expensePaymentStatus"
+                        class="form-label required"
+                        >Trạng thái thanh toán:</label
+                      >
+                      <select
+                        class="form-select"
+                        id="expensePaymentStatus"
+                        required
+                      >
+                        <option value="pending">Đang chờ</option>
+                        <option value="paid">Đã thanh toán</option>
+                        <option value="overdue">Đã quá hạn</option>
+                      </select>
+                      <div class="invalid-feedback">
+                        Vui lòng chọn trạng thái thanh toán.
+                      </div>
+                    </div>
+
+                    <!-- Payment Date (Conditional) -->
+                    <div
+                      class="mb-3"
+                      id="paymentDateGroup"
+                      style="display: none"
+                    >
+                      <label for="expensePaymentDate" class="form-label"
+                        >Ngày thanh toán:</label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="expensePaymentDate"
+                      />
+                      <div class="invalid-feedback">
+                        Vui lòng chọn ngày thanh toán hợp lệ.
+                      </div>
+                    </div>
+
+                    <!-- Payment Method (Optional based on model, but usually needed if paid) -->
+                    <div class="mb-3">
+                      <label for="expensePaymentMethod" class="form-label"
+                        >Phương thức thanh toán:</label
+                      >
+                      <select class="form-select" id="expensePaymentMethod">
+                        <option value="" selected disabled>
+                          Chọn phương thức...
+                        </option>
+                        <!-- Empty default -->
+                        <option value="all">Tất cả</option>
+                        <option value="cash">Tiền mặt</option>
+                        <option value="banking">Chuyển khoản</option>
+                      </select>
+                      <!-- Feedback might be needed if required when status is 'paid' -->
+                      <div class="invalid-feedback">
+                        Vui lòng chọn phương thức khi đánh dấu đã thanh toán.
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right Column -->
+                  <div class="col-md-6">
+                    <!-- Expense Date (Required) -->
+                    <div class="mb-3">
+                      <label for="expenseDate" class="form-label required"
+                        >Ngày phát sinh:</label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="expenseDate"
+                        required
+                      />
+                      <div class="invalid-feedback">
+                        Vui lòng chọn ngày phát sinh chi phí.
+                      </div>
+                    </div>
+
+                    <!-- Due Date (Required) -->
+                    <div class="mb-3">
+                      <label for="expenseDueDate" class="form-label required"
+                        >Ngày hết hạn thanh toán:</label
+                      >
+                      <input
+                        type="date"
+                        class="form-control"
+                        id="expenseDueDate"
+                        required
+                      />
+                      <div class="invalid-feedback">
+                        Vui lòng chọn ngày hết hạn thanh toán.
+                      </div>
+                    </div>
+
+                    <!-- Description (Optional) -->
+                    <div class="mb-3">
+                      <label for="expenseDescription" class="form-label"
+                        >Mô tả thêm:</label
+                      >
+                      <textarea
+                        class="form-control"
+                        id="expenseDescription"
+                        rows="4"
+                      ></textarea>
+                    </div>
+
+                    <!-- Receipt Images (Display/Manage Area) -->
+                    <div class="mb-3">
+                      <label class="form-label">Ảnh hóa đơn/Biên lai:</label>
+                      <!-- Hidden input for adding new files -->
+                      <input
+                        type="file"
+                        class="form-control d-none"
+                        id="expenseImagesInput"
+                        multiple
+                        accept="image/*"
+                      />
+                      <!-- Trigger button to add new images -->
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm mb-2"
+                        id="selectExpenseImagesBtn"
+                      >
+                        Thêm ảnh...
+                      </button>
+                      <!-- Container to display existing and new previews -->
+                      <div
+                        id="expenseImagePreview"
+                        class="image-preview-container mt-2"
+                      >
+                        <!-- Existing images and previews loaded/added here by JS -->
+                        <p class="text-muted small m-0">Chưa có ảnh nào.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- Footer actions -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-success" id="markAsPaidBtn">
+                <span
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                  style="display: none"
+                >
+                </span>
+                Đánh dấu Đã thanh toán
+              </button>
+              <button
+                type="button"
+                class="btn cancel-btn"
+                id="cancelChangesBtn"
+              >
+                Hủy
+              </button>
+              <button type="button" class="btn save-btn" id="saveChangesBtn">
+                <span
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                  style="display: none"
+                >
+                </span>
+                Lưu chỉnh sửa
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <footer class="footer-bg py-4">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <p class="footer-copyright mb-2">
+              © 2025 Nhà trọ Gò Vấp. All rights reserved.
+            </p>
+            <p class="footer-contact mb-2">
+              Liên hệ: 0123 456 789 (Mr. A) | Email: lienhe@nhathogovap.com
+            </p>
+            <p class="footer-policy">
+              <a href="#">Chính sách bảo mật</a>
+            </p>
+          </div>
+          <div class="col-md-6 d-flex justify-content-end align-items-center">
+            <div class="footer-social">
+              <a
+                href="https://www.facebook.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+              >
+                <img
+                  src="/assets/logo_fb.png"
+                  alt="Facebook"
+                  class="social-icon"
+                />
+              </a>
+              <a
+                href="https://www.youtube.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Youtube"
+              >
+                <img
+                  src="/assets/logo_ytb.png"
+                  alt="YouTube"
+                  class="social-icon"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="module" src="/js/admin/expenseDetails.js"></script>
+  </body>
+</html>

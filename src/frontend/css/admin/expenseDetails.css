@@ -1,0 +1,217 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  position: relative;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header-bg {
+  background-color: #a5bfcc;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+.header-text {
+  font-size: 70px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 4px 4px 6px #000000;
+}
+.header-logo img {
+  width: 100px;
+  height: 100px;
+}
+
+/* Keep content styles, adjust padding/background as needed */
+.content {
+  position: relative;
+  padding-top: 150px; /* Or adjust based on actual header height */
+  flex: 1;
+}
+.content::before {
+  content: "";
+  position: fixed;
+  /* Adjust top based on final header height */
+  top: 130px; /* Assuming header height is 130px */
+  left: 0;
+  width: 100%;
+  height: calc(
+    100% - 130px
+  ); /* Adjust based on final header height */
+  background-image: url("../../assets/logo_no_text.png");
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center center;
+  background-size: 700px;
+  opacity: 0.1;
+  z-index: -3;
+}
+
+/* --- CHANGE 1: Rename title class --- */
+.expense-details-title {
+  border-radius: 5px;
+  font-size: 32px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 4px 4px 6px #000000;
+  color: white;
+  background-color: #a5bfcc;
+  padding: 10px;
+  border-bottom: 2px solid #4da1a9;
+  margin-bottom: 10px;
+}
+/* --- CHANGE 2: Rename main wrapper class --- */
+.expense-details {
+  padding: 10px;
+  border: 2px solid #a5bfcc;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+/* Keep generic form styles */
+.form-label {
+  font-weight: bold;
+}
+
+/* Style for image preview container (can reuse from dashboard.css if defined there) */
+.image-preview-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border: 1px dashed #ccc;
+  padding: 10px;
+  min-height: 60px;
+  border-radius: 0.25rem;
+  background-color: #fff; /* Add background */
+}
+.image-preview-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.remove-image-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  line-height: 18px; /* Adjusted for better centering */
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+.remove-image-btn:hover {
+  opacity: 1;
+}
+
+/* --- CHANGE 3: Rename feedback ID selector --- */
+#editExpenseFeedback {
+  margin-bottom: 1rem;
+  /* Keep display: none; if JS handles showing it */
+}
+
+/* Keep validation styles */
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+  border-color: #dc3545;
+}
+.was-validated .form-select:invalid,
+.form-select.is-invalid {
+  border-color: #dc3545;
+}
+.invalid-feedback {
+  display: none;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #dc3545;
+}
+.was-validated .form-control:invalid ~ .invalid-feedback,
+.form-control.is-invalid ~ .invalid-feedback,
+.was-validated .form-select:invalid ~ .invalid-feedback,
+.form-select.is-invalid ~ .invalid-feedback {
+  display: block;
+}
+
+/* Keep spinner styles */
+#saveChangesBtn .spinner-border,
+#markAsPaidBtn .spinner-border { /* Reusing markAsPaidBtn ID for now */
+  margin-right: 5px;
+  vertical-align: text-bottom;
+  display: none; /* Keep hidden initially */
+}
+
+/* Keep button styles */
+#cancelChangesBtn {
+  margin-left: 10px;
+  color: white;
+  background-color: #dc3545;
+}
+#saveChangesBtn {
+  margin-left: 10px;
+  color: white;
+  background-color: #4da1a9;
+}
+#markAsPaidBtn { /* Reusing markAsPaidBtn ID for now */
+  margin-left: 10px;
+  color: white;
+  background-color: green; /* Keep green for 'paid' action */
+}
+
+/* Keep footer styles */
+.footer-bg {
+  background-color: #a5bfcc;
+  color: white;
+  padding: 20px 0;
+  clear: both;
+}
+.footer-copyright,
+.footer-contact,
+.footer-policy {
+  margin-bottom: 0.5rem;
+  font-size: 16px;
+}
+.footer-social a {
+  margin-left: 1rem;
+  display: inline-block;
+}
+.social-icon {
+  width: 30px;
+  height: 30px;
+  transition: transform 0.2s ease-in-out;
+}
+.social-icon:hover {
+  transform: scale(1.1);
+}
+.footer-policy a {
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+}
