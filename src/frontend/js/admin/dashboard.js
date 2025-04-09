@@ -481,6 +481,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveNewOccupantSpinner =
     saveNewOccupantBtn?.querySelector(".spinner-border");
 
+  const logoutLink = document.querySelector(".logout-tab a");
+
   // --- Initialize Bootstrap Modals ---
   const addNewRoomModal = addNewRoomModalElement
     ? new bootstrap.Modal(addNewRoomModalElement)
@@ -3755,10 +3757,8 @@ document.addEventListener("DOMContentLoaded", () => {
         </td>
       `;
 
-      // Row click listener (navigate to details page - adjust URL if needed)
       row.addEventListener("click", (event) => {
         if (event.target.closest(".action-cell")) return;
-        // TODO: Define the details page URL structure
         window.location.href = `/admin/occupant/details/${occupant._id}`;
       });
 
@@ -4174,7 +4174,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "Lỗi khi kiểm tra số lượng người thuê hiện tại. Vui lòng thử lại.",
             "danger"
           );
-          return; 
+          return;
         }
       }
     }
@@ -4242,15 +4242,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Event Listeners: Navigation
   navItems.forEach((navItem) => {
-    const link = navItem.querySelector("a");
-    if (link) {
-      link.addEventListener("click", function (event) {
-        event.preventDefault();
-        const targetId = link.dataset.target;
-        if (targetId) {
-          showContent(targetId);
-        }
-      });
+    if (!navItem.classList.contains("logout-tab")) {
+      const link = navItem.querySelector("a");
+      if (link) {
+        link.addEventListener("click", function (event) {
+          event.preventDefault();
+          const targetId = link.dataset.target;
+          if (targetId) {
+            showContent(targetId);
+          }
+        });
+      }
     }
   });
 
@@ -5002,6 +5004,38 @@ document.addEventListener("DOMContentLoaded", () => {
   // Save new occupant when the modal's save button is clicked
   if (saveNewOccupantBtn) {
     saveNewOccupantBtn.addEventListener("click", handleSaveNewOccupant);
+  }
+
+  // Event Listener for Logout Link (Specific Handler)
+  if (logoutLink) {
+    logoutLink.addEventListener("click", async (event) => {
+      event.preventDefault(); // Stop default link behavior
+
+      const confirmed = window.confirm(
+        "Bạn có chắc chắn muốn đăng xuất không?"
+      );
+      if (!confirmed) {
+        return; // Stop if user cancels
+      }
+
+      logoutLink.style.pointerEvents = "none"; // Make it unclickable
+
+      try {
+        // Call the logout method from UserService
+        await UserService.logoutUser(); // Assumes this handles API call and localStorage removal
+      } catch (error) {
+        console.error(error);
+        // Ensure client-side cleanup even if API fails
+        localStorage.removeItem("accessToken");
+        alert(
+          "Đã xảy ra lỗi khi đăng xuất khỏi máy chủ, nhưng bạn sẽ được đăng xuất khỏi trình duyệt này."
+        );
+      } finally {
+        // Always redirect to the login page
+        // ADJUST THE PATH if your login page is different
+        window.location.replace("/login");
+      }
+    });
   }
 
   // --- Initial Page Load Logic ---
