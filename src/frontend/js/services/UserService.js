@@ -156,7 +156,6 @@ class UserService {
         "[Logout] Logout API call failed:",
         error.response?.data || error.message
       );
-      // Vẫn nên xóa token ở client nếu API lỗi
       localStorage.removeItem("accessToken");
       console.warn(
         "[Logout] Access token removed from localStorage despite API error."

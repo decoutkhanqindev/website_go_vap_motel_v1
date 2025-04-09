@@ -3,7 +3,7 @@ import UserService from "./UserService.js";
 
 const api = axios.create({
   baseURL: "http://localhost:8386/api",
-  withCredentials: true // QUAN TRỌNG: Áp dụng cho tất cả requests
+  withCredentials: true
 });
 
 // --- Axios Interceptors for Automatic Token Refresh ---
