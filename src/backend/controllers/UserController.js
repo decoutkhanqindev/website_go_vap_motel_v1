@@ -71,8 +71,7 @@ class UserController {
       const id = req.params.id;
       const newPhone = req.body.phone;
 
-      if (!id)
-        return next(new ApiError(400, "Param id must be provided."));
+      if (!id) return next(new ApiError(400, "Param id must be provided."));
       if (!newPhone)
         return next(new ApiError(400, "New phone must be provided."));
 
@@ -90,8 +89,7 @@ class UserController {
       const id = req.params.id;
       const newPassword = req.body.password;
 
-      if (!id)
-        return next(new ApiError(400, "Param id must be provided."));
+      if (!id) return next(new ApiError(400, "Param id must be provided."));
       if (!newPassword)
         return next(new ApiError(400, "New password must be provided."));
 
@@ -107,8 +105,7 @@ class UserController {
     try {
       logger.info(`UserController.deleteUser() is called.`);
       const id = req.params.id;
-      if (!id)
-        return next(new ApiError(400, "Param id must be provided."));
+      if (!id) return next(new ApiError(400, "Param id must be provided."));
 
       const deletedUser = await UserService.deleteUser(id);
       res.status(200).json(deletedUser);
@@ -150,7 +147,6 @@ class UserController {
     try {
       logger.info(`UserController.refreshToken() is called.`);
       const refreshToken = req.cookies.refreshToken;
-      // take refresh token from user
       if (!refreshToken)
         return next(new ApiError(401, "User is not authencated."));
 

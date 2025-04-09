@@ -144,7 +144,7 @@ class UserService {
       const deletedOccupant = await OccupantService.getAllOccupants({
         tenantId: deletedUser._id
       });
-      for(const occupant of deletedOccupant) {
+      for (const occupant of deletedOccupant) {
         await OccupantService.deleteOccupant(occupant._id);
       }
 
@@ -207,18 +207,33 @@ class UserService {
       let newAccessToken;
       let newRefreshToken;
 
-      jwt.verify(refreshToken, env.JWT_REFRESH_KEY, (error, user) => {
+      jwt.verify(refreshToken, env.JWT_REFRESH_KEY, async (error, user) => {
         if (error) throw new ApiError(403, "Token is not valid.");
+
+        try {
+          await RefreshToken.deleteOne({ data: refreshToken }); // Delete the OLD token
+          logger.info(`Successfully invalidated used refresh token.`);
+        } catch (deleteError) {
+          logger.error(
+            `Error deleting old refresh token during refresh: ${deleteError}`
+          );
+        }
+
         newAccessToken = UserService.generateToken(
           user,
           env.JWT_ACCESS_KEY,
-          "15m"
+          "30m" // Consider consistency with access token expiry if needed
         );
         newRefreshToken = UserService.generateToken(
           user,
           env.JWT_REFRESH_KEY,
           "1d"
         );
+
+        const newRefreshTokenModel = new RefreshToken({
+          data: newRefreshToken
+        });
+        await newRefreshTokenModel.save(); // Save the NEW token
       });
 
       const newRefreshTokenModel = new RefreshToken({ data: newRefreshToken });
@@ -237,9 +252,12 @@ class UserService {
       const deletedRefreshToken = await RefreshToken.findOneAndDelete({
         data: refreshToken
       });
-      if (!deletedRefreshToken)
-        throw new ApiError(401, "Not found refresh token.");
-      return deletedRefreshToken;
+      if (!deletedRefreshToken) {
+        logger.warn(
+          `Refresh token not found in DB during logout. It might have expired or already been removed.`
+        );
+      }
+      return { success: true, tokenRemoved: !!deletedRefreshToken };
     } catch (error) {
       logger.error(`UserService.logoutUser() have error:\n${error}`);
       throw error;
