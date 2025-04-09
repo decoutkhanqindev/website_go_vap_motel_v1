@@ -2382,11 +2382,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const utilityDetail = allUtilitiesData.find(
           (util) => util._id === idToFind
         );
-        if (utilityDetail) {
-          utilitiesToDisplay.push(utilityDetail); // Add detail object
-        } else {
-          console.warn(`Utility detail not found for ID: ${idToFind}`);
-        }
+        utilitiesToDisplay.push(utilityDetail); // Add detail object
       });
 
       if (utilitiesToDisplay.length > 0) {
@@ -2657,7 +2653,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       expenseRoomFilterSelect.disabled = false;
     } catch (error) {
-      console.error("Error populating expense room filter:", error);
+      console.error(error);
       expenseRoomFilterSelect.innerHTML =
         '<option value="all" selected>Tất cả phòng</option><option value="" disabled>Lỗi tải phòng</option>';
       allRoomsForExpenseFilter = [];
@@ -2703,7 +2699,7 @@ document.addEventListener("DOMContentLoaded", () => {
       totalExpenses = currentExpenseData.length;
       renderExpenseTableUI(); // Render the table with fetched data
     } catch (error) {
-      console.error("Error fetching expenses:", error);
+      console.error(error);
       if (expenseTableBody) {
         expenseTableBody.innerHTML = `<tr><td colspan="10" class="text-center text-danger">Lỗi khi tải dữ liệu chi phí.</td></tr>`;
       }
@@ -2751,10 +2747,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
       } catch (roomError) {
-        console.error(
-          "Error fetching room details for expenses table:",
-          roomError
-        );
+        console.error(roomError);
         // Continue rendering, but room names might show as 'N/A'
       }
     }
@@ -2923,7 +2916,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Optional: Show success toast/notification
       // Example: showToast("Xóa chi phí thành công!");
     } catch (error) {
-      console.error("Error deleting expense:", error);
+      console.error(error);
       const errorMsg = (
         error?.response?.data?.message ||
         error.message ||
@@ -2977,7 +2970,7 @@ document.addEventListener("DOMContentLoaded", () => {
           '<option value="" disabled>Không có phòng nào đang được thuê để chọn</option>';
       }
     } catch (error) {
-      console.error("Error loading occupied rooms for expense modal:", error);
+      console.error(error);
       newExpenseRoomIdSelect.innerHTML =
         '<option value="" disabled>Lỗi tải danh sách phòng</option>';
     } finally {
@@ -3031,7 +3024,7 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       reader.onerror = (error) => {
-        console.error(`Error reading file ${file.name}:`, error);
+        console.error(error);
         // Keep error display simple and consistent
         const errorPreviewItem = document.createElement("div");
         errorPreviewItem.classList.add(
@@ -3177,7 +3170,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Form reset is handled by the 'hidden.bs.modal' event listener
       }, 1500);
     } catch (error) {
-      console.error("Error saving new expense:", error);
+      console.error(error);
       const errorMsg = (
         error?.response?.data?.message || // Check for detailed error from backend
         error.message ||
@@ -3222,7 +3215,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Render table and pagination
       renderUserTableUI();
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error(error);
       const errorMsg =
         error.response?.data?.message || error.message || "Unknown error";
       // Display error state
@@ -3275,9 +3268,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       row.addEventListener("click", (event) => {
         if (event.target.closest(".action-cell")) {
-          return; 
+          return;
         }
-        window.location.href = `/admin/user/details/${user._id}`;
+        window.location.href = `/admin/user/details/${user.username}`; // Redirect to user details page
       });
     });
 
@@ -3358,7 +3351,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderUserTableUI();
       // Optional: Show success notification
     } catch (error) {
-      console.error(`Error deleting user ${username}:`, error);
+      console.error(error);
       const errorMsg = (
         error?.response?.data?.message ||
         error.message ||
@@ -3503,7 +3496,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 1500);
     } catch (error) {
       // --- Error Handling ---
-      console.error("Error adding new user:", error);
+      console.error(error);
       const errorMsg = (
         error?.response?.data?.message ||
         error.message ||
@@ -3926,7 +3919,6 @@ document.addEventListener("DOMContentLoaded", () => {
             activeContract.rentPrice || defaultRentPrice;
           await loadUtilitiesForInvoiceModal(activeContractUtilities); // Load utilities based on contract
         } else {
-          console.log(selectedRoomId);
           activeContractUtilities = [];
           activeContractRentPrice = defaultRentPrice; // Use room's default rent
           loadUtilitiesForInvoiceModal([]); // Clear/show message for utilities
@@ -4063,11 +4055,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (deleteButton) {
         event.stopPropagation(); // Prevent row click listener from firing
         const expenseId = deleteButton.dataset.id;
-        if (expenseId) {
-          handleDeleteExpense(expenseId); // Call delete handler
-        } else {
-          console.warn("Delete button clicked but no expense ID found.");
-        }
+        handleDeleteExpense(expenseId); // Call delete handler
       }
     });
   }
@@ -4078,7 +4066,7 @@ document.addEventListener("DOMContentLoaded", () => {
       resetAddExpenseForm(); // Reset form before showing
       addNewExpenseModal.show();
       loadRoomsForExpenseModal().catch((error) => {
-        console.error("Failed to pre-load rooms for expense modal:", error);
+        console.error(error);
         showModalFeedback(
           "addExpenseModalFeedback",
           "Lỗi khi tải danh sách phòng. Vui lòng thử đóng và mở lại.",

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nhà trọ Gò Vấp</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="shortcut icon" href="/assets/logo.jpg" type="image/x-icon" />
+    <link rel="stylesheet" href="/css/admin/userDetails.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header-bg py-3">
+      <div
+        class="container-fluid d-flex justify-content-center align-items-center"
+      >
+        <div class="header-logo">
+          <img src="/assets/logo_no_text.png" alt="Logo Nhà trọ" />
+        </div>
+        <h1 class="header-text text-center mb-0">NHÀ TRỌ GÒ VẤP</h1>
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <div class="content">
+      <div class="container mt-4">
+        <!-- Page Title -->
+        <div
+          class="user-details-title d-flex justify-content-center align-items-center"
+        >
+          THÔNG TIN CHI TIẾT NGƯỜI DÙNG
+        </div>
+
+        <!-- User Details Wrapper -->
+        <div class="user-details">
+          <!-- Using modal structure for consistent layout -->
+          <div class="modal-content">
+            <div class="modal-body">
+              <form id="editUserForm" novalidate>
+                <!-- Feedback Area -->
+                <div
+                  id="editUserFeedback"
+                  class="alert"
+                  role="alert"
+                  style="display: none"
+                ></div>
+
+                <div class="row">
+                  <!-- Left Column -->
+                  <div class="col-md-6">
+                    <!-- Role (Readonly) -->
+                    <div class="mb-3">
+                      <label for="userRole" class="form-label">Vai trò:</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="userRole"
+                        readonly
+                        placeholder="Đang tải..."
+                      />
+                      <!-- No invalid feedback needed for readonly -->
+                    </div>
+
+                    <!-- Username (Readonly) -->
+                    <div class="mb-3">
+                      <label for="userUsername" class="form-label"
+                        >Tài khoản:</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="userUsername"
+                        readonly
+                        placeholder="Đang tải..."
+                      />
+                      <!-- No invalid feedback needed for readonly -->
+                    </div>
+
+                    <!-- Password (Editable) -->
+                    <div class="mb-3">
+                      <label for="userPassword" class="form-label"
+                        >Mật khẩu mới (để trống nếu không đổi):</label
+                      >
+                      <div class="password-input-container">
+                        <input
+                          type="password"
+                          class="form-control password-input"
+                          id="userPassword"
+                          autocomplete="new-password"
+                          aria-describedby="passwordHelpBlock"
+                        />
+                        <img
+                          src="/assets/logo_no_hint_password.png"
+                          alt="Hiện mật khẩu"
+                          class="password-toggle-icon"
+                          id="userPasswordToggle"
+                        />
+                      </div>
+                      <div id="passwordHelpBlock" class="form-text small">
+                        Mật khẩu phải có ít nhất 8 ký tự.
+                      </div>
+                      <div class="invalid-feedback" id="userPasswordFeedback">
+                        Vui lòng nhập mật khẩu hợp lệ (ít nhất 8 ký tự) hoặc để
+                        trống.
+                      </div>
+                    </div>
+
+                    <!-- Confirm Password (Editable, required if password is entered) -->
+                    <div class="mb-3">
+                      <label for="userConfirmPassword" class="form-label"
+                        >Xác nhận mật khẩu mới:</label
+                      >
+                      <div class="password-input-container">
+                        <input
+                          type="password"
+                          class="form-control password-input"
+                          id="userConfirmPassword"
+                          autocomplete="new-password"
+                        />
+                        <img
+                          src="/assets/logo_no_hint_password.png"
+                          alt="Hiện mật khẩu"
+                          class="password-toggle-icon"
+                          id="userConfirmPasswordToggle"
+                        />
+                      </div>
+                      <div
+                        class="invalid-feedback"
+                        id="userConfirmPasswordFeedback"
+                      >
+                        Vui lòng xác nhận mật khẩu mới. Mật khẩu phải khớp.
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right Column -->
+                  <div class="col-md-6">
+                    <!-- Phone Number (Editable) -->
+                    <div class="mb-3">
+                      <label for="userPhone" class="form-label required"
+                        >Số điện thoại:</label
+                      >
+                      <input
+                        type="tel"
+                        class="form-control"
+                        id="userPhone"
+                        required
+                        placeholder="Nhập số điện thoại"
+                      />
+                      <div class="invalid-feedback">
+                        Vui lòng nhập số điện thoại hợp lệ.
+                      </div>
+                    </div>
+
+                    <!-- Created At (Readonly) -->
+                    <div class="mb-3">
+                      <label for="userCreatedAt" class="form-label"
+                        >Ngày tạo tài khoản:</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="userCreatedAt"
+                        readonly
+                        placeholder="N/A"
+                      />
+                    </div>
+
+                    <!-- Updated At (Readonly) -->
+                    <div class="mb-3">
+                      <label for="userUpdatedAt" class="form-label"
+                        >Lần chỉnh sửa gần nhất:</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="userUpdatedAt"
+                        readonly
+                        placeholder="N/A"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- Footer actions (Similar to expenseDetails) -->
+            <div class="modal-footer">
+              <!-- Optional: Add other actions like "Reset Password" if needed -->
+              <button
+                type="button"
+                class="btn cancel-btn"
+                id="cancelChangesBtn"
+              >
+                Hủy
+              </button>
+              <button type="button" class="btn save-btn" id="saveChangesBtn">
+                <span
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                  style="display: none"
+                >
+                </span>
+                Lưu chỉnh sửa
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer  -->
+    <footer class="footer-bg py-4">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <p class="footer-copyright mb-2">
+              © 2025 Nhà trọ Gò Vấp. All rights reserved.
+            </p>
+            <p class="footer-contact mb-2">
+              Liên hệ: 0123 456 789 (Mr. A) | Email: lienhe@nhathogovap.com
+            </p>
+            <p class="footer-policy">
+              <a href="#">Chính sách bảo mật</a>
+            </p>
+          </div>
+          <div class="col-md-6 d-flex justify-content-end align-items-center">
+            <div class="footer-social">
+              <a
+                href="https://www.facebook.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+              >
+                <img
+                  src="/assets/logo_fb.png"
+                  alt="Facebook"
+                  class="social-icon"
+                />
+              </a>
+              <a
+                href="https://www.youtube.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Youtube"
+              >
+                <img
+                  src="/assets/logo_ytb.png"
+                  alt="YouTube"
+                  class="social-icon"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="module" src="/js/admin/userDetails.js"></script>
+  </body>
+</html>
