@@ -1,4 +1,4 @@
---- START OF FILE dashboard.css --- html,
+html,
 body {
   height: 100%;
   margin: 0;
@@ -400,9 +400,10 @@ body {
   align-items: center; /* Optional: Vertically center icon with input */
 }
 .password-input-container .form-control,
-.password-input-container .password-input { /* Target the input inside */
+.password-input-container .password-input {
+  /* Target the input inside */
   padding-right: 40px; /* Make space for the icon */
-   width: 100%; /* Ensure input takes full width */
+  width: 100%; /* Ensure input takes full width */
 }
 .password-toggle-icon {
   position: absolute;
