@@ -52,6 +52,12 @@ router.get("/admin/expense/details/:id", (req, res) => {
   );
 });
 
+router.get("/admin/user/details/:username", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "../../frontend/html/admin/userDetails.html")
+  );
+});
+
 router.get("/client/dashboard", (req, res) => {
   res.sendFile(
     path.join(__dirname, "../../frontend/html/client/dashboard.html")
