@@ -12,7 +12,6 @@ const occupantSchema = new Schema(
     },
     tenantId: {
       type: ObjectId,
-      require: false,
       ref: "User",
       index: true
     },
@@ -24,23 +23,19 @@ const occupantSchema = new Schema(
     },
     fullName: {
       type: String,
-      required: true
     },
     birthday: {
       type: Date,
-      required: true
     },
     address: {
       type: String,
-      required: true
     },
-    phone: {
-      type: String,
-      required: true
-    },
+    // phone: {
+    //   type: String,
+    //   required: true
+    // },
     cccd: {
       type: String,
-      required: true
     },
     cccdImages: [
       {

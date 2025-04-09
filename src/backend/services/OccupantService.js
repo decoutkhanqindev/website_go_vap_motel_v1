@@ -10,15 +10,15 @@ class OccupantService {
       let query = Occupant.find();
 
       if (filter.roomId) query = query.where("roomId").equals(filter.roomId);
+      if (filter.tenantId)
+        query = query.where("tenantId").equals(filter.tenantId);
       if (filter.contractCode)
         query = query.where("contractCode").equals(filter.contractCode);
-      if (filter.fullName)
-        query = query.where("fullName").regex(new RegExp(filter.fullName, "i"));
+      if (filter.cccd) query = query.where("cccd").equals(filter.cccd);
 
       const occupants = await query;
-      if (!occupants.length) {
+      if (!occupants.length)
         throw new ApiError(404, `No occupants found matching your filter.`);
-      }
       return occupants;
     } catch (error) {
       logger.info(`OccupantService.getAllOccupants() have error:\n${error}`);
@@ -40,15 +40,18 @@ class OccupantService {
     }
   }
 
-  static async isExists(roomId, contractCode, cccd) {
+  static async isExists(roomId, tenantId, contractCode) {
     try {
       logger.info(`OccupantService.isExists() is called.`);
-      const occupant = await Occupant.findOne({
-        cccd: cccd,
-        roomId: roomId,
-        contractCode: contractCode
-      });
-      return !!occupant;
+      if (tenantId) {
+        const existingOccupantWithUser = await Occupant.findOne({
+          roomId: roomId,
+          contractCode: contractCode,
+          tenantId: tenantId
+        });
+        return !!existingOccupantWithUser;
+      }
+      return false;
     } catch (error) {
       logger.info(`OccupantService.isExists() have error:\n${error}`);
       throw error;
@@ -174,12 +177,12 @@ class OccupantService {
   static async addNewOccupant(data, imageFiles) {
     try {
       logger.info("OccupantService.addNewOccupant() is called.");
-      const { roomId, contractCode, cccd } = data;
+      const { roomId, contractCode, tenantId } = data;
 
       const isExits = await OccupantService.isExists(
         roomId,
-        contractCode,
-        cccd
+        tenantId,
+        contractCode
       );
       if (isExits) throw new ApiError(409, "This occupant already exists.");
 

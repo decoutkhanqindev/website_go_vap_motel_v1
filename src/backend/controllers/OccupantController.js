@@ -11,7 +11,7 @@ class OccupantController {
 
       if (query.roomId) filter.roomId = query.roomId;
       if (query.contractCode) filter.contractCode = query.contractCode;
-      if (query.fullName) filter.fullName = query.fullName;
+      if (query.cccd) filter.cccd = query.cccd;
 
       const occupants = await OccupantService.getAllOccupants(filter);
       res.status(200).json(occupants);
@@ -122,15 +122,15 @@ class OccupantController {
       logger.info("OccupantController.addNewOccupant() is called.");
       const data = req.body;
       const imageFiles = req.files;
-      
+
       if (
         !data.roomId ||
-        !data.contractCode ||
-        !data.fullName ||
-        !data.birthday ||
-        !data.address ||
-        !data.phone ||
-        !data.cccd
+        !data.contractCode
+        // !data.fullName ||
+        // !data.birthday ||
+        // !data.address ||
+        // !data.phone ||
+        // !data.cccd
       ) {
         return next(new ApiError(400, "No form data found."));
       }
