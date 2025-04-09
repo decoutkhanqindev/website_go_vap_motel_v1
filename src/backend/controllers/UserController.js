@@ -8,7 +8,7 @@ class UserController {
       logger.info(`UserController.getAllUsers() is called.`);
       const query = req.query;
       const filter = {};
-      
+
       if (query.role) filter.role = query.role;
       if (query.username) filter.username = query.username;
 
@@ -35,6 +35,21 @@ class UserController {
     }
   }
 
+  static async getUserById(req, res, next) {
+    try {
+      logger.info(`UserController.getUserById() is called.`);
+      const id = req.params.id;
+      if (!id)
+        return next(new ApiError(400, "Param username must be provided."));
+
+      const user = await UserService.getUserById(id);
+      res.status(200).json(user);
+    } catch (error) {
+      logger.error(`UserController.getUserById() have error:\n${error}`);
+      next(error);
+    }
+  }
+
   static async addNewUser(req, res, next) {
     try {
       logger.info(`UserController.addNewUser() is called.`);
@@ -53,15 +68,15 @@ class UserController {
   static async updateUserPhone(req, res, next) {
     try {
       logger.info(`UserController.updateUserPhone() is called.`);
-      const username = req.params.username;
+      const id = req.params.id;
       const newPhone = req.body.phone;
 
-      if (!username)
-        return next(new ApiError(400, "Param username must be provided."));
+      if (!id)
+        return next(new ApiError(400, "Param id must be provided."));
       if (!newPhone)
         return next(new ApiError(400, "New phone must be provided."));
 
-      const updatedUser = await UserService.updateUserPhone(username, newPhone);
+      const updatedUser = await UserService.updateUserPhone(id, newPhone);
       res.status(200).json(updatedUser);
     } catch (error) {
       logger.error(`UserController.updateUserPhone() have error:\n${error}`);
@@ -72,18 +87,15 @@ class UserController {
   static async updateUserPassword(req, res, next) {
     try {
       logger.info(`UserController.updateUserPassword() is called.`);
-      const username = req.params.username;
+      const id = req.params.id;
       const newPassword = req.body.password;
 
-      if (!username)
-        return next(new ApiError(400, "Param username must be provided."));
+      if (!id)
+        return next(new ApiError(400, "Param id must be provided."));
       if (!newPassword)
         return next(new ApiError(400, "New password must be provided."));
 
-      const updatedUser = await UserService.updateUserPassword(
-        username,
-        newPassword
-      );
+      const updatedUser = await UserService.updateUserPassword(id, newPassword);
       res.status(200).json(updatedUser);
     } catch (error) {
       logger.error(`UserController.updateUserPassword() have error:\n${error}`);
@@ -94,11 +106,11 @@ class UserController {
   static async deleteUser(req, res, next) {
     try {
       logger.info(`UserController.deleteUser() is called.`);
-      const username = req.params.username;
-      if (!username)
-        return next(new ApiError(400, "Param username must be provided."));
+      const id = req.params.id;
+      if (!id)
+        return next(new ApiError(400, "Param id must be provided."));
 
-      const deletedUser = await UserService.deleteUser(username);
+      const deletedUser = await UserService.deleteUser(id);
       res.status(200).json(deletedUser);
     } catch (error) {
       logger.error(`UserController.deleteUser() have error:\n${error}`);
@@ -187,7 +199,7 @@ class UserController {
     try {
       logger.info(`UserController.getMe() is called.`);
       const userId = req.user.id; // Get user ID from the request (added by verifyToken middleware)
-      console.log("userId", userId)
+      console.log("userId", userId);
       const user = await UserService.getMe(userId);
       // Remove sensitive data like password before sending the response.
       const { password, ...userData } = user.toObject ? user.toObject() : user; // Use toObject() if it's a Mongoose document

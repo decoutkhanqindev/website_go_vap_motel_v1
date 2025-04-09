@@ -5,15 +5,17 @@ const env = process.env;
 const ApiError = require("../utils/ApiError");
 const logger = require("../utils/logger");
 const { User, RefreshToken } = require("../models/User");
+const OccupantService = require("./OccupantService");
 
 class UserService {
   static async getAllUsers(filter = {}) {
     try {
       logger.info(`UserService.getAllUsers() is called.`);
       let query = User.find();
-      
+
       if (filter.role) query = query.where("role").equals(filter.role);
-      if(filter.username) query = query.where("username").equals(filter.username);
+      if (filter.username)
+        query = query.where("username").equals(filter.username);
 
       const users = await query;
       if (!users.length)
@@ -40,9 +42,8 @@ class UserService {
   }
 
   static async getUserById(id) {
-    // New method to get user by ID
     try {
-      logger.info(`UserService.getUserById() is called with ID: ${id}`);
+      logger.info(`UserService.getUserById() is called.`);
       const user = await User.findById(id);
       if (!user) {
         throw new ApiError(404, `No user found matching ID ${id}.`);
@@ -93,11 +94,11 @@ class UserService {
     }
   }
 
-  static async updateUserPhone(username, phone) {
+  static async updateUserPhone(id, phone) {
     try {
       logger.info(`UserService.updateUser() is called.`);
-      const updatedUser = await User.findOneAndUpdate(
-        { username: username },
+      const updatedUser = await User.findByIdAndUpdate(
+        id,
         { phone: phone },
         { new: true }
       );
@@ -111,14 +112,14 @@ class UserService {
     }
   }
 
-  static async updateUserPassword(username, newPassword) {
+  static async updateUserPassword(id, newPassword) {
     try {
       logger.info(`UserService.updateUserPassword() is called.`);
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-      const updatedUser = await User.findOneAndUpdate(
-        { username: username },
+      const updatedUser = await User.findByIdAndUpdate(
+        id,
         { password: hashedPassword },
         { new: true }
       );
@@ -132,13 +133,21 @@ class UserService {
     }
   }
 
-  static async deleteUser(username) {
+  static async deleteUser(id) {
     try {
       logger.info(`UserService.deleteUser() is called.`);
-      const deletedUser = await User.findOneAndDelete({ username: username });
+      const deletedUser = await User.findByIdAndDelete(id);
       if (!deletedUser) {
-        throw new ApiError(404, `No user found matching username ${username}.`);
+        throw new ApiError(404, `No user found matching id ${id}.`);
       }
+
+      const deletedOccupant = await OccupantService.getAllOccupants({
+        tenantId: deletedUser._id
+      });
+      for(const occupant of deletedOccupant) {
+        await OccupantService.deleteOccupant(occupant._id);
+      }
+
       return deletedUser;
     } catch (error) {
       logger.error(`UserService.deleteUser() have error:\n${error}`);
@@ -160,7 +169,7 @@ class UserService {
       return token;
     } catch (error) {
       logger.error(`UserService.generateToken() have error:\n${error}`);
-      throw error; 
+      throw error;
     }
   }
 
@@ -236,8 +245,8 @@ class UserService {
       throw error;
     }
   }
+
   static async getMe(userId) {
-    // New method to get the current user
     try {
       logger.info(`UserService.getMe() is called`);
       const user = await UserService.getUserById(userId); // Use existing getUserById
