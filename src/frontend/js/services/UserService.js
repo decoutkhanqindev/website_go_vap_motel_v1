@@ -25,7 +25,17 @@ class UserService {
   static async getUserByUsername(username) {
     try {
       // Không cần headers thủ công
-      const response = await api.get(`/user/${username}`);
+      const response = await api.get(`/user/username/${username}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getUserById(id) {
+    try {
+      // Không cần headers thủ công
+      const response = await api.get(`/user/id/${id}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -42,20 +52,20 @@ class UserService {
     }
   }
 
-  static async updateUserPhone(username, phone) {
+  static async updateUserPhone(id, phone) {
     try {
       // Không cần headers thủ công
-      const response = await api.patch(`/user/${username}/phone`, { phone });
+      const response = await api.patch(`/user/${id}/phone`, { phone });
       return response.data;
     } catch (error) {
       throw error;
     }
   }
 
-  static async updateUserPassword(username, password) {
+  static async updateUserPassword(id, password) {
     try {
       // Không cần headers thủ công
-      const response = await api.patch(`/user/${username}/password`, {
+      const response = await api.patch(`/user/${id}/password`, {
         password
       });
       return response.data;
@@ -64,10 +74,10 @@ class UserService {
     }
   }
 
-  static async deleteUser(username) {
+  static async deleteUser(id) {
     try {
       // Không cần headers thủ công
-      const response = await api.delete(`/user/${username}`);
+      const response = await api.delete(`/user/${id}`);
       return response.data;
     } catch (error) {
       throw error;
