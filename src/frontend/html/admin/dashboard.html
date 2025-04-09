@@ -121,11 +121,11 @@
               >
             </li>
             <li
-              class="settings-tab nav-item d-flex justify-content-center align-items-center"
+              class="logout-tab nav-item d-flex justify-content-center align-items-center"
             >
-              <img class="nav-img" src="/assets/logo_setting.png" alt="" />
-              <a class="nav-link" href="#" data-target="settings-tab-container"
-                >Cài đặt</a
+              <img class="nav-img" src="/assets/logo_logout.png" alt="" />
+              <a class="nav-link" href="#" data-target="logout-tab-container"
+                >Đăng xuất</a
               >
             </li>
           </ul>
@@ -136,6 +136,7 @@
     <!-- content -->
     <div class="content">
       <div class="container mt-4">
+        <!-- rooms-tab-container -->
         <div id="rooms-tab-container" class="rooms-tab-container">
           <div
             class="rooms-tab-title d-flex justify-content-center align-items-center"
@@ -263,6 +264,7 @@
           </div>
         </div>
 
+        <!-- amenities-utilities-tab-container -->
         <div
           id="amenities-utilities-tab-container"
           class="amenities-utilities-tab-container"
@@ -348,9 +350,128 @@
           </div>
         </div>
 
-        <div id="occupants-tab-container" class="occupants-tab-container"></div>
+        <!-- occupants-tab-container -->
+        <div
+          id="occupants-tab-container"
+          class="occupants-tab-container"
+          style="display: none"
+        >
+          <div
+            class="occupants-tab-title d-flex justify-content-center align-items-center"
+          >
+            QUẢN LÝ DANH SÁCH NGƯỜI THUÊ
+          </div>
 
-        <!-- Contracts-tab-container -->
+          <!-- Search Section -->
+          <div class="search-container my-3">
+            <div class="input-group">
+              <input
+                type="text"
+                id="searchOccupantContractCodeInput"
+                class="form-control"
+                placeholder="Tìm theo mã hợp đồng"
+                aria-label="Tìm kiếm người thuê theo mã hợp đồng"
+              />
+              <input
+                type="text"
+                id="searchOccupantCccdInput"
+                class="form-control"
+                placeholder="Tìm theo CCCD"
+                aria-label="Tìm kiếm người thuê theo CCCD"
+              />
+              <button id="searchOccupantBtn" class="btn h-100" type="button">
+                Tìm kiếm
+              </button>
+            </div>
+          </div>
+
+          <!-- Row for Filters and Table -->
+          <div class="row">
+            <!-- Left Column: Filters & Add Button -->
+            <div class="col-md-3">
+              <div class="filter-container">
+                <h5 class="filter-heading">Lọc người thuê</h5>
+
+                <!-- Room Filter (Occupied Rooms Only) -->
+                <div class="filter-group">
+                  <label for="occupantRoomFilter" class="filter-label"
+                    >Phòng:</label
+                  >
+                  <select id="occupantRoomFilter" class="form-select">
+                    <option value="all" selected>Tất cả phòng</option>
+                    <!-- Options sẽ được load bằng JS (Chỉ phòng có người thuê) -->
+                    <option value="" disabled>Đang tải...</option>
+                  </select>
+                </div>
+
+                <!-- Apply Filter Button -->
+                <button
+                  id="applyOccupantFilters"
+                  class="apply-filters-btn btn w-100"
+                >
+                  Áp dụng lọc
+                </button>
+              </div>
+
+              <!-- Add New Occupant Button (Placeholder - functionality defined later) -->
+              <div class="mt-3">
+                <button
+                  id="addNewOccupantBtn"
+                  class="add-occupant-btn btn w-100"
+                  data-bs-toggle="modal"
+                  data-bs-target="#addNewOccupantModal"
+                >
+                  Thêm người thuê mới
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Column: Occupant List & Pagination -->
+            <div class="col-md-9">
+              <!-- Occupant List Table -->
+              <div class="occupant-list-container table-responsive">
+                <table
+                  class="table table-hover table-striped align-middle occupant-table"
+                >
+                  <thead class="table-header-bg">
+                    <tr>
+                      <th scope="col">STT</th>
+                      <th scope="col">Phòng</th>
+                      <th scope="col">Tài khoản</th>
+                      <!-- Optional based on tenantId -->
+                      <th scope="col">Mã hợp đồng</th>
+                      <th scope="col">Tên người thuê</th>
+                      <th scope="col">CCCD</th>
+                      <th scope="col" class="text-center"></th>
+                      <!-- Action column for delete -->
+                    </tr>
+                  </thead>
+                  <tbody id="occupantTableBody">
+                    <tr>
+                      <td colspan="7" class="text-center">
+                        <!-- Adjusted colspan to 7 -->
+                        Đang tải dữ liệu người thuê...
+                      </td>
+                    </tr>
+                    <!-- Occupant data rows will be added by JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Pagination -->
+              <nav aria-label="Occupant list page navigation">
+                <ul
+                  class="pagination justify-content-center mt-3"
+                  id="occupantPagination"
+                >
+                  <!-- Pagination items will be added here by JS -->
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+
+        <!-- contracts-tab-container -->
         <div
           id="contracts-tab-container"
           class="contracts-tab-container"
@@ -497,6 +618,7 @@
           </div>
         </div>
 
+        <!-- invoices-tab-container -->
         <div
           id="invoices-tab-container"
           class="invoices-tab-container"
@@ -670,6 +792,7 @@
           </div>
         </div>
 
+        <!-- expenses-tab-container -->
         <div
           id="expenses-tab-container"
           class="expenses-tab-container"
@@ -856,6 +979,7 @@
           </div>
         </div>
 
+        <!-- users-tab-container -->
         <div
           id="users-tab-container"
           class="users-tab-container"
@@ -967,15 +1091,17 @@
           </div>
         </div>
 
+        <!-- notifications-tab-container -->
         <div
           id="notifications-tab-container"
           class="notifications-tab-container"
           style="display: none"
         ></div>
 
+        <!-- logout-tab-container -->
         <div
-          id="settings-tab-container"
-          class="settings-tab-container"
+          id="logout-tab-container"
+          class="logout-tab-container"
           style="display: none"
         ></div>
       </div>
@@ -2162,6 +2288,7 @@
                   type="text"
                   class="form-control"
                   id="newUsername"
+                  autocomplete="username"
                   required
                 />
                 <div class="invalid-feedback">Vui lòng nhập tài khoản.</div>
@@ -2253,6 +2380,193 @@
                 style="display: none"
               ></span>
               Lưu người dùng
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add New Occupant Modal Start -->
+    <div
+      class="modal fade"
+      id="addNewOccupantModal"
+      tabindex="-1"
+      aria-labelledby="addNewOccupantModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addNewOccupantModalLabel">
+              Thêm người thuê mới
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="addOccupantForm" novalidate>
+              <!-- Feedback Area -->
+              <div
+                id="addOccupantModalFeedback"
+                class="alert"
+                role="alert"
+                style="display: none"
+              ></div>
+
+              <div class="row">
+                <!-- Left Column -->
+                <div class="col-md-6">
+                  <!-- Room Selection (Occupied Rooms Only) -->
+                  <div class="mb-3">
+                    <label for="newOccupantRoomId" class="form-label required"
+                      >Phòng (Đã thuê):</label
+                    >
+                    <select class="form-select" id="newOccupantRoomId" required>
+                      <option value="" selected disabled>Chọn phòng...</option>
+                      <!-- Options loaded dynamically by JS -->
+                    </select>
+                    <div id="occupantRoomSelectLoading" style="display: none">
+                      Đang tải danh sách phòng...
+                    </div>
+                    <div class="invalid-feedback">Vui lòng chọn phòng.</div>
+                  </div>
+
+                  <!-- Contract Code (Prefilled) -->
+                  <div class="mb-3">
+                    <label for="newOccupantContractCode" class="form-label"
+                      >Mã hợp đồng:</label
+                    >
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="newOccupantContractCode"
+                      readonly
+                      placeholder="Sẽ tự động điền khi chọn phòng"
+                    />
+                    <!-- No invalid feedback needed as it's readonly -->
+                  </div>
+
+                  <!-- Tenant User Selection (Optional) -->
+                  <div class="mb-3">
+                    <label for="newOccupantTenantId" class="form-label"
+                      >Tài khoản người thuê (Nếu có):</label
+                    >
+                    <select class="form-select" id="newOccupantTenantId">
+                      <option value="" selected>Không có tài khoản</option>
+                      <!-- Options loaded dynamically by JS (Users with role 'tenant') -->
+                      <option value="loading" disabled>
+                        Đang tải tài khoản...
+                      </option>
+                    </select>
+                    <div id="occupantTenantSelectLoading" style="display: none">
+                      Đang tải danh sách tài khoản...
+                    </div>
+                    <!-- No invalid feedback needed as it's optional -->
+                  </div>
+
+                  <!-- Full Name (Optional) -->
+                  <div class="mb-3">
+                    <label for="newOccupantFullName" class="form-label"
+                      >Họ và tên:</label
+                    >
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="newOccupantFullName"
+                    />
+                  </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-md-6">
+                  <!-- Birthday (Optional) -->
+                  <div class="mb-3">
+                    <label for="newOccupantBirthday" class="form-label"
+                      >Ngày sinh:</label
+                    >
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="newOccupantBirthday"
+                    />
+                  </div>
+
+                  <!-- Address (Optional) -->
+                  <div class="mb-3">
+                    <label for="newOccupantAddress" class="form-label"
+                      >Địa chỉ thường trú:</label
+                    >
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="newOccupantAddress"
+                    />
+                  </div>
+
+                  <!-- CCCD (Optional) -->
+                  <div class="mb-3">
+                    <label for="newOccupantCccd" class="form-label"
+                      >Số CCCD/CMND:</label
+                    >
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="newOccupantCccd"
+                    />
+                  </div>
+
+                  <!-- CCCD Images (Optional) -->
+                  <div class="mb-3">
+                    <label class="form-label">Ảnh CCCD/CMND:</label>
+                    <input
+                      type="file"
+                      class="form-control d-none"
+                      id="newOccupantCccdImagesInput"
+                      multiple
+                      accept="image/*"
+                    />
+                    <!-- Trigger button -->
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary btn-sm mb-2"
+                      id="selectOccupantCccdImagesBtn"
+                    >
+                      Chọn ảnh...
+                    </button>
+                    <div
+                      id="newOccupantCccdImagePreview"
+                      class="image-preview-container mt-2"
+                    >
+                      <!-- Image previews will be shown here by JS -->
+                      <p class="text-muted small">Chưa chọn ảnh nào.</p>
+                    </div>
+                    <!-- No invalid feedback needed as it's optional -->
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="cancel-btn btn"
+              id="cancelOccupantBtn"
+              data-bs-dismiss="modal"
+            >
+              Hủy
+            </button>
+            <button type="button" class="save-btn btn" id="saveNewOccupantBtn">
+              <span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+                style="display: none"
+              ></span>
+              Lưu người thuê
             </button>
           </div>
         </div>

@@ -92,7 +92,8 @@ body {
 .contracts-tab-title,
 .invoices-tab-title,
 .expenses-tab-title,
-.users-tab-title {
+.users-tab-title,
+.occupants-tab-title {
   border-radius: 5px;
   font-size: 32px;
   color: #fff;
@@ -166,7 +167,10 @@ body {
 #searchExpenseBtn,
 #applyUserFilters,
 #searchUserBtn,
-#addNewUserBtn {
+#addNewUserBtn,
+#applyOccupantFilters,
+#searchOccupantBtn,
+#addNewOccupantBtn {
   color: white;
   background-color: #4da1a9;
 }
@@ -177,7 +181,8 @@ body {
 .contract-table,
 .invoice-table,
 .expense-table,
-.user-table {
+.user-table, 
+.occupant-table {
   margin-bottom: 0;
   border-radius: 10px;
   border: 2px solid #a5bfcc;
@@ -188,7 +193,8 @@ body {
 .contract-table thead.table-header-bg,
 .invoice-table thead.table-header-bg,
 .expense-table thead.table-header-bg,
-.user-table thead.table-header-bg {
+.user-table thead.table-header-bg,
+.occupant-table thead.table-header-bg {
   background-color: #a5bfcc;
   color: white;
   font-weight: bold;
@@ -204,7 +210,8 @@ body {
 .contract-table tbody tr,
 .invoice-table tbody tr,
 .expense-table tbody tr,
-.user-table tbody tr {
+.user-table tbody tr,
+.occupant-table tbody tr {
   cursor: default;
 }
 .room-table tbody tr:hover,
@@ -213,7 +220,8 @@ body {
 .contract-table tbody tr:hover,
 .invoice-table tbody tr:hover,
 .expense-table tbody tr:hover,
-.user-table tbody tr:hover {
+.user-table tbody tr:hover,
+.occupant-table tbody tr:hover {
   background-color: #e7f2f8;
 }
 .room-table td,
@@ -228,7 +236,9 @@ body {
 .invoice-table th,
 .expense-table td,
 .user-table td,
-.user-table th {
+.user-table th,
+.occupant-table td,
+.occupant-table th {
   vertical-align: middle;
   padding: 0.75rem;
 }
@@ -237,7 +247,8 @@ body {
 .utility-table .text-end,
 .contract-table .text-end,
 .invoice-table .text-end,
-.user-table .text-end {
+.user-table .text-end,
+.occupant-table .text-end {
   text-align: right;
 }
 .room-table .text-center,
@@ -246,7 +257,8 @@ body {
 .contract-table .text-center,
 .invoice-table .text-center,
 .expense-table .text-center,
-.user-table .text-center {
+.user-table .text-center,
+.occupant-table .text-center {
   text-align: center;
 }
 .status-vacant,
@@ -378,8 +390,9 @@ body {
 #cancelUtilityBtn,
 #cancelContractBtn,
 #cancelInvoiceBtn,
-#cancelExpenseBtnm,
-#cancelUserBtn {
+#cancelExpenseBtn,
+#cancelUserBtn,
+#cancelOccupantBtn {
   color: white;
   background-color: #dc3545;
 }
@@ -389,7 +402,8 @@ body {
 #saveNewContractBtn,
 #saveNewInvoiceBtn,
 #saveNewExpenseBtn,
-#saveNewUserBtn {
+#saveNewUserBtn,
+#saveNewOccupantBtn {
   color: white;
   background-color: #4da1a9;
 }

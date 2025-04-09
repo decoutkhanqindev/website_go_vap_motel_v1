@@ -1,7 +1,7 @@
 import UserService from "../services/UserService.js";
 
 // --- Global Scope: State Variables ---
-let currentUsername = null;
+let currentUserId = null;
 let currentUserData = null;
 
 // --- Mappings ---
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Core Utility Functions ---
 
   // Function: Extracts the username from the URL path
-  function getUsernameFromUrl() {
+  function getUserIdFromUrl() {
     const pathSegments = window.location.pathname.split("/");
     return pathSegments[pathSegments.length - 1] || null;
   }
@@ -103,10 +103,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function: Fetches user details and populates the form
   async function fetchAndRenderUiUserDetails() {
-    currentUsername = getUsernameFromUrl();
-    if (!currentUsername) {
+    currentUserId = getUserIdFromUrl();
+    if (!currentUserId) {
       showModalFeedback(
-        "Không tìm thấy tên người dùng hợp lệ trong URL.",
+        "Không tìm thấy id người dùng hợp lệ trong URL.",
         "danger"
       );
       if (editUserForm) editUserForm.style.display = "none"; // Hide form if no user
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       // Fetch user data using the service
-      const userDetails = await UserService.getUserByUsername(currentUsername);
+      const userDetails = await UserService.getUserById(currentUserId);
       currentUserData = userDetails; // Store fetched data globally
 
       if (!currentUserData) {
@@ -246,7 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- Step 4: Prepare and Execute API Calls ---
     if (editUserForm) editUserForm.classList.add("was-validated"); // Mark validated if proceeding
-    if (!currentUsername) {
+    if (!currentUserId) {
       showModalFeedback("Lỗi: Không xác định được người dùng.", "danger");
       return;
     }
@@ -261,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add phone update call if changed
     if (phoneChanged) {
       apiCalls.push(
-        UserService.updateUserPhone(currentUsername, newPhone).catch((err) => {
+        UserService.updateUserPhone(currentUserId, newPhone).catch((err) => {
           errors.push(
             `Lỗi cập nhật SĐT: ${
               err?.response?.data?.message || err.message || "Lỗi không rõ"
@@ -275,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add password update call if changed and validated
     if (passwordChanged) {
       apiCalls.push(
-        UserService.updateUserPassword(currentUsername, newPassword).catch(
+        UserService.updateUserPassword(currentUserId, newPassword).catch(
           (err) => {
             errors.push(
               `Lỗi cập nhật mật khẩu: ${
@@ -311,11 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function: Handles the 'Cancel' button click
   function handleCancelChanges() {
-    // Option 1: Go back to the previous page (likely the dashboard)
-    window.history.back();
-
-    // Option 2: Redirect to a specific page (e.g., dashboard)
-    // window.location.href = '/admin/dashboard';
+    window.location.href = "/admin/dashboard";
   }
 
   // --- Event Listener Setup ---

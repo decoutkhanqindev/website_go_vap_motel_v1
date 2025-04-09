@@ -5,6 +5,7 @@ import ContractService from "../services/ContractService.js";
 import InvoiceService from "../services/InvoiceService.js";
 import ExpenseService from "../services/ExpenseService.js";
 import UserService from "../services/UserService.js";
+import OccupantService from "../services/OccupantService.js";
 
 // --- Global Scope: State Variables ---
 // --- State for Rooms Tab ---
@@ -100,6 +101,17 @@ const roleMap = {
   landlord: "Chủ trọ",
   tenant: "Người thuê"
 };
+
+// --- State for Occupants Tab ---
+// --- State for Occupants Tab ---
+let occupantCurrentPage = 1;
+let totalOccupants = 0;
+const occupantsPerPage = 10;
+let currentOccupantData = [];
+let allOccupiedRoomsForOccupantFilter = [];
+let selectedOccupantCccdImageFiles = [];
+let availableTenantUsers = [];
+let activeContractCodeForSelectedRoom = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- DOM Element Selectors ---
@@ -410,6 +422,65 @@ document.addEventListener("DOMContentLoaded", () => {
     "newUserConfirmPasswordToggle"
   );
 
+  // --- Selectors: Occupants Tab UI ---
+  const occupantTableBody = document.getElementById("occupantTableBody");
+  const occupantPaginationContainer =
+    document.getElementById("occupantPagination");
+  const searchOccupantContractCodeInput = document.getElementById(
+    "searchOccupantContractCodeInput"
+  );
+  const searchOccupantCccdInput = document.getElementById(
+    "searchOccupantCccdInput"
+  );
+  const searchOccupantBtn = document.getElementById("searchOccupantBtn");
+  const occupantRoomFilterSelect =
+    document.getElementById("occupantRoomFilter");
+  const applyOccupantFiltersBtn = document.getElementById(
+    "applyOccupantFilters"
+  );
+  const addNewOccupantBtn = document.getElementById("addNewOccupantBtn");
+  // Add New Occupant Modal
+  const addNewOccupantModalElement = document.getElementById(
+    "addNewOccupantModal"
+  );
+  const addOccupantForm = document.getElementById("addOccupantForm");
+  const newOccupantRoomIdSelect = document.getElementById("newOccupantRoomId");
+  const occupantRoomSelectLoadingDiv = document.getElementById(
+    "occupantRoomSelectLoading"
+  );
+  const newOccupantContractCodeInput = document.getElementById(
+    "newOccupantContractCode"
+  );
+  const newOccupantTenantIdSelect = document.getElementById(
+    "newOccupantTenantId"
+  );
+  const occupantTenantSelectLoadingDiv = document.getElementById(
+    "occupantTenantSelectLoading"
+  );
+  const newOccupantFullNameInput = document.getElementById(
+    "newOccupantFullName"
+  );
+  const newOccupantBirthdayInput = document.getElementById(
+    "newOccupantBirthday"
+  );
+  const newOccupantAddressInput = document.getElementById("newOccupantAddress");
+  const newOccupantCccdInput = document.getElementById("newOccupantCccd");
+  const newOccupantCccdImagesInput = document.getElementById(
+    "newOccupantCccdImagesInput"
+  );
+  const selectOccupantCccdImagesBtn = document.getElementById(
+    "selectOccupantCccdImagesBtn"
+  );
+  const newOccupantCccdImagePreviewDiv = document.getElementById(
+    "newOccupantCccdImagePreview"
+  );
+  const saveNewOccupantBtn = document.getElementById("saveNewOccupantBtn");
+  const addOccupantModalFeedbackDiv = document.getElementById(
+    "addOccupantModalFeedback"
+  );
+  const saveNewOccupantSpinner =
+    saveNewOccupantBtn?.querySelector(".spinner-border");
+
   // --- Initialize Bootstrap Modals ---
   const addNewRoomModal = addNewRoomModalElement
     ? new bootstrap.Modal(addNewRoomModalElement)
@@ -431,6 +502,9 @@ document.addEventListener("DOMContentLoaded", () => {
     : null;
   const addNewUserModal = addNewUserModalElement
     ? new bootstrap.Modal(addNewUserModalElement)
+    : null;
+  const addNewOccupantModal = addNewOccupantModalElement
+    ? new bootstrap.Modal(addNewOccupantModalElement)
     : null;
 
   // --- Core UI Functions ---
@@ -3249,7 +3323,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Create table rows
     usersToDisplay.forEach((user, index) => {
       const row = document.createElement("tr");
-      row.dataset.id = user.username; // Use username as unique ID for actions
+      row.dataset.id = user._id;
       const sequentialNumber = startIndex + index + 1;
       const roleText = roleMap[user.role] || user.role || "Unknown";
 
@@ -3260,7 +3334,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <td>${user.phone || "N/A"}</td>
             <td class="text-center action-cell">
                  <button class="btn btn-sm btn-danger delete-user-btn" data-id="${
-                   user.username
+                   user._id
                  }" title="Delete User">Xóa</button>
             </td>
         `;
@@ -3270,7 +3344,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.target.closest(".action-cell")) {
           return;
         }
-        window.location.href = `/admin/user/details/${user.username}`; // Redirect to user details page
+        window.location.href = `/admin/user/details/${user._id}`; // Redirect to user details page
       });
     });
 
@@ -3309,34 +3383,31 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- Users Tab: Delete User Logic ---
-  async function handleDeleteUser(username) {
+  async function handleDeleteUser(userId) {
     const confirmed = window.confirm(
-      `Are you sure you want to delete user "${username}"? This cannot be undone.`
+      `Bạn có chắc muốn xóa người dùng này không?`
     );
     if (!confirmed) return;
 
-    // Provide UI feedback (loading state)
     const deleteButton = userTableBody?.querySelector(
-      `.delete-user-btn[data-id="${username}"]`
+      `.delete-user-btn[data-id="${userId}"]` // <<< Tìm button bằng userId
     );
-    const originalButtonText = deleteButton ? deleteButton.innerHTML : "Delete";
+    const originalButtonText = deleteButton ? deleteButton.innerHTML : "Xóa";
+
     if (deleteButton) {
       deleteButton.disabled = true;
-      deleteButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...`;
+      deleteButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xóa...`;
     }
 
     try {
-      // Call API to delete
-      await UserService.deleteUser(username);
+      await UserService.deleteUser(userId);
 
-      // Update local data and UI
       const indexToRemove = currentUserData.findIndex(
-        (user) => user.username === username
+        (user) => user._id === userId
       );
       if (indexToRemove > -1) currentUserData.splice(indexToRemove, 1);
       totalUsers = currentUserData.length;
 
-      // Adjust current page if necessary
       const totalPagesAfterDeletion = Math.ceil(totalUsers / usersPerPage);
       if (
         userCurrentPage > totalPagesAfterDeletion &&
@@ -3346,23 +3417,20 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (totalPagesAfterDeletion === 0) {
         userCurrentPage = 1;
       }
-
-      // Re-render the table/pagination
       renderUserTableUI();
-      // Optional: Show success notification
     } catch (error) {
       console.error(error);
       const errorMsg = (
         error?.response?.data?.message ||
         error.message ||
-        "An unexpected error occurred."
+        "Lỗi không xác định."
       ).toString();
       alert(
-        `Error deleting user "${username}": ${
+        `Lỗi khi xóa người dùng: ${
           errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1)
         }`
       );
-      // Restore button state on error
+    } finally {
       if (deleteButton) {
         deleteButton.disabled = false;
         deleteButton.innerHTML = originalButtonText;
@@ -3511,6 +3579,662 @@ document.addEventListener("DOMContentLoaded", () => {
       // --- Step 7: Reset Loading State ---
       if (saveNewUserBtn) saveNewUserBtn.disabled = false;
       if (saveNewUserSpinner) saveNewUserSpinner.style.display = "none";
+    }
+  }
+
+  // --- Occupants Tab: Data Fetching & Filtering Logic ---
+
+  // Function: Fetches occupied rooms and populates the room filter dropdown for the Occupants tab.
+  async function populateOccupantRoomFilterDropdown() {
+    if (!occupantRoomFilterSelect) return;
+
+    occupantRoomFilterSelect.innerHTML =
+      '<option value="all" selected>Tất cả phòng</option><option value="" disabled>Đang tải...</option>';
+    occupantRoomFilterSelect.disabled = true;
+
+    try {
+      // Fetch only rooms that are currently occupied
+      const rooms = await RoomService.getAllRooms({ status: "occupied" });
+      allOccupiedRoomsForOccupantFilter = rooms || []; // Store globally
+
+      occupantRoomFilterSelect.innerHTML =
+        '<option value="all" selected>Tất cả phòng</option>'; // Reset
+
+      if (allOccupiedRoomsForOccupantFilter.length > 0) {
+        allOccupiedRoomsForOccupantFilter.forEach((room) => {
+          const option = document.createElement("option");
+          option.value = room._id; // Use room ID as value
+          option.textContent = `P. ${room.roomNumber || "N/A"} - ĐC. ${
+            room.address || "N/A"
+          }`;
+          occupantRoomFilterSelect.appendChild(option);
+        });
+      } else {
+        occupantRoomFilterSelect.innerHTML +=
+          '<option value="" disabled>Không có phòng nào đang được thuê</option>';
+      }
+      occupantRoomFilterSelect.disabled = false;
+    } catch (error) {
+      console.error(error);
+      occupantRoomFilterSelect.innerHTML =
+        '<option value="all" selected>Tất cả phòng</option><option value="" disabled>Lỗi tải phòng</option>';
+      allOccupiedRoomsForOccupantFilter = []; // Reset on error
+    }
+  }
+
+  // Function: Fetches occupant data based on current filters/search terms and renders the UI.
+  async function fetchAndRenderUiForOccupantsTab() {
+    if (occupantTableBody) {
+      occupantTableBody.innerHTML = `<tr><td colspan="7" class="text-center">Đang tải dữ liệu người thuê...</td></tr>`; // Colspan = 7
+    }
+    if (occupantPaginationContainer) {
+      occupantPaginationContainer.innerHTML = "";
+    }
+
+    try {
+      // Get filter values from UI elements
+      const contractCodeTerm =
+        searchOccupantContractCodeInput?.value.trim() || "";
+      const cccdTerm = searchOccupantCccdInput?.value.trim() || "";
+      const selectedRoomId = occupantRoomFilterSelect?.value || "all";
+
+      // Construct filter object for the API call
+      const filter = {};
+      if (contractCodeTerm) filter.contractCode = contractCodeTerm; // Assuming backend supports search by contractCode
+      if (cccdTerm) filter.cccd = cccdTerm; // Assuming backend supports search by cccd
+      if (selectedRoomId !== "all") filter.roomId = selectedRoomId;
+
+      // Fetch occupants using the OccupantService
+      const allMatchingOccupants = await OccupantService.getAllOccupants(
+        filter
+      ); // Use the imported service
+
+      // Update state and render UI
+      currentOccupantData = allMatchingOccupants || [];
+      totalOccupants = currentOccupantData.length;
+      renderOccupantTableUI(); // Render the table with fetched data
+    } catch (error) {
+      console.error(error);
+      if (occupantTableBody) {
+        occupantTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi khi tải dữ liệu người thuê.</td></tr>`; // Colspan = 7
+      }
+      currentOccupantData = [];
+      totalOccupants = 0;
+      renderOccupantPaginationUI(); // Render empty pagination on error
+    }
+  }
+
+  // --- Occupants Tab: UI Rendering Logic ---
+
+  // Function: Renders the occupant table based on current data and pagination.
+  async function renderOccupantTableUI() {
+    if (!occupantTableBody) return;
+    occupantTableBody.innerHTML = ""; // Clear previous rows
+
+    if (currentOccupantData.length === 0) {
+      occupantTableBody.innerHTML = `<tr><td colspan="7" class="text-center">Không tìm thấy người thuê nào phù hợp.</td></tr>`; // Colspan = 7
+      renderOccupantPaginationUI();
+      return;
+    }
+
+    // Calculate start and end index for the current page
+    const startIndex = (occupantCurrentPage - 1) * occupantsPerPage;
+    const endIndex = Math.min(startIndex + occupantsPerPage, totalOccupants);
+    const occupantsToDisplay = currentOccupantData.slice(startIndex, endIndex);
+
+    // --- Fetch related data efficiently ---
+    const roomIds = [
+      ...new Set(occupantsToDisplay.map((occ) => occ.roomId))
+    ].filter(Boolean);
+    const userIds = [
+      ...new Set(occupantsToDisplay.map((occ) => occ.tenantId))
+    ].filter(Boolean); // Use tenantId
+
+    const roomPromises = roomIds.map((id) =>
+      RoomService.getRoomById(id).catch((e) => {
+        console.error(e);
+        return null;
+      })
+    );
+    // Assuming UserService has a method like getUserById. Adjust if needed.
+    const userPromises = userIds.map((id) =>
+      UserService.getUserById(id).catch((e) => {
+        console.error(e);
+        return null;
+      })
+    );
+
+    const [roomResults, userResults] = await Promise.all([
+      Promise.allSettled(roomPromises),
+      Promise.allSettled(userPromises)
+    ]);
+
+    const roomDetailsMap = new Map();
+    roomResults.forEach((result) => {
+      if (result.status === "fulfilled" && result.value) {
+        roomDetailsMap.set(result.value._id, result.value);
+      }
+    });
+
+    const userDetailsMap = new Map();
+    userResults.forEach((result) => {
+      if (result.status === "fulfilled" && result.value) {
+        userDetailsMap.set(result.value._id, result.value); // Use user._id as key
+      }
+    });
+    // --- End Fetch related data ---
+
+    occupantsToDisplay.forEach((occupant, index) => {
+      const row = document.createElement("tr");
+      row.dataset.id = occupant._id; // Use occupant's _id
+      const sequentialNumber = startIndex + index + 1;
+
+      // Get Room Info
+      const roomInfo = roomDetailsMap.get(occupant.roomId);
+      const roomDisplay = roomInfo
+        ? `P. ${roomInfo.roomNumber || "N/A"} - ĐC. ${
+            roomInfo.address || "N/A"
+          }`
+        : "Phòng không xác định";
+
+      // Get User Info (Username)
+      const userInfo = userDetailsMap.get(occupant.tenantId); // Get user by tenantId
+      const userDisplay = userInfo ? userInfo.username : "Không có"; // Display username or 'Không có'
+
+      row.innerHTML = `
+        <td>${sequentialNumber}</td>
+        <td>${roomDisplay}</td>
+        <td>${userDisplay}</td>
+        <td>${occupant.contractCode || "N/A"}</td>
+        <td>${occupant.fullName || "Chưa cập nhật"}</td>
+        <td>${occupant.cccd || "Chưa cập nhật"}</td>
+        <td class="text-center action-cell">
+            <button class="btn btn-sm btn-danger delete-occupant-btn" data-id="${
+              occupant._id
+            }" title="Xóa người thuê">Xóa</button>
+        </td>
+      `;
+
+      // Row click listener (navigate to details page - adjust URL if needed)
+      row.addEventListener("click", (event) => {
+        if (event.target.closest(".action-cell")) return;
+        // TODO: Define the details page URL structure
+        window.location.href = `/admin/occupant/details/${occupant._id}`;
+      });
+
+      occupantTableBody.appendChild(row);
+    });
+
+    renderOccupantPaginationUI(); // Render pagination controls
+  }
+
+  // Function: Renders pagination controls for the occupant table.
+  function renderOccupantPaginationUI() {
+    if (!occupantPaginationContainer) return;
+    occupantPaginationContainer.innerHTML = ""; // Clear previous pagination
+
+    const totalPages = Math.ceil(totalOccupants / occupantsPerPage);
+
+    if (totalPages <= 1) {
+      return; // No pagination needed
+    }
+
+    for (let i = 1; i <= totalPages; i++) {
+      const pageNumberItem = document.createElement("li");
+      pageNumberItem.classList.add("page-item");
+      if (i === occupantCurrentPage) {
+        pageNumberItem.classList.add("active");
+      }
+
+      const pageNumberLink = document.createElement("a");
+      pageNumberLink.classList.add("page-link");
+      pageNumberLink.href = "#";
+      pageNumberLink.textContent = i;
+
+      pageNumberLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (i !== occupantCurrentPage) {
+          occupantCurrentPage = i;
+          renderOccupantTableUI(); // Re-render the table for the new page
+        }
+      });
+
+      pageNumberItem.appendChild(pageNumberLink);
+      occupantPaginationContainer.appendChild(pageNumberItem);
+    }
+  }
+
+  // --- Occupants Tab: Delete Occupant Logic ---
+  async function handleDeleteOccupant(occupantId) {
+    const confirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa người thuê này không?"
+    );
+    if (!confirmed) return;
+
+    const deleteButton = occupantTableBody?.querySelector(
+      `.delete-occupant-btn[data-id="${occupantId}"]`
+    );
+    const originalButtonText = deleteButton ? deleteButton.innerHTML : "Xóa";
+
+    // Show loading state
+    if (deleteButton) {
+      deleteButton.disabled = true;
+      deleteButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xóa...`;
+    }
+
+    try {
+      await OccupantService.deleteOccupant(occupantId);
+
+      // Remove from local data and update total
+      const indexToRemove = currentOccupantData.findIndex(
+        (occ) => occ._id === occupantId
+      );
+      if (indexToRemove > -1) {
+        currentOccupantData.splice(indexToRemove, 1);
+      }
+      totalOccupants = currentOccupantData.length;
+
+      // Adjust current page if necessary
+      const totalPagesAfterDeletion = Math.ceil(
+        totalOccupants / occupantsPerPage
+      );
+      if (
+        occupantCurrentPage > totalPagesAfterDeletion &&
+        totalPagesAfterDeletion > 0
+      ) {
+        occupantCurrentPage = totalPagesAfterDeletion;
+      } else if (totalPagesAfterDeletion === 0) {
+        occupantCurrentPage = 1;
+      }
+
+      renderOccupantTableUI(); // Re-render the table
+      // Optionally show success toast
+    } catch (error) {
+      console.error(error);
+      const errorMsg = (
+        error?.response?.data?.message ||
+        error.message ||
+        "Không thể xóa người thuê"
+      ).toString();
+      alert(
+        `Lỗi khi xóa người thuê: ${
+          errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1)
+        }`
+      );
+    } finally {
+      // Restore button state
+      if (deleteButton) {
+        deleteButton.disabled = false;
+        deleteButton.innerHTML = originalButtonText;
+      }
+    }
+  }
+
+  // --- Occupants Tab: Add New Occupant Modal Logic ---
+
+  // Function: Resets the 'Add New Occupant' form to its default state.
+  function resetAddOccupantForm() {
+    if (addOccupantForm) {
+      addOccupantForm.reset(); // Reset form fields
+      addOccupantForm.classList.remove("was-validated"); // Remove validation styling
+    }
+
+    // Reset room dropdown
+    if (newOccupantRoomIdSelect) {
+      newOccupantRoomIdSelect.innerHTML =
+        '<option value="" selected disabled>Chọn phòng...</option>';
+      newOccupantRoomIdSelect.disabled = true; // Keep disabled until loaded
+    }
+    // Reset tenant dropdown
+    if (newOccupantTenantIdSelect) {
+      newOccupantTenantIdSelect.innerHTML =
+        '<option value="" selected>Không có tài khoản</option><option value="loading" disabled>Đang tải tài khoản...</option>';
+      newOccupantTenantIdSelect.disabled = true;
+    }
+    // Clear prefilled contract code
+    if (newOccupantContractCodeInput) {
+      newOccupantContractCodeInput.value = "";
+      newOccupantContractCodeInput.placeholder =
+        "Sẽ tự động điền khi chọn phòng";
+    }
+    activeContractCodeForSelectedRoom = null; // Reset stored contract code
+
+    // Reset image state
+    selectedOccupantCccdImageFiles = []; // Clear the array
+    renderOccupantCccdImagePreviews(); // Clear the preview area
+
+    // Hide any previous feedback messages
+    hideModalFeedback("addOccupantModalFeedback");
+  }
+
+  // Function: Fetches occupied rooms and populates the room dropdown in the Add Occupant modal.
+  async function loadOccupiedRoomsForOccupantModal() {
+    if (!newOccupantRoomIdSelect || !occupantRoomSelectLoadingDiv) return;
+
+    // Show loading state
+    newOccupantRoomIdSelect.innerHTML =
+      '<option value="" selected disabled>Đang tải phòng...</option>';
+    newOccupantRoomIdSelect.disabled = true;
+    occupantRoomSelectLoadingDiv.style.display = "block";
+
+    try {
+      const rooms = await RoomService.getAllRooms({ status: "occupied" });
+      // Note: We might need filtering later if a room can only have one 'main' occupant defined this way. For now, load all occupied.
+
+      newOccupantRoomIdSelect.innerHTML =
+        '<option value="" selected disabled>Chọn phòng...</option>'; // Reset placeholder
+
+      if (rooms && rooms.length > 0) {
+        rooms.forEach((room) => {
+          const option = document.createElement("option");
+          option.value = room._id;
+          option.textContent = `P. ${room.roomNumber || "N/A"} - ĐC. ${
+            room.address || "N/A"
+          }`;
+          // Store contract code potentially later if needed directly
+          newOccupantRoomIdSelect.appendChild(option);
+        });
+        newOccupantRoomIdSelect.disabled = false; // Enable select
+      } else {
+        newOccupantRoomIdSelect.innerHTML =
+          '<option value="" disabled>Không có phòng nào đang được thuê</option>';
+      }
+    } catch (error) {
+      console.error(error);
+      newOccupantRoomIdSelect.innerHTML =
+        '<option value="" disabled>Lỗi tải phòng</option>';
+    } finally {
+      occupantRoomSelectLoadingDiv.style.display = "none"; // Hide loading indicator
+    }
+  }
+
+  // Function: Fetches tenant users and populates the tenant dropdown in the Add Occupant modal.
+  async function loadTenantUsersForOccupantModal() {
+    if (!newOccupantTenantIdSelect || !occupantTenantSelectLoadingDiv) return;
+
+    // Show loading state
+    newOccupantTenantIdSelect.innerHTML =
+      '<option value="" selected>Không có tài khoản</option><option value="loading" disabled>Đang tải tài khoản...</option>';
+    newOccupantTenantIdSelect.disabled = true;
+    occupantTenantSelectLoadingDiv.style.display = "block";
+
+    try {
+      // Fetch users with role 'tenant'
+      const users = await UserService.getAllUsers({ role: "tenant" });
+      availableTenantUsers = users || []; // Store globally
+
+      // Reset dropdown, keeping the 'No account' option
+      newOccupantTenantIdSelect.innerHTML =
+        '<option value="" selected>Không có tài khoản</option>';
+
+      if (availableTenantUsers.length > 0) {
+        availableTenantUsers.forEach((user) => {
+          const option = document.createElement("option");
+          option.value = user._id; // Use user's _id
+          option.textContent = `${user.username} (${user.phone || "N/A"})`;
+          newOccupantTenantIdSelect.appendChild(option);
+        });
+      } else {
+        newOccupantTenantIdSelect.innerHTML +=
+          '<option value="" disabled>Không tìm thấy tài khoản người thuê nào</option>';
+      }
+      newOccupantTenantIdSelect.disabled = false; // Enable select
+    } catch (error) {
+      console.error(error);
+      newOccupantTenantIdSelect.innerHTML =
+        '<option value="" selected>Không có tài khoản</option><option value="" disabled>Lỗi tải tài khoản</option>';
+      availableTenantUsers = []; // Reset on error
+    } finally {
+      occupantTenantSelectLoadingDiv.style.display = "none"; // Hide loading indicator
+    }
+  }
+
+  // Function: Handles changes in the room selection dropdown in the Add Occupant modal.
+  async function handleOccupantRoomChange() {
+    const selectedRoomId = newOccupantRoomIdSelect?.value;
+    activeContractCodeForSelectedRoom = null; // Reset contract code
+    if (newOccupantContractCodeInput) {
+      newOccupantContractCodeInput.value = ""; // Clear display
+      newOccupantContractCodeInput.placeholder = "Đang tìm hợp đồng...";
+    }
+
+    if (!selectedRoomId) {
+      if (newOccupantContractCodeInput)
+        newOccupantContractCodeInput.placeholder = "Vui lòng chọn phòng";
+      return;
+    }
+
+    try {
+      const contracts = await ContractService.getAllContracts({
+        roomId: selectedRoomId,
+        status: "active" // Find only the active contract for this room
+      });
+
+      if (contracts && contracts.length > 0) {
+        activeContractCodeForSelectedRoom = contracts[0].contractCode; // Store the code
+        if (newOccupantContractCodeInput) {
+          newOccupantContractCodeInput.value =
+            activeContractCodeForSelectedRoom; // Display it
+        }
+      } else {
+        if (newOccupantContractCodeInput) {
+          newOccupantContractCodeInput.placeholder =
+            "Không tìm thấy hợp đồng đang hoạt động";
+        }
+        showModalFeedback(
+          // Show warning if no active contract found
+          "addOccupantModalFeedback",
+          "Phòng này hiện không có hợp đồng nào đang hoạt động.",
+          "warning"
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      if (newOccupantContractCodeInput) {
+        newOccupantContractCodeInput.placeholder = "Lỗi khi tìm hợp đồng";
+      }
+      showModalFeedback(
+        "addOccupantModalFeedback",
+        "Đã xảy ra lỗi khi tìm hợp đồng cho phòng này.",
+        "danger"
+      );
+    }
+  }
+
+  // Funtion: Renders previews of selected CCCD images in the 'Add Occupant' modal.
+  function renderOccupantCccdImagePreviews() {
+    if (!newOccupantCccdImagePreviewDiv) return;
+    newOccupantCccdImagePreviewDiv.innerHTML = ""; // Clear previous previews
+
+    selectedOccupantCccdImageFiles.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const previewItem = document.createElement("div");
+        // Use the same class as other modals for consistency
+        previewItem.classList.add("image-preview-item");
+        previewItem.innerHTML = `
+          <img src="${e.target.result}" alt="Preview ${file.name}">
+          <button type="button" class="remove-image-btn" data-index="${index}" title="Xóa ảnh này">×</button>
+        `;
+        previewItem
+          .querySelector(".remove-image-btn")
+          .addEventListener("click", (event) => {
+            const indexToRemove = parseInt(
+              event.target.getAttribute("data-index"),
+              10
+            );
+            if (
+              !isNaN(indexToRemove) &&
+              indexToRemove >= 0 &&
+              indexToRemove < selectedOccupantCccdImageFiles.length
+            ) {
+              selectedOccupantCccdImageFiles.splice(indexToRemove, 1);
+              renderOccupantCccdImagePreviews(); // Re-render after removal
+            }
+          });
+        newOccupantCccdImagePreviewDiv.appendChild(previewItem);
+      };
+      reader.onerror = (error) => {
+        console.error(error);
+        const errorItem = document.createElement("div");
+        errorItem.className = "image-preview-item text-danger small p-1";
+        errorItem.textContent = `Lỗi đọc file`;
+        newOccupantCccdImagePreviewDiv.appendChild(errorItem);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Show placeholder if no images selected
+    if (selectedOccupantCccdImageFiles.length === 0) {
+      newOccupantCccdImagePreviewDiv.innerHTML =
+        '<p class="text-muted small mb-0">Chưa chọn ảnh nào.</p>';
+    }
+  }
+
+  // Funtion: Handles the selection of new CCCD image files.
+  function handleOccupantCccdImageSelection(event) {
+    const files = Array.from(event.target.files);
+    // Optional: Add validation for file types or size here if needed
+    selectedOccupantCccdImageFiles.push(...files);
+    renderOccupantCccdImagePreviews(); // Update the UI
+    event.target.value = null; // Reset input value to allow selecting the same file again
+  }
+
+  // Function: Handles the submission of the 'Add New Occupant' form.
+  async function handleSaveNewOccupant() {
+    hideModalFeedback("addOccupantModalFeedback"); // Clear previous messages
+
+    // --- Step 1: Basic Form Validation (Room is required) ---
+    if (!addOccupantForm || !newOccupantRoomIdSelect.value) {
+      if (!newOccupantRoomIdSelect.value && newOccupantRoomIdSelect) {
+        newOccupantRoomIdSelect.classList.add("is-invalid");
+      }
+      showModalFeedback(
+        "addOccupantModalFeedback",
+        "Vui lòng chọn phòng.",
+        "warning"
+      );
+      return;
+    }
+    if (newOccupantRoomIdSelect.value && newOccupantRoomIdSelect) {
+      newOccupantRoomIdSelect.classList.remove("is-invalid");
+      if (addOccupantForm) addOccupantForm.classList.add("was-validated");
+    }
+
+    // --- Step 1.1: Check if contract code was found ---
+    if (!activeContractCodeForSelectedRoom) {
+      showModalFeedback(
+        "addOccupantModalFeedback",
+        "Không thể lưu người thuê vì không tìm thấy hợp đồng đang hoạt động cho phòng này.",
+        "danger"
+      );
+      return;
+    }
+
+    const selectedRoomId = newOccupantRoomIdSelect.value;
+
+    const selectedRoomInfo = allOccupiedRoomsForOccupantFilter.find(
+      (room) => room._id === selectedRoomId
+    );
+    const maxOccupants = selectedRoomInfo?.occupantsNumber || 0;
+
+    if (maxOccupants <= 0) {
+      console.warn(
+        "Could not determine max occupants for room or max is 0:",
+        selectedRoomId
+      );
+    } else {
+      try {
+        const countFilter = {
+          roomId: selectedRoomId,
+          contractCode: activeContractCodeForSelectedRoom
+        };
+        const currentOccupantsInRoom = await OccupantService.getAllOccupants(
+          countFilter
+        );
+        const currentOccupantCount = currentOccupantsInRoom.length;
+
+        if (currentOccupantCount >= maxOccupants) {
+          showModalFeedback(
+            "addOccupantModalFeedback",
+            `Phòng đã đủ số người tối đa (${maxOccupants}). Không thể thêm người thuê mới.`,
+            "danger"
+          );
+          return;
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          console.log(
+            "No existing occupants found for this room/contract, proceeding."
+          );
+        } else {
+          console.error(error);
+          showModalFeedback(
+            "addOccupantModalFeedback",
+            "Lỗi khi kiểm tra số lượng người thuê hiện tại. Vui lòng thử lại.",
+            "danger"
+          );
+          return; 
+        }
+      }
+    }
+
+    // --- Step 2: Prepare Data Object ---
+    const occupantData = {
+      roomId: selectedRoomId,
+      contractCode: activeContractCodeForSelectedRoom,
+      tenantId: newOccupantTenantIdSelect.value || null,
+      fullName: newOccupantFullNameInput.value.trim() || null,
+      birthday: newOccupantBirthdayInput.value || null,
+      address: newOccupantAddressInput.value.trim() || null,
+      cccd: newOccupantCccdInput.value.trim() || null
+    };
+
+    // --- Step 3: Prepare FormData ---
+    const formData = new FormData();
+    for (const key in occupantData) {
+      if (occupantData[key] !== null && occupantData[key] !== undefined) {
+        formData.append(key, occupantData[key]);
+      }
+    }
+    selectedOccupantCccdImageFiles.forEach((file) => {
+      formData.append("cccdImages", file);
+    });
+
+    // --- Step 4: API Call & Feedback ---
+    if (saveNewOccupantBtn) saveNewOccupantBtn.disabled = true;
+    if (saveNewOccupantSpinner)
+      saveNewOccupantSpinner.style.display = "inline-block";
+
+    try {
+      await OccupantService.addNewOccupant(formData);
+
+      showModalFeedback(
+        "addOccupantModalFeedback",
+        "Thêm người thuê mới thành công!",
+        "success"
+      );
+      occupantCurrentPage = 1;
+      await fetchAndRenderUiForOccupantsTab();
+
+      setTimeout(() => {
+        if (addNewOccupantModal) addNewOccupantModal.hide();
+      }, 1500);
+    } catch (error) {
+      console.error(error);
+      const errorMsg = (
+        error?.response?.data?.message ||
+        error.message ||
+        "Không thể lưu người thuê. Vui lòng thử lại."
+      ).toString();
+      showModalFeedback(
+        "addOccupantModalFeedback",
+        `Lỗi: ${errorMsg.charAt(0).toUpperCase() + errorMsg.slice(1)}`,
+        "danger"
+      );
+    } finally {
+      if (saveNewOccupantBtn) saveNewOccupantBtn.disabled = false;
+      if (saveNewOccupantSpinner) saveNewOccupantSpinner.style.display = "none";
     }
   }
 
@@ -4047,7 +4771,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Event Listener: Expense Table (using delegation for delete buttons)
+  // Event Listener: Expense Table
   if (expenseTableBody) {
     expenseTableBody.addEventListener("click", (event) => {
       // Check if the clicked element is a delete button
@@ -4138,8 +4862,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const deleteButton = event.target.closest(".delete-user-btn");
       if (deleteButton) {
         event.stopPropagation();
-        const username = deleteButton.dataset.id;
-        if (username) handleDeleteUser(username);
+        const userId = deleteButton.dataset.id;
+        if (userId) handleDeleteUser(userId);
       }
     });
   }
@@ -4181,7 +4905,104 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
-  // Event Listeners: Add New User Modal (Thêm sau)
+  // Event Listeners: Occupants Tab Actions
+  if (searchOccupantBtn) {
+    searchOccupantBtn.addEventListener("click", () => {
+      occupantCurrentPage = 1; // Reset page on new search/filter
+      fetchAndRenderUiForOccupantsTab();
+    });
+  }
+  // Allow searching on Enter key press in both search inputs
+  [searchOccupantContractCodeInput, searchOccupantCccdInput].forEach(
+    (input) => {
+      if (input) {
+        input.addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            occupantCurrentPage = 1;
+            fetchAndRenderUiForOccupantsTab();
+          }
+        });
+      }
+    }
+  );
+
+  if (applyOccupantFiltersBtn) {
+    applyOccupantFiltersBtn.addEventListener("click", () => {
+      occupantCurrentPage = 1;
+      fetchAndRenderUiForOccupantsTab();
+    });
+  }
+
+  // Event delegation for delete buttons in the occupant table
+  if (occupantTableBody) {
+    occupantTableBody.addEventListener("click", (event) => {
+      const deleteButton = event.target.closest(".delete-occupant-btn");
+      if (deleteButton) {
+        event.stopPropagation(); // Prevent row click
+        const occupantId = deleteButton.dataset.id;
+        if (occupantId) {
+          handleDeleteOccupant(occupantId);
+        }
+      }
+    });
+  }
+
+  // Event Listeners: Add New Occupant Modal
+  if (addNewOccupantBtn && addNewOccupantModal) {
+    addNewOccupantBtn.addEventListener("click", () => {
+      resetAddOccupantForm(); // Reset first
+      addNewOccupantModal.show();
+      // Load dropdown data after showing modal
+      Promise.all([
+        loadOccupiedRoomsForOccupantModal(),
+        loadTenantUsersForOccupantModal()
+      ]).catch((error) => {
+        console.error(error);
+        showModalFeedback(
+          "addOccupantModalFeedback",
+          "Lỗi tải dữ liệu cần thiết cho biểu mẫu.",
+          "danger"
+        );
+      });
+    });
+  }
+
+  // Reset form when the modal is fully hidden
+  if (addNewOccupantModalElement) {
+    addNewOccupantModalElement.addEventListener(
+      "hidden.bs.modal",
+      resetAddOccupantForm
+    );
+  }
+
+  // Listener for room selection change to prefill contract code
+  if (newOccupantRoomIdSelect) {
+    newOccupantRoomIdSelect.addEventListener(
+      "change",
+      handleOccupantRoomChange
+    );
+  }
+
+  // Trigger file input when the custom "Select Images" button is clicked
+  if (selectOccupantCccdImagesBtn && newOccupantCccdImagesInput) {
+    selectOccupantCccdImagesBtn.addEventListener(
+      "click",
+      () => newOccupantCccdImagesInput.click() // Open file dialog
+    );
+  }
+
+  // Handle file selection when the hidden file input changes
+  if (newOccupantCccdImagesInput) {
+    newOccupantCccdImagesInput.addEventListener(
+      "change",
+      handleOccupantCccdImageSelection
+    );
+  }
+
+  // Save new occupant when the modal's save button is clicked
+  if (saveNewOccupantBtn) {
+    saveNewOccupantBtn.addEventListener("click", handleSaveNewOccupant);
+  }
 
   // --- Initial Page Load Logic ---
   async function initializePage() {
@@ -4209,6 +5030,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize Users Tab
     await fetchAndRenderUiForUsersTab();
+
+    // Initialize Occupants Tab
+    await populateOccupantRoomFilterDropdown(); // For occupant filter
+    await fetchAndRenderUiForOccupantsTab();
 
     // ... Initialize other tabs as needed ...
   }
