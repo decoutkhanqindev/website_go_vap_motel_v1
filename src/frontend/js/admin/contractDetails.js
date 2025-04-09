@@ -95,10 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const date = new Date(dateStringOrObject);
       // Check if date is valid after parsing
       if (isNaN(date.getTime())) {
-        console.error(
-          "Invalid date provided to formatDateForInput:",
-          dateStringOrObject
-        );
+        console.error(dateStringOrObject);
         return ""; // Return empty string for invalid dates
       }
       const year = date.getFullYear();
@@ -107,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const day = date.getDate().toString().padStart(2, "0");
       return `${year}-${month}-${day}`;
     } catch (e) {
-      console.error("Error formatting date:", dateStringOrObject, e);
+      console.error(e);
       return "";
     }
   }
@@ -166,8 +163,8 @@ document.addEventListener("DOMContentLoaded", () => {
     contractUtilitiesListDiv.innerHTML = ""; // Clear previous
 
     const contractUtilityIds = new Set(
-      currentContractData?.utilities?.map(
-        (u) => (typeof u === "string" ? u : u._id) 
+      currentContractData?.utilities?.map((u) =>
+        typeof u === "string" ? u : u._id
       ) || []
     );
 
@@ -244,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
           '<option value="" disabled>Không còn phòng trống</option>';
       }
     } catch (error) {
-      console.error("Error loading rooms for dropdown:", error);
+      console.error(error);
       contractRoomIdSelect.innerHTML =
         '<option value="" disabled>Lỗi tải phòng</option>';
     } finally {
@@ -385,11 +382,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function: Handles the form submission for saving changes.
   async function handleSaveChanges() {
-    hideModalFeedback();
+    hideModalFeedback(); // Uses the file's specific feedback hide function
 
+    // --- Validations (Keep existing: checkValidity, date order) ---
     if (!editContractForm || !editContractForm.checkValidity()) {
       if (editContractForm) editContractForm.classList.add("was-validated");
       showModalFeedback(
+        // Uses the file's specific feedback show function
         "Vui lòng kiểm tra lại các trường thông tin bắt buộc.",
         "warning"
       );
@@ -401,6 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const endDate = contractEndDateInput?.value;
     if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
       showModalFeedback(
+        // Uses the file's specific feedback show function
         "Ngày kết thúc không được trước ngày bắt đầu.",
         "warning"
       );
@@ -409,83 +409,91 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!currentContractId || !currentContractData) {
       showModalFeedback(
+        // Uses the file's specific feedback show function
         "Lỗi: Không thể xác định dữ liệu hợp đồng hiện tại.",
         "danger"
       );
       return;
     }
+    // --- End Validations ---
 
-    if (saveChangesBtn) saveChangesBtn.disabled = true;
-    if (saveChangesSpinner) saveChangesSpinner.style.display = "inline-block";
-    const errors = []; // To collect errors from multiple API calls
+    const updatedAmenityIds = Array.from(
+      contractAmenitiesListDiv?.querySelectorAll(
+        ".contract-amenity-checkbox:checked"
+      ) || []
+    ).map((cb) => cb.value);
+    const updatedUtilityIds = Array.from(
+      contractUtilitiesListDiv?.querySelectorAll(
+        ".contract-utility-checkbox:checked"
+      ) || []
+    ).map((cb) => cb.value);
 
-    try {
-      // Collect current data from form
-      const updatedAmenityIds = Array.from(
-        contractAmenitiesListDiv?.querySelectorAll(
-          ".contract-amenity-checkbox:checked"
-        ) || []
-      ).map((cb) => cb.value);
-      const updatedUtilityIds = Array.from(
-        contractUtilitiesListDiv?.querySelectorAll(
-          ".contract-utility-checkbox:checked"
-        ) || []
-      ).map((cb) => cb.value);
+    const updatedContractCoreData = {
+      roomId: contractRoomIdSelect.value,
+      rentPrice: parseInt(contractRentPriceInput.value, 10) || 0,
+      deposit: parseInt(contractDepositInput.value, 10) || 0,
+      startDate: contractStartDateInput.value,
+      endDate: contractEndDateInput.value,
+      status: contractStatusSelect.value
+    };
 
-      const updatedContractData = {
-        roomId: contractRoomIdSelect.value,
-        rentPrice: parseInt(contractRentPriceInput.value, 10) || 0,
-        deposit: parseInt(contractDepositInput.value, 10) || 0,
-        startDate: contractStartDateInput.value,
-        endDate: contractEndDateInput.value,
-        status: contractStatusSelect.value,
-        amenities: updatedAmenityIds,
-        utilities: updatedUtilityIds
-      };
+    let hasChanges = false;
+    const initialAmenities = new Set(
+      currentContractData.amenities?.map((a) =>
+        typeof a === "string" ? a : a._id
+      ) || []
+    );
+    const initialUtilities = new Set(
+      currentContractData.utilities?.map((u) =>
+        typeof u === "string" ? u : u._id
+      ) || []
+    );
+    const currentAmenities = new Set(updatedAmenityIds);
+    const currentUtilities = new Set(updatedUtilityIds);
 
-      // Compare with initial data
-      let hasChanges = false;
-      const initialAmenities = new Set(
-        currentContractData.amenities?.map((a) =>
-          typeof a === "string" ? a : a._id
-        ) || []
-      );
-      const initialUtilities = new Set(
-        currentContractData.utilities?.map((u) =>
-          typeof u === "string" ? u : u._id
-        ) || []
-      );
-      const currentAmenities = new Set(updatedContractData.amenities);
-      const currentUtilities = new Set(updatedContractData.utilities);
+    // Compare dates correctly formatted as YYYY-MM-DD
+    const initialStartDateFormatted = formatDateForInput(
+      currentContractData.startDate
+    );
+    const initialEndDateFormatted = formatDateForInput(
+      currentContractData.endDate
+    );
 
-      const initialStartDate = currentContractData.startDate
-        ? currentContractData.startDate.substring(0, 10)
-        : "";
-      const initialEndDate = currentContractData.endDate
-        ? currentContractData.endDate.substring(0, 10)
-        : "";
+    if (
+      updatedContractCoreData.roomId !== currentContractData.roomId ||
+      updatedContractCoreData.rentPrice !== currentContractData.rentPrice ||
+      updatedContractCoreData.deposit !== currentContractData.deposit ||
+      updatedContractCoreData.startDate !== initialStartDateFormatted || // Compare formatted
+      updatedContractCoreData.endDate !== initialEndDateFormatted || // Compare formatted
+      updatedContractCoreData.status !== currentContractData.status ||
+      initialAmenities.size !== currentAmenities.size ||
+      ![...initialAmenities].every((id) => currentAmenities.has(id)) ||
+      initialUtilities.size !== currentUtilities.size ||
+      ![...initialUtilities].every((id) => currentUtilities.has(id))
+    ) {
+      hasChanges = true;
+    }
 
-      if (
-        updatedContractData.roomId !== currentContractData.roomId ||
-        updatedContractData.rentPrice !== currentContractData.rentPrice ||
-        updatedContractData.deposit !== currentContractData.deposit ||
-        updatedContractData.startDate !== initialStartDate ||
-        updatedContractData.endDate !== initialEndDate ||
-        updatedContractData.status !== currentContractData.status ||
-        initialAmenities.size !== currentAmenities.size ||
-        ![...initialAmenities].every((id) => currentAmenities.has(id)) ||
-        initialUtilities.size !== currentUtilities.size ||
-        ![...initialUtilities].every((id) => currentUtilities.has(id))
-      ) {
-        hasChanges = true;
-      }
+    if (hasChanges) {
+      if (saveChangesBtn) saveChangesBtn.disabled = true;
+      if (saveChangesSpinner) saveChangesSpinner.style.display = "inline-block";
+      // errors array might not be needed here if only one API call
+      const errors = []; // Keep for consistency with original code if needed elsewhere
 
-      if (hasChanges) {
+      try {
+        // Prepare the final data payload
+        const finalUpdateData = {
+          ...updatedContractCoreData,
+          amenities: updatedAmenityIds,
+          utilities: updatedUtilityIds
+        };
+
         await ContractService.updateContract(
           currentContractId,
-          updatedContractData
+          finalUpdateData
         );
-        showModalFeedback("Cập nhật hợp đồng thành công!", "success");
+
+        showModalFeedback("Cập nhật hợp đồng thành công!", "success"); // Uses the file's specific feedback show function
 
         setTimeout(async () => {
           try {
@@ -496,6 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
               fetchError.message || "Unknown error"
             ).toString();
             showModalFeedback(
+              // Uses the file's specific feedback show function
               `Cập nhật thành công, nhưng lỗi khi tải lại dữ liệu: ${
                 fetchErrMsg.charAt(0).toUpperCase() + fetchErrMsg.slice(1)
               }`,
@@ -503,35 +512,36 @@ document.addEventListener("DOMContentLoaded", () => {
             );
           }
         }, 1500);
-      } else {
-        showModalFeedback("Không có thay đổi nào để lưu.", "info");
+      } catch (error) {
+        console.error(error);
+        const errorMessage =
+          errors.length > 0 // Kept this pattern from original
+            ? errors.join("; ")
+            : `Đã xảy ra lỗi: ${
+                (
+                  error?.response?.data?.message ||
+                  error.message ||
+                  "Unknown error"
+                )
+                  .toString()
+                  .charAt(0)
+                  .toUpperCase() +
+                (
+                  error?.response?.data?.message ||
+                  error.message ||
+                  "Unknown error"
+                )
+                  .toString()
+                  .slice(1)
+              }`;
+        showModalFeedback(errorMessage, "danger"); // Uses the file's specific feedback show function
+      } finally {
+        if (saveChangesBtn) saveChangesBtn.disabled = false;
+        if (saveChangesSpinner) saveChangesSpinner.style.display = "none";
       }
-    } catch (error) {
-      console.error(error);
-      const errorMessage =
-        errors.length > 0
-          ? errors.join("; ")
-          : `Đã xảy ra lỗi: ${
-              (
-                error?.response?.data?.message ||
-                error.message ||
-                "Unknown error"
-              )
-                .toString()
-                .charAt(0)
-                .toUpperCase() +
-              (
-                error?.response?.data?.message ||
-                error.message ||
-                "Unknown error"
-              )
-                .toString()
-                .slice(1)
-            }`;
-      showModalFeedback(errorMessage, "danger");
-    } finally {
-      if (saveChangesBtn) saveChangesBtn.disabled = false;
-      if (saveChangesSpinner) saveChangesSpinner.style.display = "none";
+    } else {
+      // No changes detected
+      showModalFeedback("Không có thay đổi nào để lưu.", "info"); // Uses the file's specific feedback show function
     }
   }
 

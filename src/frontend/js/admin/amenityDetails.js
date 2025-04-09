@@ -5,7 +5,7 @@ import AmenityService from "../services/AmenityService.js";
 // --- State for Amenity Editing ---
 let currentAmenityId = null;
 let currentAmenityData = null;
-let existingImagePreviews = [];
+let existingImageIds = [];
 let newImageFiles = [];
 let imagesToDeleteIds = [];
 
@@ -93,58 +93,88 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function: Renders image previews for existing and newly added images, handling async loading and removal.
   async function renderImagePreviews() {
-    if (!amenityImagePreviewDiv) return; // Target amenity preview div
+    if (!amenityImagePreviewDiv) return;
     amenityImagePreviewDiv.innerHTML = ""; // Clear previous
 
-    // Render existing images (fetch data, add remove button)
-    const existingImagePromises = existingImagePreviews.map(async (imgInfo) => {
-      if (imagesToDeleteIds.includes(imgInfo.id)) return null; // Skip if marked for deletion
+    let previewGenerated = false;
+
+    // 1. Render existing images by fetching each one individually
+    const existingImagePromises = existingImageIds.map(async (imageId) => {
+      if (imagesToDeleteIds.includes(imageId)) return null; // Skip if marked for removal
+
       const previewItem = document.createElement("div");
       previewItem.classList.add("image-preview-item");
-      let imageSrc = "/assets/logo_error.png"; // Default error image
+      let imageSrc = "/assets/logo_error.png"; // Default fallback
+
       try {
-        // Use AmenityService to get image data
-        const imageData = await AmenityService.getAmenityImageById(imgInfo.id);
-        const base64Image = btoa(
-          new Uint8Array(imageData.data.data).reduce(
-            (data, byte) => data + String.fromCharCode(byte),
-            ""
-          )
+        // Fetch individual image data using AmenityService
+        const imageDataResponse = await AmenityService.getAmenityImageById(
+          imageId
         );
-        imageSrc = `data:${imageData.contentType};base64,${base64Image}`;
+
+        // Convert ArrayBuffer/Buffer to Base64 Data URL
+        if (imageDataResponse?.data?.data && imageDataResponse?.contentType) {
+          const buffer = imageDataResponse.data.data;
+          const base64Image = btoa(
+            new Uint8Array(buffer).reduce(
+              (data, byte) => data + String.fromCharCode(byte),
+              ""
+            )
+          );
+          imageSrc = `data:${imageDataResponse.contentType};base64,${base64Image}`;
+          previewGenerated = true;
+        } else {
+          console.error(
+            `Invalid image data structure received for amenity image ID: ${imageId}`
+          );
+        }
       } catch (error) {
-        console.error(error); // Update log message
+        console.error(error);
       }
-      previewItem.innerHTML = `<img src="${imageSrc}" alt="Existing amenity image"><button type="button" class="remove-image-btn existing-remove-btn" data-image-id="${imgInfo.id}" title="Xóa ảnh này">×</button>`; // Update alt text
-      return previewItem;
-    });
-    const existingItems = (await Promise.all(existingImagePromises)).filter(
-      (item) => item !== null
-    );
-    existingItems.forEach((previewItem) => {
-      amenityImagePreviewDiv.appendChild(previewItem); // Append to amenity preview div
+
+      previewItem.innerHTML = `
+            <img src="${imageSrc}" alt="Ảnh tiện nghi hiện có">
+            <button type="button" class="remove-image-btn existing-remove-btn" data-image-id="${imageId}" title="Xóa ảnh này">×</button>
+        `;
+
+      // Add listener AFTER element is created
       const removeBtn = previewItem.querySelector(".existing-remove-btn");
       if (removeBtn) {
         removeBtn.addEventListener("click", (event) => {
-          const imageId = event.target.getAttribute("data-image-id");
-          if (imageId && !imagesToDeleteIds.includes(imageId)) {
-            imagesToDeleteIds.push(imageId); // Mark for deletion
-            renderImagePreviews(); // Re-render to visually remove
+          const idToRemove = event.target.getAttribute("data-image-id");
+          if (idToRemove && !imagesToDeleteIds.includes(idToRemove)) {
+            imagesToDeleteIds.push(idToRemove);
+            renderImagePreviews(); // Re-render
           }
         });
       }
+      return previewItem;
     });
 
-    // Render previews for newly selected files (using FileReader, add remove button)
+    // Wait for all fetches and element creations
+    const existingItems = (await Promise.all(existingImagePromises)).filter(
+      (item) => item !== null
+    );
+
+    // Append valid fetched items
+    existingItems.forEach((previewItem) => {
+      amenityImagePreviewDiv.appendChild(previewItem);
+    });
+
+    // 2. Render previews for newly selected files (using FileReader)
     newImageFiles.forEach((file, index) => {
+      previewGenerated = true;
       const reader = new FileReader();
       reader.onload = function (e) {
         const newPreviewItem = document.createElement("div");
         newPreviewItem.classList.add("image-preview-item");
-        newPreviewItem.innerHTML = `<img src="${e.target.result}" alt="Preview ${file.name}"><button type="button" class="remove-image-btn new-remove-btn" data-index="${index}" title="Hủy thêm ảnh này">×</button>`;
-        const removeBtn = newPreviewItem.querySelector(".new-remove-btn");
-        if (removeBtn) {
-          removeBtn.addEventListener("click", (event) => {
+        newPreviewItem.innerHTML = `
+                <img src="${e.target.result}" alt="Xem trước ảnh mới ${file.name}">
+                <button type="button" class="remove-image-btn new-remove-btn" data-index="${index}" title="Hủy thêm ảnh này">×</button>
+            `;
+        newPreviewItem
+          .querySelector(".new-remove-btn")
+          ?.addEventListener("click", (event) => {
             const indexToRemove = parseInt(
               event.target.getAttribute("data-index"),
               10
@@ -154,23 +184,21 @@ document.addEventListener("DOMContentLoaded", () => {
               indexToRemove >= 0 &&
               indexToRemove < newImageFiles.length
             ) {
-              newImageFiles.splice(indexToRemove, 1); // Remove from new files array
-              renderImagePreviews(); // Re-render to reflect removal and update indices
-            } else {
-              renderImagePreviews(); // Re-render just in case
+              newImageFiles.splice(indexToRemove, 1);
+              renderImagePreviews();
             }
           });
-        }
-        amenityImagePreviewDiv.appendChild(newPreviewItem); // Append to amenity preview div
+        amenityImagePreviewDiv.appendChild(newPreviewItem);
       };
       reader.onerror = (error) => {
         console.error(error);
+        // Optional: Add error placeholder item
       };
       reader.readAsDataURL(file);
     });
 
-    // Display placeholder if no images are present
-    if (amenityImagePreviewDiv.childElementCount === 0) {
+    // Display placeholder if no images after all rendering attempts
+    if (!previewGenerated && amenityImagePreviewDiv.childElementCount === 0) {
       amenityImagePreviewDiv.innerHTML =
         '<p class="text-muted small ms-1">Chưa có ảnh nào.</p>';
     }
@@ -185,60 +213,63 @@ document.addEventListener("DOMContentLoaded", () => {
       showModalFeedback(
         "Không tìm thấy ID tiện nghi hợp lệ trong URL.",
         "danger"
-      ); // Update message
-      if (editAmenityForm) editAmenityForm.style.display = "none"; // Target amenity form
+      );
+      if (editAmenityForm) editAmenityForm.style.display = "none";
       return;
     }
 
-    // Reset state before fetching
-    currentAmenityData = null; // Reset amenity data
-    existingImagePreviews = [];
+    // Reset state
+    currentAmenityData = null;
+    // === MODIFIED START: Reset consistent state variables ===
+    existingImageIds = []; // Reset to store flat IDs
     newImageFiles = [];
     imagesToDeleteIds = [];
+    // === MODIFIED END ===
 
-    // Show loading states (only for images now)
-    // Removed loading for checklists
+    // Loading states
     if (amenityImagePreviewDiv)
-      // Target amenity preview div
       amenityImagePreviewDiv.innerHTML =
-        '<p class="text-muted">Đang tải hình ảnh...</p>';
+        '<p class="text-muted small m-0">Đang tải ảnh...</p>'; // Use small text
     hideModalFeedback();
-    if (editAmenityForm) editAmenityForm.style.display = "block"; // Ensure form is visible
+    if (editAmenityForm) editAmenityForm.style.display = "block";
 
     try {
-      // Fetch only the specific amenity details
+      // Fetch specific amenity details
       const amenityDetails = await AmenityService.getAmenityById(
         currentAmenityId
-      ); // Use AmenityService
+      );
 
-      // Store fetched data globally
-      currentAmenityData = amenityDetails; // Store amenity data
-      existingImagePreviews =
-        currentAmenityData.images?.map((img) => ({
-          id: typeof img === "string" ? img : img._id // Assuming similar image structure
-        })) || [];
+      // Store data
+      currentAmenityData = amenityDetails;
+      if (!currentAmenityData)
+        throw new Error("Không tìm thấy dữ liệu tiện nghi.");
 
-      // Populate UI elements
-      populateFormFieldsBasicInfo(); // Call the population function
-      // Removed calls to renderAmenitiesChecklist and renderUtilitiesChecklist
-      await renderImagePreviews(); // Wait for images to render
+      // === MODIFIED START: Populate flat array of existing image IDs ===
+      existingImageIds =
+        currentAmenityData.images
+          ?.map((img) => (typeof img === "string" ? img : img._id)) // Get ID directly
+          .filter((id) => id) || []; // Filter out falsy IDs and ensure array
+      // === MODIFIED END ===
 
-      if (editAmenityForm) editAmenityForm.classList.remove("was-validated"); // Clear validation state
+      // Populate UI
+      populateFormFieldsBasicInfo();
+      await renderImagePreviews(); // Render images (now uses existingImageIds)
+
+      if (editAmenityForm) editAmenityForm.classList.remove("was-validated");
     } catch (error) {
-      console.error(error); // Update log message
+      console.error(error);
       const errorMessage = (
         error?.response?.data?.message ||
         error.message ||
-        "Unknown error"
+        "Lỗi chưa rõ"
       ).toString();
       showModalFeedback(
         `Lỗi khi tải dữ liệu tiện nghi: ${
-          // Update message
           errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1)
         }`,
         "danger"
       );
-      if (editAmenityForm) editAmenityForm.style.display = "none"; // Hide amenity form on load error
+      if (editAmenityForm) editAmenityForm.style.display = "none";
     }
   }
 
@@ -267,7 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleImageSelection(event) {
     const files = Array.from(event.target.files);
     newImageFiles.push(...files);
-    renderImagePreviews(); // Re-render previews including new ones
+    renderImagePreviews(); // Re-render previews
     event.target.value = null; // Allow re-selecting same file
   }
 
@@ -275,9 +306,8 @@ document.addEventListener("DOMContentLoaded", () => {
   async function handleSaveChanges() {
     hideModalFeedback();
 
-    // Validate form inputs
+    // Validate form
     if (!editAmenityForm || !editAmenityForm.checkValidity()) {
-      // Target amenity form
       if (editAmenityForm) editAmenityForm.classList.add("was-validated");
       showModalFeedback(
         "Vui lòng kiểm tra lại các trường thông tin.",
@@ -285,19 +315,18 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       return;
     }
-    if (editAmenityForm) editAmenityForm.classList.add("was-validated"); // Ensure styles shown
+    if (editAmenityForm) editAmenityForm.classList.add("was-validated");
 
-    // Check essential data exists
+    // Check data
     if (!currentAmenityId || !currentAmenityData) {
-      // Check amenity ID/Data
       showModalFeedback(
-        "Lỗi: Không thể xác định dữ liệu tiện nghi hiện tại.", // Update message
+        "Lỗi: Không thể xác định dữ liệu tiện nghi hiện tại.",
         "danger"
       );
       return;
     }
 
-    // --- Name Mapping and Validation (Input -> Key) ---
+    // --- Name Mapping and Validation ---
     const userInputName = amenityNameInput ? amenityNameInput.value.trim() : "";
     const userInputNameNormalized = userInputName
       .toLowerCase()
@@ -307,28 +336,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!englishEnumKey) {
       showModalFeedback(
-        `Tên tiện nghi "${userInputName}" không hợp lệ hoặc không được hỗ trợ. Vui lòng sử dụng tên gợi ý (ví dụ: Giường, Tủ lạnh,...).`, // Provide guidance
+        `Tên tiện nghi "${userInputName}" không hợp lệ hoặc không được hỗ trợ. Vui lòng sử dụng tên gợi ý (ví dụ: Giường, Tủ lạnh,...).`,
         "danger"
       );
-      // Don't disable the save button here, let the user correct the name.
-      return; // Stop if name is invalid
+      return;
     }
 
-    // Disable button, show spinner
+    // UI Feedback
     if (saveChangesBtn) saveChangesBtn.disabled = true;
     if (saveChangesSpinner) saveChangesSpinner.style.display = "inline-block";
-    const errors = []; // To collect errors from multiple API calls
+    const errors = [];
 
     try {
-      // Collect current data from form
+      // Collect basic data
       const updatedBasicData = {
-        name: englishEnumKey, // Use the mapped English key ("bed")
+        name: englishEnumKey,
         price: parseInt(amenityPriceInput.value, 10) || 0
       };
 
-      // Compare with initial data to determine changes
+      // Compare basic data changes
       let basicDataChanged = false;
-      const initialBasicData = currentAmenityData; // Has original English key and price
+      const initialBasicData = currentAmenityData;
       if (
         String(updatedBasicData.name) !== String(initialBasicData.name) ||
         Number(updatedBasicData.price) !== Number(initialBasicData.price)
@@ -336,96 +364,119 @@ document.addEventListener("DOMContentLoaded", () => {
         basicDataChanged = true;
       }
 
-      // Build array of API call promises based on changes detected
+      // Check image changes
+      const imagesToDeleteChanged = imagesToDeleteIds.length > 0;
+      const newImagesAdded = newImageFiles.length > 0;
+
+      if (!basicDataChanged && !imagesToDeleteChanged && !newImagesAdded) {
+        showModalFeedback("Không có thay đổi nào để lưu.", "info");
+        // No need to proceed further, re-enable button
+        if (saveChangesBtn) saveChangesBtn.disabled = false;
+        if (saveChangesSpinner) saveChangesSpinner.style.display = "none";
+        return;
+      }
+
+      // Build API calls
       const apiCalls = [];
       if (basicDataChanged) {
         apiCalls.push(
-          // Use AmenityService to update
           AmenityService.updateAmenity(
             currentAmenityId,
             updatedBasicData
           ).catch((err) => {
-            errors.push(`Lỗi cập nhật tiện nghi: ${err.message}`); // Update message
-            throw err;
+            errors.push(
+              `Lỗi cập nhật tiện nghi: ${
+                err?.response?.data?.message || err.message
+              }`
+            );
+            throw err; // Stop Promise.all on critical error
           })
         );
       }
 
-      if (imagesToDeleteIds.length > 0) {
+      if (imagesToDeleteChanged) {
         apiCalls.push(
           AmenityService.deleteImagesForAmenity(
             currentAmenityId,
             imagesToDeleteIds
           ).catch((err) => {
-            errors.push(`Lỗi xóa hình ảnh tiện nghi: ${err.message}`); // Update message
-            throw err;
+            errors.push(
+              `Lỗi xóa hình ảnh tiện nghi: ${
+                err?.response?.data?.message || err.message
+              }`
+            );
+            // Decide if this error should stop Promise.all
+            // throw err;
           })
         );
       }
-      if (newImageFiles.length > 0) {
+      if (newImagesAdded) {
+        // Assuming AmenityService.addImagesToAmenity handles FormData internally
+        // If not, create FormData here:
+        // const imageData = new FormData();
+        // newImageFiles.forEach(file => imageData.append('amenityImages', file)); // Adjust field name if needed
         apiCalls.push(
           AmenityService.addImagesToAmenity(
             currentAmenityId,
-            newImageFiles
+            newImageFiles // or imageData if using FormData
           ).catch((err) => {
-            errors.push(`Lỗi thêm hình ảnh tiện nghi mới: ${err.message}`); // Update message
-            throw err;
+            errors.push(
+              `Lỗi thêm hình ảnh tiện nghi mới: ${
+                err?.response?.data?.message || err.message
+              }`
+            );
+            // Decide if this error should stop Promise.all
+            // throw err;
           })
         );
       }
 
-      // Execute API calls if changes were made
-      if (apiCalls.length > 0) {
-        await Promise.all(apiCalls);
-        showModalFeedback("Cập nhật tiện nghi thành công!", "success"); // Update message
-        // Refresh data after a short delay
-        setTimeout(async () => {
-          try {
-            await fetchAndRenderUiAmenityDetails(); // Re-fetch and re-render amenity details
-          } catch (fetchError) {
-            console.error(fetchError); // Update log message
-            const fetchErrMsg = (
-              fetchError.message || "Unknown error"
-            ).toString();
-            showModalFeedback(
-              `Cập nhật thành công, nhưng lỗi khi tải lại dữ liệu tiện nghi: ${
-                // Update message
-                fetchErrMsg.charAt(0).toUpperCase() + fetchErrMsg.slice(1)
-              }`,
-              "warning"
-            );
-          }
-        }, 1500);
+      // Execute API calls
+      await Promise.all(apiCalls);
+
+      // === MODIFIED START: Clear state only on full success or handle partial success ===
+      if (errors.length > 0) {
+        showModalFeedback(
+          `Cập nhật thành công với một số lỗi: ${errors.join("; ")}`,
+          "warning"
+        );
+        // Decide if you still want to clear state partially or leave it
+        // For simplicity, we might only clear if ALL operations succeeded.
+        // Or clear only the successful ones if trackable. Let's clear all for now after attempting.
+        newImageFiles = [];
+        imagesToDeleteIds = []; // Clear ids attempted for deletion
       } else {
-        showModalFeedback("Không có thay đổi nào để lưu.", "info");
+        showModalFeedback("Cập nhật tiện nghi thành công!", "success");
+        // Clear state on full success
+        newImageFiles = [];
+        imagesToDeleteIds = [];
       }
+      // === MODIFIED END ===
+
+      // Refresh data after a short delay
+      setTimeout(async () => {
+        try {
+          await fetchAndRenderUiAmenityDetails(); // Re-fetch and re-render
+        } catch (fetchError) {
+          console.error(fetchError);
+          const fetchErrMsg = (fetchError.message || "Lỗi không rõ").toString();
+          showModalFeedback(
+            `Đã lưu, nhưng lỗi khi tải lại dữ liệu: ${
+              fetchErrMsg.charAt(0).toUpperCase() + fetchErrMsg.slice(1)
+            }`,
+            "warning"
+          );
+        }
+      }, 1500);
     } catch (error) {
-      // Handle errors from Promise.all or other logic
+      // This catches critical errors that stopped Promise.all
       console.error(error);
       const errorMessage =
         errors.length > 0
           ? errors.join("; ")
-          : `Đã xảy ra lỗi khi lưu tiện nghi: ${
-              // Update message
-              (
-                error?.response?.data?.message ||
-                error.message ||
-                "Unknown error"
-              )
-                .toString()
-                .charAt(0)
-                .toUpperCase() +
-              (
-                error?.response?.data?.message ||
-                error.message ||
-                "Unknown error"
-              )
-                .toString()
-                .slice(1)
-            }`;
+          : `Lỗi không xác định khi lưu tiện nghi.`; // Simplified error
       showModalFeedback(errorMessage, "danger");
     } finally {
-      // Re-enable button, hide spinner (always executes)
       if (saveChangesBtn) saveChangesBtn.disabled = false;
       if (saveChangesSpinner) saveChangesSpinner.style.display = "none";
     }

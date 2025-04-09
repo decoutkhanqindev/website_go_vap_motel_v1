@@ -5,9 +5,9 @@ import RoomService from "../services/RoomService.js";
 let currentExpenseId = null;
 let currentExpenseData = null;
 let allOccupiedRooms = [];
-let existingImageInfo = []; // Stores {id, url} of existing images
-let newImageFiles = []; // Stores NEW files selected for upload (type File)
-let imageIdsToRemove = []; // Stores IDs of EXISTING images marked for removal
+let existingImageInfo = [];
+let newImageFiles = [];
+let imageIdsToRemove = [];
 
 // --- Mappings ---
 const paymentMethodMap = {
@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const day = date.getDate().toString().padStart(2, "0");
       return `${year}-${month}-${day}`;
     } catch (e) {
-      console.error("Error formatting date:", e);
+      console.error(e);
       return "";
     }
   }
@@ -134,10 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
             allOccupiedRooms.push(currentExpenseRoomDetails);
           }
         } catch (roomFetchError) {
-          console.warn(
-            `Could not fetch details for original room ID ${currentExpenseData.roomId}:`,
-            roomFetchError.message
-          );
+          console.warn(roomFetchError);
         }
       }
       expenseRoomIdSelect.innerHTML =
@@ -161,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
           '<option value="" disabled>Không có phòng nào đang được thuê</option>';
       }
     } catch (error) {
-      console.error("Error rendering room dropdown:", error);
+      console.error(error);
       expenseRoomIdSelect.innerHTML =
         '<option value="" disabled>Lỗi tải phòng</option>';
     } finally {
@@ -211,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
           );
         }
       } catch (error) {
-        console.error(`Error fetching expense image ID ${imageId}:`, error);
+        console.error(error);
         // Keep fallback image source
       }
 
@@ -274,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
         expenseImagePreviewDiv.appendChild(newPreviewItem);
       };
       reader.onerror = (error) => {
-        console.error(`Error reading file ${file.name}:`, error);
+        console.error(error);
         const errorItem = document.createElement("div");
         errorItem.classList.add(
           "image-preview-item",
@@ -354,7 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (editExpenseForm) editExpenseForm.classList.remove("was-validated");
     } catch (error) {
-      console.error("Error loading expense details:", error);
+      console.error(error);
       const errorMessage = (
         error?.response?.data?.message ||
         error.message ||
@@ -464,7 +461,7 @@ document.addEventListener("DOMContentLoaded", () => {
       imageIdsToRemove = []; // Reset image state on success
       setTimeout(() => fetchAndRenderUiExpenseDetails(), 1500);
     } catch (error) {
-      console.error("Error marking expense as paid:", error);
+      console.error(error);
       const errorMessage = (
         error?.response?.data?.message ||
         error.message ||
@@ -633,7 +630,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showModalFeedback("Không có thay đổi nào để lưu.", "info");
       }
     } catch (error) {
-      console.error("Error during save operations:", error);
+      console.error(error);
       const errorMessage =
         errors.length > 0 ? errors.join("; ") : `Lỗi không xác định khi lưu.`;
       showModalFeedback(errorMessage, "danger");

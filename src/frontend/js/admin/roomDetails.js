@@ -8,7 +8,7 @@ let currentRoomId = null;
 let currentRoomData = null;
 let allAmenities = [];
 let allUtilities = [];
-let existingImagePreviews = [];
+let existingImageIds = [];
 let newImageFiles = [];
 let imagesToDeleteIds = [];
 
@@ -155,58 +155,85 @@ document.addEventListener("DOMContentLoaded", () => {
   // Function: Renders image previews for existing and newly added images, handling async loading and removal.
   async function renderImagePreviews() {
     if (!roomImagePreviewDiv) return;
-    roomImagePreviewDiv.innerHTML = "";
+    roomImagePreviewDiv.innerHTML = ""; // Clear previous
 
-    // Render existing images (fetch data, add remove button)
-    const existingImagePromises = existingImagePreviews.map(async (imgInfo) => {
-      if (imagesToDeleteIds.includes(imgInfo.id)) return null; // Skip if marked for deletion
+    let previewGenerated = false;
+
+    // 1. Render existing images by fetching each one individually
+    const existingImagePromises = existingImageIds.map(async (imageId) => {
+      if (imagesToDeleteIds.includes(imageId)) return null; // Skip if marked for removal
+
       const previewItem = document.createElement("div");
       previewItem.classList.add("image-preview-item");
-      let imageSrc = "/assets/logo_error.png";
+      let imageSrc = "/assets/logo_error.png"; // Default fallback
+
       try {
-        const imageData = await RoomService.getRoomImageById(imgInfo.id);
-        const base64Image = btoa(
-          new Uint8Array(imageData.data.data).reduce(
-            (data, byte) => data + String.fromCharCode(byte),
-            ""
-          )
-        );
-        imageSrc = `data:${imageData.contentType};base64,${base64Image}`;
+        // Fetch individual image data using RoomService
+        const imageDataResponse = await RoomService.getRoomImageById(imageId);
+
+        // Convert ArrayBuffer/Buffer to Base64 Data URL
+        if (imageDataResponse?.data?.data && imageDataResponse?.contentType) {
+          const buffer = imageDataResponse.data.data;
+          const base64Image = btoa(
+            new Uint8Array(buffer).reduce(
+              (data, byte) => data + String.fromCharCode(byte),
+              ""
+            )
+          );
+          imageSrc = `data:${imageDataResponse.contentType};base64,${base64Image}`;
+          previewGenerated = true;
+        } else {
+          console.error(
+            `Invalid image data structure received for room image ID: ${imageId}`
+          );
+        }
       } catch (error) {
         console.error(error);
       }
-      previewItem.innerHTML = `<img src="${imageSrc}" alt="Existing room image"><button type="button" class="remove-image-btn existing-remove-btn" data-image-id="${imgInfo.id}" title="Xóa ảnh này">×</button>`;
-      return previewItem;
-    });
-    const existingItems = (await Promise.all(existingImagePromises)).filter(
-      (item) => item !== null
-    );
-    existingItems.forEach((previewItem) => {
-      roomImagePreviewDiv.appendChild(previewItem);
+
+      previewItem.innerHTML = `
+                <img src="${imageSrc}" alt="Ảnh phòng hiện có">
+                <button type="button" class="remove-image-btn existing-remove-btn" data-image-id="${imageId}" title="Xóa ảnh này">×</button>
+            `;
+
+      // Add listener AFTER element is created
       const removeBtn = previewItem.querySelector(".existing-remove-btn");
       if (removeBtn) {
-        // Attach listener AFTER appending
         removeBtn.addEventListener("click", (event) => {
-          const imageId = event.target.getAttribute("data-image-id");
-          if (imageId && !imagesToDeleteIds.includes(imageId)) {
-            imagesToDeleteIds.push(imageId); // Mark for deletion
-            renderImagePreviews(); // Re-render to visually remove
+          const idToRemove = event.target.getAttribute("data-image-id");
+          if (idToRemove && !imagesToDeleteIds.includes(idToRemove)) {
+            imagesToDeleteIds.push(idToRemove);
+            renderImagePreviews(); // Re-render
           }
         });
       }
+      return previewItem;
     });
 
-    // Render previews for newly selected files (using FileReader, add remove button)
+    // Wait for all fetches and element creations
+    const existingItems = (await Promise.all(existingImagePromises)).filter(
+      (item) => item !== null
+    );
+
+    // Append valid fetched items
+    existingItems.forEach((previewItem) => {
+      roomImagePreviewDiv.appendChild(previewItem);
+    });
+
+    // 2. Render previews for newly selected files (using FileReader)
     newImageFiles.forEach((file, index) => {
+      previewGenerated = true;
       const reader = new FileReader();
       reader.onload = function (e) {
         const newPreviewItem = document.createElement("div");
         newPreviewItem.classList.add("image-preview-item");
-        newPreviewItem.innerHTML = `<img src="${e.target.result}" alt="Preview ${file.name}"><button type="button" class="remove-image-btn new-remove-btn" data-index="${index}" title="Hủy thêm ảnh này">×</button>`;
-        const removeBtn = newPreviewItem.querySelector(".new-remove-btn");
-        if (removeBtn) {
-          // Attach listener BEFORE appending
-          removeBtn.addEventListener("click", (event) => {
+        newPreviewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="Xem trước ảnh mới ${file.name}">
+                    <button type="button" class="remove-image-btn new-remove-btn" data-index="${index}" title="Hủy thêm ảnh này">×</button>
+                `;
+        newPreviewItem
+          .querySelector(".new-remove-btn")
+          ?.addEventListener("click", (event) => {
             const indexToRemove = parseInt(
               event.target.getAttribute("data-index"),
               10
@@ -216,23 +243,21 @@ document.addEventListener("DOMContentLoaded", () => {
               indexToRemove >= 0 &&
               indexToRemove < newImageFiles.length
             ) {
-              newImageFiles.splice(indexToRemove, 1); // Remove from new files array
-              renderImagePreviews(); // Re-render to reflect removal and update indices
-            } else {
-              renderImagePreviews(); // Re-render just in case
+              newImageFiles.splice(indexToRemove, 1);
+              renderImagePreviews();
             }
           });
-        }
-        roomImagePreviewDiv.appendChild(newPreviewItem); // Append AFTER attaching listener
+        roomImagePreviewDiv.appendChild(newPreviewItem);
       };
       reader.onerror = (error) => {
         console.error(error);
+        // Optional: Add error placeholder item
       };
       reader.readAsDataURL(file);
     });
 
-    // Display placeholder if no images are present
-    if (roomImagePreviewDiv.childElementCount === 0) {
+    // Display placeholder if no images after all rendering attempts
+    if (!previewGenerated && roomImagePreviewDiv.childElementCount === 0) {
       roomImagePreviewDiv.innerHTML =
         '<p class="text-muted small ms-1">Chưa có ảnh nào.</p>';
     }
@@ -249,24 +274,26 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Reset state before fetching
+    // Reset state
     currentRoomData = null;
-    existingImagePreviews = [];
+    allAmenities = [];
+    allUtilities = [];
+    existingImageIds = []; // Reset to store flat IDs
     newImageFiles = [];
     imagesToDeleteIds = [];
 
-    // Show loading states
+    // Loading states
     if (roomAmenitiesListDiv)
       roomAmenitiesListDiv.innerHTML =
-        '<p class="text-muted">Đang tải tiện nghi...</p>';
+        '<p class="text-muted small m-0">Đang tải tiện nghi...</p>';
     if (roomUtilitiesListDiv)
       roomUtilitiesListDiv.innerHTML =
-        '<p class="text-muted">Đang tải tiện ích...</p>';
+        '<p class="text-muted small m-0">Đang tải tiện ích...</p>';
     if (roomImagePreviewDiv)
       roomImagePreviewDiv.innerHTML =
-        '<p class="text-muted">Đang tải hình ảnh...</p>';
+        '<p class="text-muted small m-0">Đang tải ảnh...</p>';
     hideModalFeedback();
-    if (editRoomForm) editRoomForm.style.display = "block"; // Ensure form is visible
+    if (editRoomForm) editRoomForm.style.display = "block";
 
     try {
       // Fetch data concurrently
@@ -278,26 +305,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Store fetched data globally
       currentRoomData = roomDetails;
+      if (!currentRoomData) throw new Error("Không tìm thấy dữ liệu phòng.");
       allAmenities = amenities || [];
       allUtilities = utilities || [];
-      existingImagePreviews =
-        currentRoomData.images?.map((img) => ({
-          id: typeof img === "string" ? img : img._id
-        })) || [];
+
+      existingImageIds =
+        currentRoomData.images
+          ?.map((img) => (typeof img === "string" ? img : img._id)) // Get ID directly
+          .filter((id) => id) || []; // Filter out falsy IDs and ensure array
 
       // Populate UI elements
       populateFormFieldsBasicInfo();
       renderAmenitiesChecklist();
       renderUtilitiesChecklist();
-      await renderImagePreviews(); // Wait for images to render
+      await renderImagePreviews(); // Render images (now uses existingImageIds)
 
-      if (editRoomForm) editRoomForm.classList.remove("was-validated"); // Clear validation state
+      if (editRoomForm) editRoomForm.classList.remove("was-validated");
     } catch (error) {
       console.error(error);
       const errorMessage = (
         error?.response?.data?.message ||
         error.message ||
-        "Unknown error"
+        "Lỗi chưa rõ"
       ).toString();
       showModalFeedback(
         `Lỗi khi tải dữ liệu phòng: ${
@@ -305,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }`,
         "danger"
       );
-      if (editRoomForm) editRoomForm.style.display = "none"; // Hide form on critical load error
+      if (editRoomForm) editRoomForm.style.display = "none";
     }
   }
 
@@ -332,7 +361,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleImageSelection(event) {
     const files = Array.from(event.target.files);
     newImageFiles.push(...files);
-    renderImagePreviews(); // Re-render previews including new ones
+    renderImagePreviews(); // Re-render previews
     event.target.value = null; // Allow re-selecting same file
   }
 
@@ -340,7 +369,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function handleSaveChanges() {
     hideModalFeedback();
 
-    // Validate form inputs
+    // Validate form
     if (!editRoomForm || !editRoomForm.checkValidity()) {
       if (editRoomForm) editRoomForm.classList.add("was-validated");
       showModalFeedback(
@@ -349,9 +378,9 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       return;
     }
-    if (editRoomForm) editRoomForm.classList.add("was-validated"); // Ensure styles shown
+    if (editRoomForm) editRoomForm.classList.add("was-validated");
 
-    // Check essential data exists
+    // Check data
     if (!currentRoomId || !currentRoomData) {
       showModalFeedback(
         "Lỗi: Không thể xác định dữ liệu phòng hiện tại.",
@@ -360,80 +389,106 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Disable button, show spinner
+    // --- Detect Changes ---
+    // Basic Info
+    const updatedBasicData = {
+      roomNumber: roomNumberInput.value.trim(),
+      address: roomAddressInput.value.trim(),
+      rentPrice: parseInt(roomRentPriceInput.value, 10) || 0,
+      occupantsNumber: parseInt(roomOccupantsNumberInput.value, 10) || 1,
+      status: roomStatusSelect.value,
+      description: roomDescriptionInput.value.trim()
+    };
+    let basicDataChanged = false;
+    const initialBasicData = currentRoomData;
+    for (const key in updatedBasicData) {
+      // Treat undefined/null description as empty string for comparison
+      const currentVal =
+        key === "description" && !initialBasicData[key]
+          ? ""
+          : initialBasicData[key];
+      const newVal =
+        key === "description" && !updatedBasicData[key]
+          ? ""
+          : updatedBasicData[key];
+      if (String(currentVal ?? "") !== String(newVal ?? "")) {
+        basicDataChanged = true;
+        break;
+      }
+    }
+
+    // Amenities
+    const currentAmenityIds = new Set();
+    roomAmenitiesListDiv
+      ?.querySelectorAll('input[type="checkbox"]:checked')
+      .forEach((cb) => currentAmenityIds.add(cb.value));
+    const initialAmenityIds = new Set(
+      currentRoomData.amenities?.map((a) =>
+        typeof a === "string" ? a : a._id
+      ) || []
+    );
+    const amenitiesToAdd = [...currentAmenityIds].filter(
+      (id) => !initialAmenityIds.has(id)
+    );
+    const amenitiesToDelete = [...initialAmenityIds].filter(
+      (id) => !currentAmenityIds.has(id)
+    );
+    const amenitiesChanged =
+      amenitiesToAdd.length > 0 || amenitiesToDelete.length > 0;
+
+    // Utilities
+    const currentUtilityIds = new Set();
+    roomUtilitiesListDiv
+      ?.querySelectorAll('input[type="checkbox"]:checked')
+      .forEach((cb) => currentUtilityIds.add(cb.value));
+    const initialUtilityIds = new Set(
+      currentRoomData.utilities?.map((u) =>
+        typeof u === "string" ? u : u._id
+      ) || []
+    );
+    const utilitiesToAdd = [...currentUtilityIds].filter(
+      (id) => !initialUtilityIds.has(id)
+    );
+    const utilitiesToDelete = [...initialUtilityIds].filter(
+      (id) => !currentUtilityIds.has(id)
+    );
+    const utilitiesChanged =
+      utilitiesToAdd.length > 0 || utilitiesToDelete.length > 0;
+
+    // Images
+    const imagesToDeleteChanged = imagesToDeleteIds.length > 0;
+    const newImagesAdded = newImageFiles.length > 0;
+
+    // Check if any changes were made
+    if (
+      !basicDataChanged &&
+      !amenitiesChanged &&
+      !utilitiesChanged &&
+      !imagesToDeleteChanged &&
+      !newImagesAdded
+    ) {
+      showModalFeedback("Không có thay đổi nào để lưu.", "info");
+      return;
+    }
+
+    // UI Feedback
     if (saveChangesBtn) saveChangesBtn.disabled = true;
     if (saveChangesSpinner) saveChangesSpinner.style.display = "inline-block";
-    const errors = []; // To collect errors from multiple API calls
+    const errors = [];
 
     try {
-      // Collect current data from form
-      const updatedBasicData = {
-        /* ... collect basic info ... */
-        roomNumber: roomNumberInput.value.trim(),
-        address: roomAddressInput.value.trim(),
-        rentPrice: parseInt(roomRentPriceInput.value, 10) || 0,
-        occupantsNumber: parseInt(roomOccupantsNumberInput.value, 10) || 1,
-        status: roomStatusSelect.value,
-        description: roomDescriptionInput.value.trim()
-      };
-      const currentAmenityIds =
-        new Set(/* ... collect checked amenity IDs ... */);
-      roomAmenitiesListDiv
-        ?.querySelectorAll('input[type="checkbox"]:checked')
-        .forEach((cb) => currentAmenityIds.add(cb.value));
-      const currentUtilityIds =
-        new Set(/* ... collect checked utility IDs ... */);
-      roomUtilitiesListDiv
-        ?.querySelectorAll('input[type="checkbox"]:checked')
-        .forEach((cb) => currentUtilityIds.add(cb.value));
-
-      // Compare with initial data to determine changes
-      let basicDataChanged = false; /* ... compare updatedBasicData with currentRoomData ... */
-      const initialBasicData = currentRoomData;
-      for (const key in updatedBasicData) {
-        if (key === "description") {
-          if ((updatedBasicData[key] || "") !== (initialBasicData[key] || "")) {
-            basicDataChanged = true;
-            break;
-          }
-        } else if (
-          String(updatedBasicData[key]) !== String(initialBasicData[key])
-        ) {
-          basicDataChanged = true;
-          break;
-        }
-      }
-
-      const initialAmenityIds = new Set(/* ... get initial amenity IDs ... */);
-      currentRoomData.amenities?.forEach((a) =>
-        initialAmenityIds.add(typeof a === "string" ? a : a._id)
-      );
-      const amenitiesToAdd = [...currentAmenityIds].filter(
-        (id) => !initialAmenityIds.has(id)
-      );
-      const amenitiesToDelete = [...initialAmenityIds].filter(
-        (id) => !currentAmenityIds.has(id)
-      );
-
-      const initialUtilityIds = new Set(/* ... get initial utility IDs ... */);
-      currentRoomData.utilities?.forEach((u) =>
-        initialUtilityIds.add(typeof u === "string" ? u : u._id)
-      );
-      const utilitiesToAdd = [...currentUtilityIds].filter(
-        (id) => !initialUtilityIds.has(id)
-      );
-      const utilitiesToDelete = [...initialUtilityIds].filter(
-        (id) => !currentUtilityIds.has(id)
-      );
-
-      // Build array of API call promises based on changes detected
+      // Build API calls
       const apiCalls = [];
       if (basicDataChanged) {
         apiCalls.push(
           RoomService.updateRoom(currentRoomId, updatedBasicData).catch(
             (err) => {
-              errors.push(`Lỗi cập nhật cơ bản: ${err.message}`);
-              throw err;
+              errors.push(
+                `Lỗi cập nhật cơ bản: ${
+                  err?.response?.data?.message || err.message
+                }`
+              );
+              throw err; // Critical error
             }
           )
         );
@@ -444,8 +499,12 @@ document.addEventListener("DOMContentLoaded", () => {
             currentRoomId,
             amenitiesToDelete
           ).catch((err) => {
-            errors.push(`Lỗi xóa tiện nghi: ${err.message}`);
-            throw err;
+            errors.push(
+              `Lỗi xóa tiện nghi: ${
+                err?.response?.data?.message || err.message
+              }`
+            );
+            // Decide if non-critical
           })
         );
       }
@@ -453,8 +512,12 @@ document.addEventListener("DOMContentLoaded", () => {
         apiCalls.push(
           RoomService.addAmenitiesToRoom(currentRoomId, amenitiesToAdd).catch(
             (err) => {
-              errors.push(`Lỗi thêm tiện nghi: ${err.message}`);
-              throw err;
+              errors.push(
+                `Lỗi thêm tiện nghi: ${
+                  err?.response?.data?.message || err.message
+                }`
+              );
+              // Decide if non-critical
             }
           )
         );
@@ -465,8 +528,10 @@ document.addEventListener("DOMContentLoaded", () => {
             currentRoomId,
             utilitiesToDelete
           ).catch((err) => {
-            errors.push(`Lỗi xóa tiện ích: ${err.message}`);
-            throw err;
+            errors.push(
+              `Lỗi xóa tiện ích: ${err?.response?.data?.message || err.message}`
+            );
+            // Decide if non-critical
           })
         );
       }
@@ -474,84 +539,93 @@ document.addEventListener("DOMContentLoaded", () => {
         apiCalls.push(
           RoomService.addUtilitiesToRoom(currentRoomId, utilitiesToAdd).catch(
             (err) => {
-              errors.push(`Lỗi thêm tiện ích: ${err.message}`);
-              throw err;
+              errors.push(
+                `Lỗi thêm tiện ích: ${
+                  err?.response?.data?.message || err.message
+                }`
+              );
+              // Decide if non-critical
             }
           )
         );
       }
-      if (imagesToDeleteIds.length > 0) {
+      if (imagesToDeleteChanged) {
+        // Use the state variable directly
         apiCalls.push(
           RoomService.deleteImagesForRoom(
             currentRoomId,
-            imagesToDeleteIds
+            imagesToDeleteIds // Pass the array of IDs to delete
           ).catch((err) => {
-            errors.push(`Lỗi xóa hình ảnh: ${err.message}`);
-            throw err;
+            errors.push(
+              `Lỗi xóa hình ảnh: ${err?.response?.data?.message || err.message}`
+            );
+            // Decide if non-critical
           })
         );
       }
-      if (newImageFiles.length > 0) {
+      if (newImagesAdded) {
+        // Use the state variable directly
+        // Assuming RoomService.addImagesToRoom handles FormData internally or accepts File array
+        // const imageData = new FormData();
+        // newImageFiles.forEach(file => imageData.append('roomImages', file)); // Adjust field name if needed
         apiCalls.push(
-          RoomService.addImagesToRoom(currentRoomId, newImageFiles).catch(
-            (err) => {
-              errors.push(`Lỗi thêm hình ảnh mới: ${err.message}`);
-              throw err;
-            }
-          )
+          RoomService.addImagesToRoom(
+            currentRoomId,
+            newImageFiles // or imageData
+          ).catch((err) => {
+            errors.push(
+              `Lỗi thêm hình ảnh mới: ${
+                err?.response?.data?.message || err.message
+              }`
+            );
+            // Decide if non-critical
+          })
         );
       }
 
-      // Execute API calls if changes were made
-      if (apiCalls.length > 0) {
-        await Promise.all(apiCalls);
-        showModalFeedback("Cập nhật phòng thành công!", "success");
-        // Refresh data after a short delay
-        setTimeout(async () => {
-          try {
-            await fetchAndRenderUiRoomDetails(); // Re-fetch and re-render
-          } catch (fetchError) {
-            console.error(fetchError);
-            const fetchErrMsg = (
-              fetchError.message || "Unknown error"
-            ).toString();
-            showModalFeedback(
-              `Cập nhật thành công, nhưng lỗi khi tải lại dữ liệu: ${
-                fetchErrMsg.charAt(0).toUpperCase() + fetchErrMsg.slice(1)
-              }`,
-              "warning"
-            );
-          }
-        }, 1500);
+      // Execute API calls
+      await Promise.all(apiCalls);
+
+      if (errors.length > 0) {
+        showModalFeedback(
+          `Cập nhật thành công với một số lỗi: ${errors.join("; ")}`,
+          "warning"
+        );
+        // Clear only image state after attempt, other states (like amenities/utilities)
+        // might be complex to partially clear without re-fetching. Re-fetch will fix visual state.
+        newImageFiles = [];
+        imagesToDeleteIds = [];
       } else {
-        showModalFeedback("Không có thay đổi nào để lưu.", "info");
+        showModalFeedback("Cập nhật phòng thành công!", "success");
+        // Clear state on full success
+        newImageFiles = [];
+        imagesToDeleteIds = [];
       }
+
+      // Refresh data after a short delay
+      setTimeout(async () => {
+        try {
+          await fetchAndRenderUiRoomDetails(); // Re-fetch and re-render
+        } catch (fetchError) {
+          console.error(fetchError);
+          const fetchErrMsg = (fetchError.message || "Lỗi không rõ").toString();
+          showModalFeedback(
+            `Đã lưu, nhưng lỗi khi tải lại dữ liệu: ${
+              fetchErrMsg.charAt(0).toUpperCase() + fetchErrMsg.slice(1)
+            }`,
+            "warning"
+          );
+        }
+      }, 1500);
     } catch (error) {
-      // Handle errors from Promise.all or other logic
+      // Catches critical errors that stopped Promise.all
       console.error(error);
       const errorMessage =
         errors.length > 0
           ? errors.join("; ")
-          : `Đã xảy ra lỗi: ${
-              (
-                error?.response?.data?.message ||
-                error.message ||
-                "Unknown error"
-              )
-                .toString()
-                .charAt(0)
-                .toUpperCase() +
-              (
-                error?.response?.data?.message ||
-                error.message ||
-                "Unknown error"
-              )
-                .toString()
-                .slice(1)
-            }`;
+          : `Lỗi không xác định khi lưu phòng.`;
       showModalFeedback(errorMessage, "danger");
     } finally {
-      // Re-enable button, hide spinner (always executes)
       if (saveChangesBtn) saveChangesBtn.disabled = false;
       if (saveChangesSpinner) saveChangesSpinner.style.display = "none";
     }

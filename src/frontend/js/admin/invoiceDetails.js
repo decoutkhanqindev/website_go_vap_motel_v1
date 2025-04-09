@@ -579,12 +579,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function: Handles the form submission for saving general changes.
   async function handleSaveChanges() {
-    hideModalFeedback();
+    hideModalFeedback(); // Uses the file's specific feedback hide function
 
-    // Basic form validation
     if (!editInvoiceForm || !editInvoiceForm.checkValidity()) {
       if (editInvoiceForm) editInvoiceForm.classList.add("was-validated");
       showModalFeedback(
+        // Uses the file's specific feedback show function
         "Vui lòng kiểm tra lại các trường thông tin bắt buộc.",
         "warning"
       );
@@ -635,96 +635,193 @@ document.addEventListener("DOMContentLoaded", () => {
       invoiceDueDateInput?.classList.remove("is-invalid");
     }
 
-    // Payment date validation (if status is 'paid')
+    // Payment date/method validation (if status is 'paid')
     const paymentStatus = invoicePaymentStatusSelect.value;
     const paymentDate = invoicePaymentDateInput?.value;
-    if (
-      paymentStatus === "paid" &&
-      paymentDate &&
-      new Date(paymentDate) < new Date(issueDate)
-    ) {
-      showModalFeedback(
-        "Ngày thanh toán không được trước ngày phát hành.",
-        "warning"
-      );
-      invoicePaymentDateInput?.classList.add("is-invalid");
-      invoicePaymentDateInput?.focus();
-      return;
-    } else if (paymentStatus === "paid" && !paymentDate) {
-      // If status is manually set to paid, require payment date
-      showModalFeedback(
-        "Vui lòng nhập ngày thanh toán khi trạng thái là 'Đã thanh toán'.",
-        "warning"
-      );
-      invoicePaymentDateInput?.classList.add("is-invalid");
-      invoicePaymentDateInput?.focus();
-      return;
+    const paymentMethod = invoicePaymentMethodSelect.value || null; // Get method, use null if empty
+
+    if (paymentStatus === "paid") {
+      if (!paymentDate) {
+        showModalFeedback(
+          "Vui lòng nhập ngày thanh toán khi trạng thái là 'Đã thanh toán'.",
+          "warning"
+        );
+        invoicePaymentDateInput?.classList.add("is-invalid");
+        invoicePaymentDateInput?.focus();
+        return;
+      } else if (issueDate && new Date(paymentDate) < new Date(issueDate)) {
+        showModalFeedback(
+          "Ngày thanh toán không được trước ngày phát hành.",
+          "warning"
+        );
+        invoicePaymentDateInput?.classList.add("is-invalid");
+        invoicePaymentDateInput?.focus();
+        return;
+      } else {
+        invoicePaymentDateInput?.classList.remove("is-invalid");
+      }
+
+      // Require a payment method if status is 'paid' during save as well
+      if (!paymentMethod) {
+        showModalFeedback(
+          "Vui lòng chọn phương thức thanh toán khi trạng thái là 'Đã thanh toán'.",
+          "warning"
+        );
+        invoicePaymentMethodSelect?.classList.add("is-invalid");
+        invoicePaymentMethodSelect?.focus();
+        return;
+      } else {
+        invoicePaymentMethodSelect?.classList.remove("is-invalid");
+      }
     } else {
       invoicePaymentDateInput?.classList.remove("is-invalid");
+      invoicePaymentMethodSelect?.classList.remove("is-invalid"); // Also remove if not 'paid'
     }
 
     if (editInvoiceForm) editInvoiceForm.classList.add("was-validated"); // Mark as validated if all checks pass
 
-    if (!currentInvoiceId) {
-      showModalFeedback("Lỗi: Không xác định được ID hóa đơn.", "danger");
+    if (!currentInvoiceId || !currentInvoiceData) {
+      showModalFeedback("Lỗi: Không xác định được ID hóa đơn.", "danger"); // Uses the file's specific feedback show function
       return;
     }
 
-    if (saveChangesBtn) saveChangesBtn.disabled = true;
-    if (saveChangesSpinner) saveChangesSpinner.style.display = "inline-block";
-
-    // Prepare data for update
-    // Recalculate final total before sending
-    calculateTotalAmount(); // Ensure total is up-to-date
+    // Recalculate final total before comparison and sending
+    calculateTotalAmount();
     const finalTotalAmount = parseFloat(invoiceTotalAmountInput?.value || 0);
 
-    const updatedInvoiceData = {
+    // Get current form values for comparison
+    const currentFormData = {
       roomId: invoiceRoomIdSelect.value,
       issueDate: invoiceIssueDateInput.value,
       dueDate: invoiceDueDateInput.value,
-      rentAmount: activeContractRentPrice, // Use the rent from the active contract/default
-      electricity: {
-        oldIndex: elecOld,
-        newIndex: elecNew,
-        pricePerUnit: parseFloat(invoiceElecPricePerUnitInput.value || 0)
-      },
-      water: {
-        oldIndex: waterOld,
-        newIndex: waterNew,
-        pricePerUnit: parseFloat(invoiceWaterPricePerUnitInput.value || 0)
-      },
-      // Send only the IDs of the utilities determined by the active contract
-      utilities: activeContractUtilities.map((util) => util._id),
-      paymentMethod: invoicePaymentMethodSelect.value || null, // Send null if empty
+      rentAmount: activeContractRentPrice, // Use state value
+      elecOldIndex: elecOld,
+      elecNewIndex: elecNew,
+      elecPricePerUnit: parseFloat(invoiceElecPricePerUnitInput.value || 0),
+      waterOldIndex: waterOld,
+      waterNewIndex: waterNew,
+      waterPricePerUnit: parseFloat(invoiceWaterPricePerUnitInput.value || 0),
+      utilities: activeContractUtilities.map((util) => util._id), // Use state value (IDs)
+      paymentMethod: paymentStatus === "paid" ? paymentMethod : null, // Only relevant if paid
       paymentStatus: paymentStatus,
-      // Only include paymentDate if status is 'paid' and date is provided
-      paymentDate: paymentStatus === "paid" && paymentDate ? paymentDate : null,
+      paymentDate: paymentStatus === "paid" && paymentDate ? paymentDate : null, // Only relevant if paid
       notes: invoiceNotesInput.value.trim(),
-      totalAmount: finalTotalAmount // Include the calculated total
+      totalAmount: finalTotalAmount
     };
 
-    try {
-      await InvoiceService.updateInvoice(currentInvoiceId, updatedInvoiceData);
-      showModalFeedback("Cập nhật hóa đơn thành công!", "success");
+    let hasChanges = false;
+    // Compare current form data with initial data (currentInvoiceData)
+    if (
+      currentFormData.roomId !== currentInvoiceData.roomId ||
+      formatDateForInput(currentFormData.issueDate) !==
+        formatDateForInput(currentInvoiceData.issueDate) ||
+      formatDateForInput(currentFormData.dueDate) !==
+        formatDateForInput(currentInvoiceData.dueDate) ||
+      Number(currentFormData.rentAmount) !==
+        Number(currentInvoiceData.rentAmount || 0) ||
+      Number(currentFormData.elecOldIndex) !==
+        Number(currentInvoiceData.electricity?.oldIndex ?? 0) ||
+      Number(currentFormData.elecNewIndex) !==
+        Number(currentInvoiceData.electricity?.newIndex ?? 0) ||
+      Number(currentFormData.elecPricePerUnit) !==
+        Number(currentInvoiceData.electricity?.pricePerUnit ?? 0) ||
+      Number(currentFormData.waterOldIndex) !==
+        Number(currentInvoiceData.water?.oldIndex ?? 0) ||
+      Number(currentFormData.waterNewIndex) !==
+        Number(currentInvoiceData.water?.newIndex ?? 0) ||
+      Number(currentFormData.waterPricePerUnit) !==
+        Number(currentInvoiceData.water?.pricePerUnit ?? 0) ||
+      !arraysAreEqual(
+        currentFormData.utilities,
+        currentInvoiceData.utilities?.map((u) =>
+          typeof u === "string" ? u : u._id
+        ) || []
+      ) || // Helper needed
+      currentFormData.paymentMethod !==
+        (currentInvoiceData.paymentMethod || null) ||
+      currentFormData.paymentStatus !== currentInvoiceData.paymentStatus ||
+      formatDateForInput(currentFormData.paymentDate) !==
+        formatDateForInput(currentInvoiceData.paymentDate) ||
+      (currentFormData.notes || "") !== (currentInvoiceData.notes || "") ||
+      Number(currentFormData.totalAmount) !==
+        Number(currentInvoiceData.totalAmount || 0)
+    ) {
+      hasChanges = true;
+    }
+    // Helper function to compare arrays of IDs (can be defined inside or outside)
+    function arraysAreEqual(arr1, arr2) {
+      if (!arr1 || !arr2 || arr1.length !== arr2.length) return false;
+      const set1 = new Set(arr1);
+      const set2 = new Set(arr2);
+      if (set1.size !== set2.size) return false; // Ensure no duplicates causing length match
+      for (const item of set1) {
+        if (!set2.has(item)) return false;
+      }
+      return true;
+    }
 
-      // Reload data after a short delay to show changes
-      setTimeout(() => {
-        fetchAndRenderUiInvoiceDetails();
-      }, 1500);
-    } catch (error) {
-      console.error(error);
-      const errorMessage = (
-        error?.response?.data?.message ||
-        error.message ||
-        "Unknown error"
-      ).toString();
-      showModalFeedback(
-        `Lỗi: ${errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1)}`,
-        "danger"
-      );
-    } finally {
-      if (saveChangesBtn) saveChangesBtn.disabled = false;
-      if (saveChangesSpinner) saveChangesSpinner.style.display = "none";
+    if (hasChanges) {
+      if (saveChangesBtn) saveChangesBtn.disabled = true;
+      if (saveChangesSpinner) saveChangesSpinner.style.display = "inline-block";
+
+      try {
+        // Prepare the final update payload using current form values
+        const updatedInvoiceData = {
+          roomId: currentFormData.roomId,
+          issueDate: currentFormData.issueDate,
+          dueDate: currentFormData.dueDate,
+          rentAmount: currentFormData.rentAmount,
+          electricity: {
+            oldIndex: currentFormData.elecOldIndex,
+            newIndex: currentFormData.elecNewIndex,
+            pricePerUnit: currentFormData.elecPricePerUnit
+          },
+          water: {
+            oldIndex: currentFormData.waterOldIndex,
+            newIndex: currentFormData.waterNewIndex,
+            pricePerUnit: currentFormData.waterPricePerUnit
+          },
+          utilities: currentFormData.utilities, // Already IDs
+          paymentMethod: currentFormData.paymentMethod, // Null if not paid or empty
+          paymentStatus: currentFormData.paymentStatus,
+          paymentDate: currentFormData.paymentDate, // Null if not paid
+          notes: currentFormData.notes,
+          totalAmount: currentFormData.totalAmount // Use final calculated total
+        };
+
+        // Single API Call
+        await InvoiceService.updateInvoice(
+          currentInvoiceId,
+          updatedInvoiceData
+        );
+        showModalFeedback("Cập nhật hóa đơn thành công!", "success"); // Uses the file's specific feedback show function
+
+        setTimeout(() => {
+          fetchAndRenderUiInvoiceDetails();
+        }, 1500);
+      } catch (error) {
+        console.error(error);
+        // Ensure error message is a string before using string methods
+        const errorMessageString = (
+          error?.response?.data?.message ||
+          error?.message ||
+          "Lỗi không xác định khi lưu."
+        ).toString();
+        showModalFeedback(
+          // Uses the file's specific feedback show function
+          `Lỗi: ${
+            errorMessageString.charAt(0).toUpperCase() +
+            errorMessageString.slice(1)
+          }`,
+          "danger"
+        );
+      } finally {
+        if (saveChangesBtn) saveChangesBtn.disabled = false;
+        if (saveChangesSpinner) saveChangesSpinner.style.display = "none";
+      }
+    } else {
+      // No changes detected
+      showModalFeedback("Không có thay đổi nào để lưu.", "info"); // Uses the file's specific feedback show function
     }
   }
 

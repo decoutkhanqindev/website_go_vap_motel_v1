@@ -5,7 +5,7 @@ import UtilityService from "../services/UtilityService.js";
 // --- State for Utility Editing ---
 let currentUtilityId = null;
 let currentUtilityData = null;
-let existingImagePreviews = [];
+let existingImageIds = [];
 let newImageFiles = [];
 let imagesToDeleteIds = [];
 
@@ -83,58 +83,88 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function: Renders image previews for existing and newly added images, handling async loading and removal.
   async function renderImagePreviews() {
-    if (!utilityImagePreviewDiv) return; // Target utility preview div
+    if (!utilityImagePreviewDiv) return;
     utilityImagePreviewDiv.innerHTML = ""; // Clear previous
 
-    // Render existing images (fetch data, add remove button)
-    const existingImagePromises = existingImagePreviews.map(async (imgInfo) => {
-      if (imagesToDeleteIds.includes(imgInfo.id)) return null;
+    let previewGenerated = false;
+
+    // 1. Render existing images by fetching each one individually
+    const existingImagePromises = existingImageIds.map(async (imageId) => {
+      if (imagesToDeleteIds.includes(imageId)) return null; // Skip if marked for removal
+
       const previewItem = document.createElement("div");
       previewItem.classList.add("image-preview-item");
-      let imageSrc = "/assets/logo_error.png";
+      let imageSrc = "/assets/logo_error.png"; // Default fallback
+
       try {
-        // Use UtilityService to get image data
-        const imageData = await UtilityService.getUtilityImageById(imgInfo.id);
-        const base64Image = btoa(
-          new Uint8Array(imageData.data.data).reduce(
-            (data, byte) => data + String.fromCharCode(byte),
-            ""
-          )
+        // Fetch individual image data using UtilityService
+        const imageDataResponse = await UtilityService.getUtilityImageById(
+          imageId
         );
-        imageSrc = `data:${imageData.contentType};base64,${base64Image}`;
+
+        // Convert ArrayBuffer/Buffer to Base64 Data URL
+        if (imageDataResponse?.data?.data && imageDataResponse?.contentType) {
+          const buffer = imageDataResponse.data.data;
+          const base64Image = btoa(
+            new Uint8Array(buffer).reduce(
+              (data, byte) => data + String.fromCharCode(byte),
+              ""
+            )
+          );
+          imageSrc = `data:${imageDataResponse.contentType};base64,${base64Image}`;
+          previewGenerated = true;
+        } else {
+          console.error(
+            `Invalid image data structure received for utility image ID: ${imageId}`
+          );
+        }
       } catch (error) {
         console.error(error);
       }
-      previewItem.innerHTML = `<img src="${imageSrc}" alt="Existing utility image"><button type="button" class="remove-image-btn existing-remove-btn" data-image-id="${imgInfo.id}" title="Xóa ảnh này">×</button>`; // Update alt text
-      return previewItem;
-    });
-    const existingItems = (await Promise.all(existingImagePromises)).filter(
-      (item) => item !== null
-    );
-    existingItems.forEach((previewItem) => {
-      utilityImagePreviewDiv.appendChild(previewItem); // Append to utility preview div
+
+      previewItem.innerHTML = `
+            <img src="${imageSrc}" alt="Ảnh tiện ích hiện có">
+            <button type="button" class="remove-image-btn existing-remove-btn" data-image-id="${imageId}" title="Xóa ảnh này">×</button>
+        `;
+
+      // Add listener AFTER element is created
       const removeBtn = previewItem.querySelector(".existing-remove-btn");
       if (removeBtn) {
         removeBtn.addEventListener("click", (event) => {
-          const imageId = event.target.getAttribute("data-image-id");
-          if (imageId && !imagesToDeleteIds.includes(imageId)) {
-            imagesToDeleteIds.push(imageId);
-            renderImagePreviews();
+          const idToRemove = event.target.getAttribute("data-image-id");
+          if (idToRemove && !imagesToDeleteIds.includes(idToRemove)) {
+            imagesToDeleteIds.push(idToRemove);
+            renderImagePreviews(); // Re-render
           }
         });
       }
+      return previewItem;
     });
 
-    // Render previews for newly selected files
+    // Wait for all fetches and element creations
+    const existingItems = (await Promise.all(existingImagePromises)).filter(
+      (item) => item !== null
+    );
+
+    // Append valid fetched items
+    existingItems.forEach((previewItem) => {
+      utilityImagePreviewDiv.appendChild(previewItem);
+    });
+
+    // 2. Render previews for newly selected files (using FileReader)
     newImageFiles.forEach((file, index) => {
+      previewGenerated = true;
       const reader = new FileReader();
       reader.onload = function (e) {
         const newPreviewItem = document.createElement("div");
         newPreviewItem.classList.add("image-preview-item");
-        newPreviewItem.innerHTML = `<img src="${e.target.result}" alt="Preview ${file.name}"><button type="button" class="remove-image-btn new-remove-btn" data-index="${index}" title="Hủy thêm ảnh này">×</button>`;
-        const removeBtn = newPreviewItem.querySelector(".new-remove-btn");
-        if (removeBtn) {
-          removeBtn.addEventListener("click", (event) => {
+        newPreviewItem.innerHTML = `
+                <img src="${e.target.result}" alt="Xem trước ảnh mới ${file.name}">
+                <button type="button" class="remove-image-btn new-remove-btn" data-index="${index}" title="Hủy thêm ảnh này">×</button>
+            `;
+        newPreviewItem
+          .querySelector(".new-remove-btn")
+          ?.addEventListener("click", (event) => {
             const indexToRemove = parseInt(
               event.target.getAttribute("data-index"),
               10
@@ -146,21 +176,19 @@ document.addEventListener("DOMContentLoaded", () => {
             ) {
               newImageFiles.splice(indexToRemove, 1);
               renderImagePreviews();
-            } else {
-              renderImagePreviews();
             }
           });
-        }
-        utilityImagePreviewDiv.appendChild(newPreviewItem); // Append to utility preview div
+        utilityImagePreviewDiv.appendChild(newPreviewItem);
       };
       reader.onerror = (error) => {
         console.error(error);
+        // Optional: Add error placeholder item
       };
       reader.readAsDataURL(file);
     });
 
-    // Display placeholder if no images
-    if (utilityImagePreviewDiv.childElementCount === 0) {
+    // Display placeholder if no images after all rendering attempts
+    if (!previewGenerated && utilityImagePreviewDiv.childElementCount === 0) {
       utilityImagePreviewDiv.innerHTML =
         '<p class="text-muted small ms-1">Chưa có ảnh nào.</p>';
     }
@@ -170,64 +198,64 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function: Fetches utility data and populates the form UI.
   async function fetchAndRenderUiUtilityDetails() {
-    // Renamed function
-    currentUtilityId = getUtilityIdFromUrl(); 
+    currentUtilityId = getUtilityIdFromUrl();
     if (!currentUtilityId) {
       showModalFeedback(
         "Không tìm thấy ID tiện ích hợp lệ trong URL.",
         "danger"
       );
-      if (editUtilityForm) editUtilityForm.style.display = "none"; // Target utility form
+      if (editUtilityForm) editUtilityForm.style.display = "none";
       return;
     }
 
     // Reset state
-    currentUtilityData = null; // Reset utility data
-    existingImagePreviews = [];
+    currentUtilityData = null;
+    existingImageIds = []; // Reset to store flat IDs
     newImageFiles = [];
     imagesToDeleteIds = [];
 
     // Loading states
     if (utilityImagePreviewDiv)
-      // Target utility preview div
       utilityImagePreviewDiv.innerHTML =
-        '<p class="text-muted">Đang tải hình ảnh...</p>';
+        '<p class="text-muted small m-0">Đang tải ảnh...</p>'; // Use small text
     hideModalFeedback();
-    if (editUtilityForm) editUtilityForm.style.display = "block"; // Target utility form
+    if (editUtilityForm) editUtilityForm.style.display = "block";
 
     try {
-      // Fetch specific utility details  and Method
+      // Fetch specific utility details
       const utilityDetails = await UtilityService.getUtilityById(
         currentUtilityId
       );
 
       // Store data
-      currentUtilityData = utilityDetails; // Store utility data
-      existingImagePreviews =
-        currentUtilityData.images?.map((img) => ({
-          id: typeof img === "string" ? img : img._id
-        })) || [];
+      currentUtilityData = utilityDetails;
+      if (!currentUtilityData)
+        throw new Error("Không tìm thấy dữ liệu tiện ích.");
+
+      existingImageIds =
+        currentUtilityData.images
+          ?.map((img) => (typeof img === "string" ? img : img._id)) // Get ID directly
+          .filter((id) => id) || []; // Filter out falsy IDs and ensure array
 
       // Populate UI
-      populateFormFieldsBasicInfo(); // Call population function
-      await renderImagePreviews(); // Render images
+      populateFormFieldsBasicInfo();
+      await renderImagePreviews(); // Render images (now uses existingImageIds)
 
-      if (editUtilityForm) editUtilityForm.classList.remove("was-validated"); // Target utility form
+      if (editUtilityForm) editUtilityForm.classList.remove("was-validated");
     } catch (error) {
-      console.error(error); // Updated log message
+      console.error(error);
       const errorMessage = (
         error?.response?.data?.message ||
         error.message ||
-        "Unknown error"
+        "Lỗi chưa rõ"
       ).toString();
       showModalFeedback(
         `Lỗi khi tải dữ liệu tiện ích: ${
-          // Updated message
           errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1)
         }`,
         "danger"
       );
-      if (editUtilityForm) editUtilityForm.style.display = "none"; // Target utility form
+      if (editUtilityForm) editUtilityForm.style.display = "none";
     }
   }
 
@@ -258,8 +286,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleImageSelection(event) {
     const files = Array.from(event.target.files);
     newImageFiles.push(...files);
-    renderImagePreviews();
-    event.target.value = null;
+    renderImagePreviews(); // Re-render previews
+    event.target.value = null; // Allow re-selecting same file
   }
 
   // Function: Handles the form submission for saving changes.
@@ -268,7 +296,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Validate form
     if (!editUtilityForm || !editUtilityForm.checkValidity()) {
-      // Target utility form
       if (editUtilityForm) editUtilityForm.classList.add("was-validated");
       showModalFeedback(
         "Vui lòng kiểm tra lại các trường thông tin.",
@@ -280,7 +307,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Check data
     if (!currentUtilityId || !currentUtilityData) {
-      // Check utility ID/Data
       showModalFeedback(
         "Lỗi: Không thể xác định dữ liệu tiện ích hiện tại.",
         "danger"
@@ -288,20 +314,20 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // --- Name Mapping and Validation (Input -> Key for Utility) ---
-    const userInputName = utilityNameInput ? utilityNameInput.value.trim() : ""; // Read from utility input
+    // --- Name Mapping and Validation ---
+    const userInputName = utilityNameInput ? utilityNameInput.value.trim() : "";
     const userInputNameNormalized = userInputName
       .toLowerCase()
       .replace(/\s+/g, "_");
     const englishEnumKey =
-      vietnameseToEnglishUtilityMap[userInputNameNormalized]; // Use utility reverse map
+      vietnameseToEnglishUtilityMap[userInputNameNormalized];
 
     if (!englishEnumKey) {
       showModalFeedback(
-        `Tên tiện ích "${userInputName}" không hợp lệ hoặc không được hỗ trợ. Vui lòng sử dụng tên gợi ý (ví dụ: Wifi, Đỗ xe,...).`, // Updated guidance
+        `Tên tiện ích "${userInputName}" không hợp lệ hoặc không được hỗ trợ. Vui lòng sử dụng tên gợi ý (ví dụ: Wifi, Đỗ xe,...).`,
         "danger"
       );
-      return; // Stop if name is invalid
+      return;
     }
 
     // UI Feedback
@@ -310,15 +336,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const errors = [];
 
     try {
-      // Collect data
+      // Collect basic data
       const updatedBasicData = {
-        name: englishEnumKey, // Use mapped English key for utility
-        price: parseInt(utilityPriceInput.value, 10) || 0 // Read from utility input
+        name: englishEnumKey,
+        price: parseInt(utilityPriceInput.value, 10) || 0
       };
 
-      // Compare changes
+      // Compare basic data changes
       let basicDataChanged = false;
-      const initialBasicData = currentUtilityData; // Use utility data
+      const initialBasicData = currentUtilityData;
       if (
         String(updatedBasicData.name) !== String(initialBasicData.name) ||
         Number(updatedBasicData.price) !== Number(initialBasicData.price)
@@ -326,93 +352,116 @@ document.addEventListener("DOMContentLoaded", () => {
         basicDataChanged = true;
       }
 
+      // Check image changes
+      const imagesToDeleteChanged = imagesToDeleteIds.length > 0;
+      const newImagesAdded = newImageFiles.length > 0;
+
+      if (!basicDataChanged && !imagesToDeleteChanged && !newImagesAdded) {
+        showModalFeedback("Không có thay đổi nào để lưu.", "info");
+        // No need to proceed further, re-enable button
+        if (saveChangesBtn) saveChangesBtn.disabled = false;
+        if (saveChangesSpinner) saveChangesSpinner.style.display = "none";
+        return;
+      }
+
       // Build API calls
       const apiCalls = [];
       if (basicDataChanged) {
         apiCalls.push(
-          // Use UtilityService to update  and Method
           UtilityService.updateUtility(
             currentUtilityId,
             updatedBasicData
           ).catch((err) => {
-            errors.push(`Lỗi cập nhật tiện ích: ${err.message}`); // Updated message
-            throw err;
+            errors.push(
+              `Lỗi cập nhật tiện ích: ${
+                err?.response?.data?.message || err.message
+              }`
+            );
+            throw err; // Stop Promise.all on critical error
           })
         );
       }
 
-      if (imagesToDeleteIds.length > 0) {
+      if (imagesToDeleteChanged) {
         apiCalls.push(
-          // Use UtilityService to delete images  and Method
           UtilityService.deleteImagesForUtility(
             currentUtilityId,
             imagesToDeleteIds
           ).catch((err) => {
-            errors.push(`Lỗi xóa hình ảnh tiện ích: ${err.message}`); // Updated message
-            throw err;
+            errors.push(
+              `Lỗi xóa hình ảnh tiện ích: ${
+                err?.response?.data?.message || err.message
+              }`
+            );
+            // Decide if this error should stop Promise.all
+            // throw err;
           })
         );
       }
-      if (newImageFiles.length > 0) {
+      if (newImagesAdded) {
+        // Assuming UtilityService.addImagesToUtility handles FormData internally
+        // If not, create FormData here:
+        // const imageData = new FormData();
+        // newImageFiles.forEach(file => imageData.append('utilityImages', file)); // Adjust field name if needed
         apiCalls.push(
-          // Use UtilityService to add images  and Method
           UtilityService.addImagesToUtility(
             currentUtilityId,
-            newImageFiles
+            newImageFiles // or imageData if using FormData
           ).catch((err) => {
-            errors.push(`Lỗi thêm hình ảnh tiện ích mới: ${err.message}`); // Updated message
-            throw err;
+            errors.push(
+              `Lỗi thêm hình ảnh tiện ích mới: ${
+                err?.response?.data?.message || err.message
+              }`
+            );
+            // Decide if this error should stop Promise.all
+            // throw err;
           })
         );
       }
 
       // Execute API calls
-      if (apiCalls.length > 0) {
-        await Promise.all(apiCalls);
-        showModalFeedback("Cập nhật tiện ích thành công!", "success"); // Update message
-        // Refresh data after a short delay
-        setTimeout(async () => {
-          try {
-            await fetchAndRenderUiUtilityDetails(); // Re-fetch and re-render utility details
-          } catch (fetchError) {
-            console.error(fetchError); 
-            const fetchErrMsg = (
-              fetchError.message || "Unknown error"
-            ).toString();
-            showModalFeedback(
-              `Cập nhật thành công, nhưng lỗi khi tải lại dữ liệu tiện ích: ${
-                fetchErrMsg.charAt(0).toUpperCase() + fetchErrMsg.slice(1)
-              }`,
-              "warning"
-            );
-          }
-        }, 1500);
+      await Promise.all(apiCalls);
+
+      // === MODIFIED START: Clear state only on full success or handle partial success ===
+      if (errors.length > 0) {
+        showModalFeedback(
+          `Cập nhật thành công với một số lỗi: ${errors.join("; ")}`,
+          "warning"
+        );
+        // Decide if you still want to clear state partially or leave it
+        // For simplicity, we might only clear if ALL operations succeeded.
+        // Or clear only the successful ones if trackable. Let's clear all for now after attempting.
+        newImageFiles = [];
+        imagesToDeleteIds = []; // Clear ids attempted for deletion
       } else {
-        showModalFeedback("Không có thay đổi nào để lưu.", "info");
+        showModalFeedback("Cập nhật tiện ích thành công!", "success");
+        // Clear state on full success
+        newImageFiles = [];
+        imagesToDeleteIds = [];
       }
+
+      // Refresh data after a short delay
+      setTimeout(async () => {
+        try {
+          await fetchAndRenderUiUtilityDetails(); // Re-fetch and re-render
+        } catch (fetchError) {
+          console.error(fetchError);
+          const fetchErrMsg = (fetchError.message || "Lỗi không rõ").toString();
+          showModalFeedback(
+            `Đã lưu, nhưng lỗi khi tải lại dữ liệu: ${
+              fetchErrMsg.charAt(0).toUpperCase() + fetchErrMsg.slice(1)
+            }`,
+            "warning"
+          );
+        }
+      }, 1500);
     } catch (error) {
-      console.error(error); 
+      // This catches critical errors that stopped Promise.all
+      console.error(error);
       const errorMessage =
         errors.length > 0
           ? errors.join("; ")
-          : `Đã xảy ra lỗi khi lưu tiện ích: ${
-              // Updated message
-              (
-                error?.response?.data?.message ||
-                error.message ||
-                "Unknown error"
-              )
-                .toString()
-                .charAt(0)
-                .toUpperCase() +
-              (
-                error?.response?.data?.message ||
-                error.message ||
-                "Unknown error"
-              )
-                .toString()
-                .slice(1)
-            }`;
+          : `Lỗi không xác định khi lưu tiện ích.`; // Simplified error
       showModalFeedback(errorMessage, "danger");
     } finally {
       if (saveChangesBtn) saveChangesBtn.disabled = false;
