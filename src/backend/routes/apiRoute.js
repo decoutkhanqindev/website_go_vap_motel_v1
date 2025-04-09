@@ -421,7 +421,7 @@ router.get(
   UserController.getAllUsers
 );
 router.delete(
-  "/user/:username", // Delete user
+  "/user/:id", // Delete user
   verifyToken,
   verifyIsLandlord,
   UserController.deleteUser
@@ -429,16 +429,13 @@ router.delete(
 
 // Logged in user routes (any role, usually for 'self' actions)
 router.get("/user/current/me", verifyToken, UserController.getMe);
-router.get("/user/:username", verifyToken, UserController.getUserByUsername);
+router.get("/user/usename/:username", verifyToken, UserController.getUserByUsername);
+router.get("/user/id/:id", verifyToken, UserController.getUserById);
 
 // Logged in user routes (Self or Landlord? Check controller logic)
+router.patch("/user/:id/phone", verifyToken, UserController.updateUserPhone);
 router.patch(
-  "/user/:username/phone",
-  verifyToken,
-  UserController.updateUserPhone
-);
-router.patch(
-  "/user/:username/password",
+  "/user/:id/password",
   verifyToken,
   UserController.updateUserPassword
 );
