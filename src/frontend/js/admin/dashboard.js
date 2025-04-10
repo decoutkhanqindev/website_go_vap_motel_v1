@@ -3292,11 +3292,8 @@ document.addEventListener("DOMContentLoaded", () => {
       renderUserTableUI();
     } catch (error) {
       console.error(error);
-      const errorMsg =
-        error.response?.data?.message || error.message || "Unknown error";
-      // Display error state
       if (userTableBody)
-        userTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error loading users: ${errorMsg}</td></tr>`; // Colspan = 5
+        userTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Lỗi tải dữ liệu người dùng.</td></tr>`; // Colspan = 5
       currentUserData = [];
       totalUsers = 0;
       renderUserPaginationUI(); // Render empty pagination
@@ -3959,10 +3956,60 @@ document.addEventListener("DOMContentLoaded", () => {
     occupantTenantSelectLoadingDiv.style.display = "block";
 
     try {
-      // Fetch users with role 'tenant'
-      const users = await UserService.getAllUsers({ role: "tenant" });
-      availableTenantUsers = users || []; // Store globally
+      // Step 1 & 2: Fetch both tenants and current occupants concurrently
+      const [tenantUsersResponse, occupantsResponse] = await Promise.allSettled(
+        [
+          UserService.getAllUsers({ role: "tenant" }),
+          OccupantService.getAllOccupants({}) // Fetch all occupants to check assignments
+        ]
+      );
 
+      // Process Tenant Users result
+      let allTenantUsers = [];
+      if (
+        tenantUsersResponse.status === "fulfilled" &&
+        tenantUsersResponse.value
+      ) {
+        allTenantUsers = tenantUsersResponse.value;
+      } else if (tenantUsersResponse.status === "rejected") {
+        console.error(
+          "Error fetching tenant users:",
+          tenantUsersResponse.reason
+        );
+        // Throw an error or handle it gracefully - here we'll let the main catch handle it
+        throw new Error("Lỗi khi tải danh sách tài khoản người thuê.");
+      }
+
+      // Process Occupants result to get assigned IDs
+      let assignedTenantIds = new Set();
+      if (occupantsResponse.status === "fulfilled" && occupantsResponse.value) {
+        const allOccupants = occupantsResponse.value;
+        allOccupants.forEach((occ) => {
+          // Add tenantId to the set if it exists
+          if (occ.tenantId) {
+            // Ensure comparison works correctly (assuming IDs are strings or can be converted)
+            assignedTenantIds.add(String(occ.tenantId));
+          }
+        });
+        console.log("Assigned Tenant IDs:", assignedTenantIds); // For debugging
+      } else if (occupantsResponse.status === "rejected") {
+        // Log the error but don't necessarily block the process.
+        // We can still show tenants, just without filtering.
+        console.warn(
+          "Could not fetch occupants to filter tenant list:",
+          occupantsResponse.reason
+        );
+        // assignedTenantIds will remain empty, so filtering won't occur
+        // Optionally show a less critical feedback message later
+      }
+
+      // Step 4: Filter Tenant Users
+      const availableTenantUsers = allTenantUsers.filter(
+        (user) => !assignedTenantIds.has(String(user._id)) // Keep user if their ID is NOT in the assigned set
+      );
+      console.log("Available (unassigned) Tenant Users:", availableTenantUsers); // For debugging
+
+      // Step 5: Populate Dropdown
       // Reset dropdown, keeping the 'No account' option
       newOccupantTenantIdSelect.innerHTML =
         '<option value="" selected>Không có tài khoản</option>';
@@ -3975,15 +4022,24 @@ document.addEventListener("DOMContentLoaded", () => {
           newOccupantTenantIdSelect.appendChild(option);
         });
       } else {
+        // If all tenants are assigned or no tenants exist
         newOccupantTenantIdSelect.innerHTML +=
-          '<option value="" disabled>Không tìm thấy tài khoản người thuê nào</option>';
+          '<option value="" disabled>Không có tài khoản người thuê nào khả dụng</option>';
       }
+
       newOccupantTenantIdSelect.disabled = false; // Enable select
     } catch (error) {
-      console.error(error);
+      console.error("Error loading data for occupant tenant selection:", error);
+      // Update dropdown to show error state
       newOccupantTenantIdSelect.innerHTML =
         '<option value="" selected>Không có tài khoản</option><option value="" disabled>Lỗi tải tài khoản</option>';
-      availableTenantUsers = []; // Reset on error
+      // Optionally keep it disabled
+      // newOccupantTenantIdSelect.disabled = true;
+      showModalFeedback(
+        "addOccupantModalFeedback",
+        error.message || "Lỗi tải danh sách tài khoản.",
+        "danger"
+      );
     } finally {
       occupantTenantSelectLoadingDiv.style.display = "none"; // Hide loading indicator
     }
@@ -4595,7 +4651,6 @@ document.addEventListener("DOMContentLoaded", () => {
     newInvoiceRoomIdSelect.addEventListener("change", async (event) => {
       const selectedRoomId = event.target.value;
       const selectedOption = event.target.options[event.target.selectedIndex];
-      // Get default rent price from the selected option's data attribute
       const defaultRentPrice = parseFloat(
         selectedOption?.dataset.defaultRentPrice || 0
       );
@@ -4606,117 +4661,153 @@ document.addEventListener("DOMContentLoaded", () => {
           '<p class="text-muted small m-0">Đang tải dữ liệu phòng...</p>';
       }
       activeContractUtilities = [];
-      activeContractRentPrice = defaultRentPrice; // Start with default
+      activeContractRentPrice = defaultRentPrice;
       if (newInvoiceRentAmountInput) {
-        newInvoiceRentAmountInput.value = activeContractRentPrice; // Update display
+        newInvoiceRentAmountInput.value = activeContractRentPrice;
       }
-      // Clear old indices initially
+      // Clear old indices initially while loading
       if (newInvoiceElecOldIndexInput) newInvoiceElecOldIndexInput.value = "";
       if (newInvoiceWaterOldIndexInput) newInvoiceWaterOldIndexInput.value = "";
-      calculateTotalAmount(); // Recalculate with cleared/default values
+      calculateTotalAmount();
 
       if (!selectedRoomId) {
-        // Handle case where selection is cleared or invalid
+        // Reset if no room is selected
         if (newInvoiceUtilitiesListDiv) {
           newInvoiceUtilitiesListDiv.innerHTML =
             '<p class="text-muted small m-0">Vui lòng chọn phòng.</p>';
         }
-        // Keep rent at 0 or default? Let's keep default price as derived from option dataset
+        loadUtilitiesForInvoiceModal([]); // Clear utilities display
         if (newInvoiceRentAmountInput)
           newInvoiceRentAmountInput.value = defaultRentPrice;
-        activeContractRentPrice = defaultRentPrice; // Ensure state matches UI
-        if (newInvoiceElecOldIndexInput) newInvoiceElecOldIndexInput.value = 0; // Set to 0 if no room
+        activeContractRentPrice = defaultRentPrice;
+        if (newInvoiceElecOldIndexInput) newInvoiceElecOldIndexInput.value = 0;
         if (newInvoiceWaterOldIndexInput)
-          newInvoiceWaterOldIndexInput.value = 0; // Set to 0 if no room
+          newInvoiceWaterOldIndexInput.value = 0;
         calculateTotalAmount();
         return;
       }
 
+      // --- Combined Fetching Logic ---
       try {
-        const contracts = await ContractService.getAllContracts({
-          roomId: selectedRoomId,
-          status: "active"
-        });
-
-        if (contracts && contracts.length > 0) {
-          const activeContract = contracts[0];
-          activeContractUtilities = activeContract.utilities || [];
-          activeContractRentPrice =
-            activeContract.rentPrice || defaultRentPrice;
-          await loadUtilitiesForInvoiceModal(activeContractUtilities); // Load utilities based on contract
-        } else {
+        // 1. Fetch Active Contract (for rent price and utilities)
+        let contractUtilities = [];
+        let contractRent = defaultRentPrice; // Start with default
+        try {
+          const contracts = await ContractService.getAllContracts({
+            roomId: selectedRoomId,
+            status: "active"
+          });
+          if (contracts && contracts.length > 0) {
+            const activeContract = contracts[0];
+            contractUtilities = activeContract.utilities || [];
+            contractRent = activeContract.rentPrice || defaultRentPrice;
+            activeContractUtilities = contractUtilities.map((u) =>
+              typeof u === "object" ? u._id : u
+            ); // Store IDs
+          } else {
+            // No active contract
+            activeContractUtilities = [];
+            showModalFeedback(
+              "addInvoiceModalFeedback",
+              "Phòng này không có hợp đồng hiệu lực. Sử dụng giá thuê mặc định.",
+              "info" // Use info or warning
+            );
+          }
+        } catch (contractError) {
+          console.error("Error fetching contract:", contractError);
+          // Continue with default rent, clear utilities, show warning
           activeContractUtilities = [];
-          activeContractRentPrice = defaultRentPrice; // Use room's default rent
-          loadUtilitiesForInvoiceModal([]); // Clear/show message for utilities
+          contractRent = defaultRentPrice;
+          showModalFeedback(
+            "addInvoiceModalFeedback",
+            "Lỗi khi tải hợp đồng. Sử dụng giá thuê mặc định.",
+            "warning"
+          );
         }
+
+        // Update UI based on contract fetch results
+        activeContractRentPrice = contractRent;
         if (newInvoiceRentAmountInput) {
           newInvoiceRentAmountInput.value = activeContractRentPrice;
         }
+        await loadUtilitiesForInvoiceModal(contractUtilities); // Load utilities based on what was found
 
-        const roomInvoices = await InvoiceService.getAllInvoices({
-          roomId: selectedRoomId
-        });
+        // 2. Fetch Latest Previous Invoice (for old indices)
+        let latestPreviousInvoice = null;
+        try {
+          // Fetch invoices for the room, sorted by issueDate descending
+          // Ideally, backend supports sorting & limiting: ?sort=-issueDate&limit=1
+          // Client-side sort as fallback:
+          const previousInvoices = await InvoiceService.getAllInvoices({
+            roomId: selectedRoomId
+          });
 
-        if (roomInvoices && roomInvoices.length > 0) {
-          // Sort by issueDate descending to find the most recent
-          roomInvoices.sort(
-            (a, b) => new Date(b.issueDate) - new Date(a.issueDate)
-          );
-          const latestPreviousInvoice = roomInvoices[0];
-
-          // Pre-fill Old Index from the New Index of the previous invoice
-          if (
-            latestPreviousInvoice.electricity &&
-            latestPreviousInvoice.electricity.newIndex !== undefined
-          ) {
-            if (newInvoiceElecOldIndexInput) {
-              newInvoiceElecOldIndexInput.value =
-                latestPreviousInvoice.electricity.newIndex;
-            }
+          if (previousInvoices && previousInvoices.length > 0) {
+            // Sort descending by issueDate to find the most recent
+            previousInvoices.sort((a, b) => {
+              const dateA = a.issueDate ? new Date(a.issueDate) : new Date(0); // Handle potentially missing dates
+              const dateB = b.issueDate ? new Date(b.issueDate) : new Date(0);
+              return dateB - dateA; // Descending
+            });
+            latestPreviousInvoice = previousInvoices[0];
+            console.log(
+              "Latest previous invoice found:",
+              latestPreviousInvoice
+            );
           } else {
-            // If electricity data or newIndex is missing on the last invoice, default to 0
-            if (newInvoiceElecOldIndexInput)
-              newInvoiceElecOldIndexInput.value = 0;
+            console.log("No previous invoices found for this room.");
           }
-
-          if (
-            latestPreviousInvoice.water &&
-            latestPreviousInvoice.water.newIndex !== undefined
-          ) {
-            if (newInvoiceWaterOldIndexInput) {
-              newInvoiceWaterOldIndexInput.value =
-                latestPreviousInvoice.water.newIndex;
-            }
+        } catch (invoiceError) {
+          // Handle 404 Not Found specifically - it's not an error, just means no invoices yet
+          if (invoiceError.response && invoiceError.response.status === 404) {
+            console.log("No previous invoices found for this room (404).");
+            latestPreviousInvoice = null;
           } else {
-            // If water data or newIndex is missing on the last invoice, default to 0
-            if (newInvoiceWaterOldIndexInput)
-              newInvoiceWaterOldIndexInput.value = 0;
+            // Log other errors
+            console.error("Error fetching previous invoices:", invoiceError);
+            latestPreviousInvoice = null; // Ensure it's null on error
+            // Optionally show a warning to the user about index prefill failing
+            showModalFeedback(
+              "addInvoiceModalFeedback",
+              "Không thể tải chỉ số cũ từ hóa đơn trước.",
+              "warning"
+            );
           }
-        } else {
-          // No previous invoices found for this room
-          // Set old indices to 0 if this is the first invoice
-          if (newInvoiceElecOldIndexInput)
-            newInvoiceElecOldIndexInput.value = 0;
-          if (newInvoiceWaterOldIndexInput)
-            newInvoiceWaterOldIndexInput.value = 0;
         }
-      } catch (error) {
-        console.error(error);
-        showModalFeedback(
-          "Lỗi khi tải thông tin hợp đồng hoặc hóa đơn cũ.",
-          "warning"
+
+        // 3. Set Old Indices based on latestPreviousInvoice
+        const oldElecIndex = latestPreviousInvoice?.electricity?.newIndex ?? 0; // Default to 0 if not found
+        const oldWaterIndex = latestPreviousInvoice?.water?.newIndex ?? 0; // Default to 0 if not found
+
+        if (newInvoiceElecOldIndexInput) {
+          newInvoiceElecOldIndexInput.value = oldElecIndex;
+        }
+        if (newInvoiceWaterOldIndexInput) {
+          newInvoiceWaterOldIndexInput.value = oldWaterIndex;
+        }
+        console.log(
+          `Prefilled Old Indices - Elec: ${oldElecIndex}, Water: ${oldWaterIndex}`
         );
-        // Reset relevant fields on error to avoid using stale data
-        loadUtilitiesForInvoiceModal([]); // Clear utilities display
+      } catch (error) {
+        // --- Main Error Handling (e.g., if something unexpected breaks) ---
+        console.error("Error processing room change details:", error);
+        showModalFeedback(
+          "addInvoiceModalFeedback",
+          `Lỗi: ${
+            error.message || "Không thể tải đầy đủ chi tiết cho phòng này."
+          }`,
+          "danger"
+        );
+        // Reset fields to a safe state on major error
         if (newInvoiceRentAmountInput)
-          newInvoiceRentAmountInput.value = defaultRentPrice; // Use default rent
-        activeContractRentPrice = defaultRentPrice; // Sync state
-        if (newInvoiceElecOldIndexInput) newInvoiceElecOldIndexInput.value = ""; // Clear indices
+          newInvoiceRentAmountInput.value = defaultRentPrice;
+        activeContractRentPrice = defaultRentPrice;
+        loadUtilitiesForInvoiceModal([]);
+        if (newInvoiceElecOldIndexInput) newInvoiceElecOldIndexInput.value = 0;
         if (newInvoiceWaterOldIndexInput)
-          newInvoiceWaterOldIndexInput.value = "";
+          newInvoiceWaterOldIndexInput.value = 0;
       } finally {
-        // --- Step 3: Recalculate Total ---
-        // Always recalculate after all potential updates
+        // --- Always Recalculate Total ---
         calculateTotalAmount();
       }
     });
