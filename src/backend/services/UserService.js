@@ -5,7 +5,7 @@ const env = process.env;
 const ApiError = require("../utils/ApiError");
 const logger = require("../utils/logger");
 const { User, RefreshToken } = require("../models/User");
-const OccupantService = require("./OccupantService");
+const OccupantService = require("../services/OccupantService");
 
 class UserService {
   static async getAllUsers(filter = {}) {
@@ -180,13 +180,14 @@ class UserService {
 
       const isValidPassword = await bcrypt.compare(password, user.password);
       if (!isValidPassword) {
-        throw new ApiError(401, "Invalid password.");
+        logger.warn(`Invalid password attempt for user: ${username}`);
+        throw new ApiError(401, "Invalid username or password.");
       }
 
       const accessToken = UserService.generateToken(
         user,
         env.JWT_ACCESS_KEY,
-        "15m"
+        "30m"
       );
       const refreshToken = UserService.generateToken(
         user,
@@ -194,55 +195,144 @@ class UserService {
         "1d"
       );
 
+      // Save the new refresh token to the database
+      try {
+        await RefreshToken.deleteMany({ userId: user._id });
+        logger.info(`Removed previous refresh tokens for user: ${username}`);
+
+        const newRefreshTokenModel = new RefreshToken({
+          data: refreshToken,
+          userId: user._id
+        });
+        await newRefreshTokenModel.save();
+        logger.info(
+          `Successfully saved initial refresh token to DB for user: ${username}`
+        );
+      } catch (saveError) {
+        logger.error(
+          `CRITICAL: Failed to save initial refresh token for user ${username}: ${saveError}`
+        );
+        throw new ApiError(
+          500,
+          "Authentication failed due to server error during session creation."
+        );
+      }
+
       return { user, accessToken, refreshToken };
     } catch (error) {
       logger.error(`UserService.authenticateUser() have error:\n${error}`);
-      throw error;
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError(
+        500,
+        "Authentication failed due to an unexpected server error."
+      );
     }
   }
 
-  static async refreshToken(refreshToken) {
+  static async refreshToken(refreshTokenFromCookie) {
     try {
       logger.info(`UserService.refreshToken() is called.`);
-      let newAccessToken;
-      let newRefreshToken;
 
-      jwt.verify(refreshToken, env.JWT_REFRESH_KEY, async (error, user) => {
-        if (error) throw new ApiError(403, "Token is not valid.");
-
+      let decodedPayload;
+      try {
+        decodedPayload = jwt.verify(
+          refreshTokenFromCookie,
+          env.JWT_REFRESH_KEY
+        );
+        logger.info(
+          `Refresh token successfully verified for user ID: ${decodedPayload.id}`
+        );
+      } catch (verifyError) {
+        logger.error(
+          `Refresh token verification failed: ${verifyError.message}`
+        );
         try {
-          await RefreshToken.deleteOne({ data: refreshToken }); // Delete the OLD token
-          logger.info(`Successfully invalidated used refresh token.`);
-        } catch (deleteError) {
+          // Attempt delete by token string if verification fails
+          await RefreshToken.deleteOne({ data: refreshTokenFromCookie });
+          logger.info(
+            `Attempted removal of invalid/expired refresh token from DB.`
+          );
+        } catch (deleteErr) {
           logger.error(
-            `Error deleting old refresh token during refresh: ${deleteError}`
+            `Error trying to remove invalid refresh token from DB: ${deleteErr}`
           );
         }
+        throw new ApiError(403, "Refresh token is not valid or expired.");
+      }
 
-        newAccessToken = UserService.generateToken(
-          user,
-          env.JWT_ACCESS_KEY,
-          "30m" // Consider consistency with access token expiry if needed
-        );
-        newRefreshToken = UserService.generateToken(
-          user,
-          env.JWT_REFRESH_KEY,
-          "1d"
-        );
-
-        const newRefreshTokenModel = new RefreshToken({
-          data: newRefreshToken
-        });
-        await newRefreshTokenModel.save(); // Save the NEW token
+      const tokenInDb = await RefreshToken.findOne({
+        data: refreshTokenFromCookie,
+        userId: decodedPayload.id
       });
+      if (!tokenInDb) {
+        // This can happen if the token was deleted (logout) OR if a valid token from *another* user is somehow presented
+        logger.warn(
+          `Refresh token verified but not found in DB for user ${decodedPayload.id} (or token mismatch). Denying refresh.`
+        );
+        throw new ApiError(
+          403,
+          "Refresh token not valid (session ended or invalid)."
+        );
+      }
 
-      const newRefreshTokenModel = new RefreshToken({ data: newRefreshToken });
-      await newRefreshTokenModel.save();
+      try {
+        // Deleting by the 'data' field is safer and more specific
+        await RefreshToken.deleteOne({ data: refreshTokenFromCookie });
+        logger.info(
+          `Successfully invalidated used refresh token in DB (user: ${decodedPayload.id}).`
+        );
+      } catch (deleteError) {
+        logger.error(
+          `Error deleting old refresh token from DB: ${deleteError}`
+        );
+        throw new ApiError(500, "Could not invalidate old session token.");
+      }
+
+      // Generate NEW tokens
+      const userPayload = { _id: decodedPayload.id, role: decodedPayload.role };
+      const newAccessToken = UserService.generateToken(
+        userPayload,
+        env.JWT_ACCESS_KEY,
+        "30m"
+      );
+      const newRefreshToken = UserService.generateToken(
+        userPayload,
+        env.JWT_REFRESH_KEY,
+        "1d"
+      );
+
+      // Store the NEW refresh token in the DB
+      try {
+        const newRefreshTokenModel = new RefreshToken({
+          data: newRefreshToken,
+          userId: decodedPayload.id
+        });
+        await newRefreshTokenModel.save();
+        logger.info(
+          `Successfully saved new refresh token to DB (user: ${decodedPayload.id}).`
+        );
+      } catch (saveError) {
+        logger.error(
+          `CRITICAL: Error saving new refresh token to DB: ${saveError}`
+        );
+        throw new ApiError(500, "Could not save new session token.");
+      }
 
       return { newAccessToken, newRefreshToken };
     } catch (error) {
-      logger.error(`UserService.refreshToken() have error:\n${error}`);
-      throw error;
+      logger.error(
+        `UserService.refreshToken() have error:\n${error.message}`,
+        error
+      );
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new ApiError(
+        error.status || 500,
+        error.message || "Failed to refresh token."
+      );
     }
   }
 
@@ -256,18 +346,24 @@ class UserService {
         logger.warn(
           `Refresh token not found in DB during logout. It might have expired or already been removed.`
         );
+      } else {
+        logger.info(
+          `Successfully removed refresh token from DB during logout.`
+        );
       }
       return { success: true, tokenRemoved: !!deletedRefreshToken };
     } catch (error) {
-      logger.error(`UserService.logoutUser() have error:\n${error}`);
-      throw error;
+      logger.error(
+        `UserService.logoutUser() database operation failed: ${error}`
+      );
+      throw new ApiError(500, "Server error during logout process.");
     }
   }
 
   static async getMe(userId) {
     try {
       logger.info(`UserService.getMe() is called`);
-      const user = await UserService.getUserById(userId); // Use existing getUserById
+      const user = await UserService.getUserById(userId);
       return user;
     } catch (error) {
       logger.error(`UserService.getMe() have error:\n${error}`);

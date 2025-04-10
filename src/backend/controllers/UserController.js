@@ -180,6 +180,7 @@ class UserController {
       });
       if (!refreshToken)
         return next(new ApiError(401, "User is not authencated."));
+
       const deletedRefreshToken = await UserService.logoutUser(refreshToken);
       res.status(200).json(deletedRefreshToken);
     } catch (error) {
@@ -191,14 +192,11 @@ class UserController {
   }
 
   static async getMe(req, res, next) {
-    // New controller method
     try {
       logger.info(`UserController.getMe() is called.`);
-      const userId = req.user.id; // Get user ID from the request (added by verifyToken middleware)
-      console.log("userId", userId);
+      const userId = req.user.id;
       const user = await UserService.getMe(userId);
-      // Remove sensitive data like password before sending the response.
-      const { password, ...userData } = user.toObject ? user.toObject() : user; // Use toObject() if it's a Mongoose document
+      const { password, ...userData } = user.toObject ? user.toObject() : user;
       res.status(200).json(userData);
     } catch (error) {
       logger.error(`UserController.getMe() have error:\n${error}`);
