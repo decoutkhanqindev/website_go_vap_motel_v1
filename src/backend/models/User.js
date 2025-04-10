@@ -39,6 +39,12 @@ const userSchema = new Schema(
 
 const refreshTokenSchema = new Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true
+    },
     data: {
       type: String,
       required: true,
