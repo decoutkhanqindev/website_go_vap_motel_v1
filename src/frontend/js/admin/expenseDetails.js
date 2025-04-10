@@ -657,7 +657,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (markAsPaidBtn) markAsPaidBtn.addEventListener("click", handleMarkAsPaid);
   if (cancelChangesBtn)
     cancelChangesBtn.addEventListener("click", () => {
-      window.location.href = "/admin/dashboard";
+      window.history.back();
     });
 
   // --- Initial Load ---

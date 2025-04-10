@@ -871,7 +871,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Event Listener: Cancel Button
   if (cancelChangesBtn) {
     cancelChangesBtn.addEventListener("click", () => {
-      window.location.href = "/admin/dashboard";
+      window.history.back();
     });
   }
 

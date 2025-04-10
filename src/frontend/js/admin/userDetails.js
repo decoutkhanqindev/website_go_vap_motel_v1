@@ -311,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function: Handles the 'Cancel' button click
   function handleCancelChanges() {
-    window.location.href = "/admin/dashboard";
+    window.history.back();
   }
 
   // --- Event Listener Setup ---
