@@ -13,7 +13,6 @@ api.interceptors.request.use(
   (config) => {
     const token = AuthService.getAccessToken();
     if (token) {
-      // Log token đang được sử dụng (chỉ log một phần để an toàn)
       console.info(
         `[Interceptor Req] Attaching token to request: ${config.method.toUpperCase()} ${
           config.url
@@ -39,8 +38,11 @@ api.interceptors.request.use(
 // Response Interceptor: Handle token expiration and refresh
 api.interceptors.response.use(
   (response) => {
-    // Log khi nhận response thành công (có thể quá nhiều log, cân nhắc)
-    // console.info(`[Interceptor Res] Received successful response for: ${response.config.method.toUpperCase()} ${response.config.url}`);
+    console.info(
+      `[Interceptor Res] Received successful response for: ${response.config.method.toUpperCase()} ${
+        response.config.url
+      }`
+    );
     return response;
   },
   async (error) => {
@@ -51,7 +53,7 @@ api.interceptors.response.use(
       }`,
       error.response?.status,
       error.message
-    ); // Log lỗi ban đầu
+    );
 
     // Nếu lỗi đến từ endpoint đăng nhập hoặc làm mới token, không thử refresh lại.
     if (
@@ -73,19 +75,17 @@ api.interceptors.response.use(
       console.warn(
         `[Interceptor Res] Received ${error.response.status} on ${originalRequest.url}. Potential expired/invalid token. Marking for retry.`
       );
-      originalRequest._retry = true; // Mark the request to prevent infinite loops
+      originalRequest._retry = true;
 
       try {
-        console.info("[Interceptor Res] Calling UserService.refreshToken()..."); // Log trước khi gọi refresh
-        await UserService.refreshToken(); // Gọi hàm refresh đã có log bên trong
+        console.info("[Interceptor Res] Calling UserService.refreshToken()...");
+        await UserService.refreshToken();
         console.info(
           "[Interceptor Res] Token refresh seems successful. Retrying original request:",
           originalRequest.url
         );
-        // Request interceptor sẽ tự động thêm token mới vào header khi retry
         return api(originalRequest);
       } catch (refreshError) {
-        // Lỗi này là từ UserService.refreshToken() hoặc lỗi mạng khi gọi refresh
         console.error(
           "[Interceptor Res] CRITICAL: Failed to refresh token during retry attempt.",
           refreshError
@@ -96,7 +96,7 @@ api.interceptors.response.use(
           console.warn(
             "[Interceptor Res] Attempting logout after refresh failure..."
           );
-          await UserService.logoutUser(); // Gọi hàm logout đã có log bên trong
+          await UserService.logoutUser();
         } catch (logoutError) {
           console.error(
             "[Interceptor Res] Error during logout after refresh failure:",
@@ -108,7 +108,7 @@ api.interceptors.response.use(
         console.warn(
           "[Interceptor Res] Redirecting to /login due to refresh failure."
         );
-        // window.location.href = "/login"; // Chỉ bật khi cần thiết trong dev, hoặc xử lý ở tầng UI
+        window.location.href = "/login"; // Chỉ bật khi cần thiết trong dev, hoặc xử lý ở tầng UI
         alert(
           "Phiên đăng nhập đã hết hạn hoặc có lỗi. Vui lòng đăng nhập lại."
         ); // Thông báo cho người dùng

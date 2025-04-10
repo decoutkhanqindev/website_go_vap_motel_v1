@@ -5124,7 +5124,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } finally {
         // Always redirect to the login page
         // ADJUST THE PATH if your login page is different
-        window.location.replace("/login");
+        window.location.replace("/");
       }
     });
   }
