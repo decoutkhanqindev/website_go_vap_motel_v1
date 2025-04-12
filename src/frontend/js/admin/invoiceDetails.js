@@ -240,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
           option.value = room._id;
           option.textContent = `P. ${room.roomNumber || "N/A"} - ĐC. ${
             room.address || "N/A"
-          } (Phòng gốc hóa đơn)`;
+          }`;
           // Store default rent price for fallback
           option.dataset.defaultRentPrice = room.rentPrice || 0;
 
