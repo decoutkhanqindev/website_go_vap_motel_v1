@@ -141,12 +141,12 @@ class UserService {
         throw new ApiError(404, `No user found matching id ${id}.`);
       }
 
-      const deletedOccupant = await OccupantService.getAllOccupants({
-        tenantId: deletedUser._id
-      });
-      for (const occupant of deletedOccupant) {
-        await OccupantService.deleteOccupant(occupant._id);
-      }
+      // const deletedOccupant = await OccupantService.getAllOccupants({
+      //   tenantId: deletedUser._id
+      // });
+      // for (const occupant of deletedOccupant) {
+      //   await OccupantService.deleteOccupant(occupant._id);
+      // }
 
       return deletedUser;
     } catch (error) {

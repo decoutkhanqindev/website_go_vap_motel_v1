@@ -10,6 +10,7 @@ class OccupantController {
       const filter = {};
 
       if (query.roomId) filter.roomId = query.roomId;
+      if (query.tenantId) filter.tenantId = query.tenantId;
       if (query.contractCode) filter.contractCode = query.contractCode;
       if (query.cccd) filter.cccd = query.cccd;
 
