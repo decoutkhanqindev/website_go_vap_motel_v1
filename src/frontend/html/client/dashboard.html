@@ -44,7 +44,6 @@
           class="collapse navbar-collapse justify-content-center"
           id="navbarNav"
         >
-          <!-- ### MODIFICATION: Client-specific nav items ### -->
           <ul class="navbar-nav">
             <li
               class="room-tab nav-item d-flex justify-content-center align-items-center"
@@ -116,6 +115,17 @@
               >
             </li>
             <li
+              class="user-profile-tab nav-item d-flex justify-content-center align-items-center"
+            >
+              <img class="nav-img" src="/assets/logo_user.png" alt="Cá nhân" />
+              <a
+                class="nav-link"
+                href="#"
+                data-target="user-profile-tab-container"
+                >Cá nhân</a
+              >
+            </li>
+            <li
               class="notifications-tab nav-item d-flex justify-content-center align-items-center"
             >
               <img
@@ -128,17 +138,6 @@
                 href="#"
                 data-target="notifications-tab-container"
                 >Thông báo</a
-              >
-            </li>
-            <li
-              class="user-profile-tab nav-item d-flex justify-content-center align-items-center"
-            >
-              <img class="nav-img" src="/assets/logo_user.png" alt="Cá nhân" />
-              <a
-                class="nav-link"
-                href="#"
-                data-target="user-profile-tab-container"
-                >Cá nhân</a
               >
             </li>
             <li
@@ -174,9 +173,130 @@
           class="room-tab-container"
           style="display: none"
         >
-          <h2>Thông tin phòng thuê</h2>
-          <p>Nội dung chi tiết về phòng đang thuê của bạn...</p>
-          <!-- Content specific to the client's room details will go here -->
+          <!-- Assumed container within client dashboard HTML (e.g., <div id="client-room-details-content" class="tab-pane ..."> ) -->
+
+          <div
+            class="room-details-title d-flex justify-content-center align-items-center"
+          >
+            THÔNG TIN CHI TIẾT PHÒNG
+          </div>
+          <div class="room-details">
+            <!-- Reusing class from roomDetails -->
+            <div class="row">
+              <!-- Image List Column -->
+              <div class="col-md-6">
+                <div class="image-list-container">
+                  <button id="prevButton" class="nav-button prev-button">
+                    <!-- Original ID -->
+                    <img src="/assets/pre_btn.png" alt="Previous" />
+                  </button>
+                  <div class="image-list">
+                    <!-- Original Class -->
+                    <!-- Images will be populated by JS -->
+                    <p class="text-muted p-3 text-center w-100">
+                      Đang tải hình ảnh...
+                    </p>
+                  </div>
+                  <button id="nextButton" class="nav-button next-button">
+                    <!-- Original ID -->
+                    <img src="/assets/next_btn.png" alt="Next" />
+                  </button>
+                </div>
+              </div>
+
+              <!-- Room Info Column -->
+              <div class="col-md-5">
+                <div class="room-info">
+                  <div class="room-info-container">
+                    <!-- Original Class -->
+                    <!-- Basic room details will be populated by JS -->
+                    <p class="text-muted p-3 text-center">
+                      Đang tải thông tin phòng...
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Static Info Sections -->
+              <div class="col-12">
+                <div class="cost-living mt-4">
+                  <div
+                    class="cost-living-title d-flex justify-content-center align-items-center"
+                  >
+                    CHI PHÍ SINH HOẠT
+                  </div>
+                  <!-- Static text content copied from roomDetails.html -->
+                  <p>
+                    Tất cả các phòng trong Hệ thống Nhà trọ Gò Vấp sẽ có cùng
+                    mức giá cho các chi phí sinh hoạt, người thuê cần thanh toán
+                    các chi phí này theo mức sử dụng cá nhân. Dưới đây là chi
+                    tiết các khoản chi phí:
+                  </p>
+                  <ul>
+                    <li>
+                      <strong>💡 Điện:</strong> 3.500 VNĐ/kWh (tính theo đồng hồ
+                      điện riêng từng phòng).
+                    </li>
+                    <li>
+                      <strong>💧 Nước:</strong> 4.000 VNĐ/m³ (tính theo đồng hồ
+                      nước riêng từng phòng).
+                    </li>
+                  </ul>
+                  <p>
+                    Các khoản chi phí này sẽ được tính dựa trên mức tiêu thụ
+                    thực tế hàng tháng. Người thuê có thể kiểm tra đồng hồ điện,
+                    nếu có sai sót hãy liên hệ với chủ trọ sớm nhất có thể để
+                    được giải quyết nhanh nhất.
+                  </p>
+                </div>
+
+                <div class="amenity-list mt-4">
+                  <div
+                    class="amenity-list-title d-flex justify-content-center align-items-center"
+                  >
+                    DANH SÁCH CÁC TIỆN NGHI TRONG PHÒNG
+                  </div>
+                  <p>
+                    Nhà trọ Gò Vấp cung cấp đầy đủ tiện nghi cần thiết để mang
+                    lại cuộc sống thoải mái cho người thuê. Các tiện nghi đều có
+                    nguồn gốc rõ ràng, chất lượng đảm bảo với độ mới từ 80% -
+                    99%. Nếu có hư hỏng không phải do người thuê, chủ trọ sẽ hỗ
+                    trợ sửa chữa hoàn toàn miễn phí. Dưới đây là các tiện nghi
+                    có sẵn trong phòng này:
+                  </p>
+                  <div class="amenity-list-container">
+                    <!-- Original Class -->
+                    <!-- Amenity items (display only) will be populated by JS -->
+                    <p class="text-muted p-3 text-center w-100">
+                      Đang tải tiện nghi...
+                    </p>
+                  </div>
+                </div>
+
+                <div class="utility-list mt-4">
+                  <div
+                    class="utility-list-title d-flex justify-content-center align-items-center"
+                  >
+                    DANH SÁCH CÁC TIỆN ÍCH KHU TRỌ
+                  </div>
+                  <p>
+                    Hệ thống Nhà trọ Gò Vấp cung cấp nhiều tiện ích khác nhằm
+                    nâng cao trải nghiệm sinh hoạt của người thuê. Các tiện ích
+                    này bao gồm internet tốc độ cao, bãi giữ xe rộng rãi, khu
+                    vực giặt sấy, camera an ninh 24/7, hệ thống PCCC đạt chuẩn,
+                    và nhiều tiện ích khác được áp dụng cho toàn khu trọ:
+                  </p>
+                  <div class="utility-list-container">
+                    <!-- Original Class -->
+                    <!-- Utility items (display only) will be populated by JS -->
+                    <p class="text-muted p-3 text-center w-100">
+                      Đang tải tiện ích...
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- contracts-tab-container (Initially hidden) -->
@@ -220,15 +340,15 @@
           <!-- ... -->
         </div>
         <div
-          id="notifications-tab-container"
-          class="notifications-tab-container"
+          id="user-profile-tab-container"
+          class="user-profile-tab-container"
           style="display: none"
         >
           <!-- ... -->
         </div>
         <div
-          id="user-profile-tab-container"
-          class="user-profile-tab-container"
+          id="notifications-tab-container"
+          class="notifications-tab-container"
           style="display: none"
         >
           <!-- ... -->
