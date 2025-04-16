@@ -1,9 +1,296 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Nhà trọ Gò Vấp</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="shortcut icon" href="/assets/logo.jpg" type="IMAGE" />
+    <link rel="stylesheet" href="/css/client/dashboard.css" />
   </head>
-  <body></body>
+  <body>
+    <!-- header -->
+    <header class="header-bg py-3">
+      <div
+        class="container-fluid d-flex justify-content-center align-items-center"
+      >
+        <div class="header-logo">
+          <img src="/assets/logo_no_text.png" alt="Logo Nhà trọ" />
+        </div>
+        <h1 class="header-text text-center mb-0">NHÀ TRỌ GÒ VẤP</h1>
+      </div>
+    </header>
+
+    <!-- menu -->
+    <nav
+      class="navbar navbar-expand-sm d-flex justify-content-center align-items-center"
+    >
+      <div class="container-fluid">
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div
+          class="collapse navbar-collapse justify-content-center"
+          id="navbarNav"
+        >
+          <!-- ### MODIFICATION: Client-specific nav items ### -->
+          <ul class="navbar-nav">
+            <li
+              class="room-tab nav-item d-flex justify-content-center align-items-center"
+            >
+              <img class="nav-img" src="/assets/logo_room.png" alt="Phòng" />
+              <a class="nav-link" href="#" data-target="room-tab-container"
+                >Phòng</a
+              >
+            </li>
+            <li
+              class="contracts-tab nav-item d-flex justify-content-center align-items-center"
+            >
+              <img
+                class="nav-img"
+                src="/assets/logo_contract.png"
+                alt="Hợp đồng"
+              />
+              <a class="nav-link" href="#" data-target="contracts-tab-container"
+                >Hợp đồng</a
+              >
+            </li>
+            <li
+              class="occupants-tab nav-item d-flex justify-content-center align-items-center"
+            >
+              <img
+                class="nav-img"
+                src="/assets/logo_occpant.png"
+                alt="Người thuê cùng"
+              />
+              <a class="nav-link" href="#" data-target="occupants-tab-container"
+                >Người thuê</a
+              >
+            </li>
+            <li
+              class="invoices-tab nav-item d-flex justify-content-center align-items-center"
+            >
+              <img
+                class="nav-img"
+                src="/assets/logo_invoice.png"
+                alt="Hóa đơn"
+              />
+              <a class="nav-link" href="#" data-target="invoices-tab-container"
+                >Hóa đơn</a
+              >
+            </li>
+            <li
+              class="requests-tab nav-item d-flex justify-content-center align-items-center"
+            >
+              <!-- Placeholder icon - consider creating a specific one -->
+              <img
+                class="nav-img"
+                src="/assets/logo_expense.png"
+                alt="Yêu cầu sửa chữa"
+              />
+              <a class="nav-link" href="#" data-target="requests-tab-container"
+                >Yêu cầu sửa chữa</a
+              >
+            </li>
+            <li
+              class="expenses-tab nav-item d-flex justify-content-center align-items-center"
+            >
+              <img
+                class="nav-img"
+                src="/assets/logo_expense.png"
+                alt="Chi phí"
+              />
+              <a class="nav-link" href="#" data-target="expenses-tab-container"
+                >Chi phí</a
+              >
+            </li>
+            <li
+              class="notifications-tab nav-item d-flex justify-content-center align-items-center"
+            >
+              <img
+                class="nav-img"
+                src="/assets/logo_noti.png"
+                alt="Thông báo"
+              />
+              <a
+                class="nav-link"
+                href="#"
+                data-target="notifications-tab-container"
+                >Thông báo</a
+              >
+            </li>
+            <li
+              class="user-profile-tab nav-item d-flex justify-content-center align-items-center"
+            >
+              <img class="nav-img" src="/assets/logo_user.png" alt="Cá nhân" />
+              <a
+                class="nav-link"
+                href="#"
+                data-target="user-profile-tab-container"
+                >Cá nhân</a
+              >
+            </li>
+            <li
+              class="logout-tab nav-item d-flex justify-content-center align-items-center"
+            >
+              <img
+                class="nav-img"
+                src="/assets/logo_logout.png"
+                alt="Đăng xuất"
+              />
+              <a class="nav-link" href="#" data-target="logout-tab-container"
+                >Đăng xuất</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- content -->
+    <div class="content">
+      <div class="container mt-4">
+        <!-- Status Message Area -->
+        <div
+          id="occupant-status-message"
+          class="alert"
+          style="display: none"
+        ></div>
+
+        <!-- room-tab-container (Initially hidden) -->
+        <div
+          id="room-tab-container"
+          class="room-tab-container"
+          style="display: none"
+        >
+          <h2>Thông tin phòng thuê</h2>
+          <p>Nội dung chi tiết về phòng đang thuê của bạn...</p>
+          <!-- Content specific to the client's room details will go here -->
+        </div>
+
+        <!-- contracts-tab-container (Initially hidden) -->
+        <div
+          id="contracts-tab-container"
+          class="contracts-tab-container"
+          style="display: none"
+        >
+          <h2>Hợp đồng thuê phòng</h2>
+          <p>Nội dung chi tiết về hợp đồng thuê phòng của bạn...</p>
+          <!-- Content specific to the client's contract details will go here -->
+        </div>
+
+        <!-- ... other tab containers also initially hidden ... -->
+        <div
+          id="occupants-tab-container"
+          class="occupants-tab-container"
+          style="display: none"
+        >
+          <!-- ... -->
+        </div>
+        <div
+          id="invoices-tab-container"
+          class="invoices-tab-container"
+          style="display: none"
+        >
+          <!-- ... -->
+        </div>
+        <div
+          id="requests-tab-container"
+          class="requests-tab-container"
+          style="display: none"
+        >
+          <!-- ... -->
+        </div>
+        <div
+          id="expenses-tab-container"
+          class="expenses-tab-container"
+          style="display: none"
+        >
+          <!-- ... -->
+        </div>
+        <div
+          id="notifications-tab-container"
+          class="notifications-tab-container"
+          style="display: none"
+        >
+          <!-- ... -->
+        </div>
+        <div
+          id="user-profile-tab-container"
+          class="user-profile-tab-container"
+          style="display: none"
+        >
+          <!-- ... -->
+        </div>
+        <div
+          id="logout-tab-container"
+          class="logout-tab-container"
+          style="display: none"
+        ></div>
+      </div>
+      <!-- Modals -->
+    </div>
+
+    <!-- footer -->
+    <footer class="footer-bg py-4">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <p class="footer-copyright mb-2">
+              © 2025 Nhà trọ Gò Vấp. All rights reserved.
+            </p>
+            <p class="footer-contact mb-2">
+              Liên hệ: 0123 456 789 (Mr. A) | Email: lienhe@nhathogovap.com
+            </p>
+            <p class="footer-policy">
+              <a href="#">Chính sách bảo mật</a>
+            </p>
+          </div>
+          <div class="col-md-6 d-flex justify-content-end align-items-center">
+            <div class="footer-social">
+              <a
+                href="https://www.facebook.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+              >
+                <img
+                  src="/assets/logo_fb.png"
+                  alt="Facebook"
+                  class="social-icon"
+                />
+              </a>
+              <a
+                href="https://www.youtube.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Youtube"
+              >
+                <img
+                  src="/assets/logo_ytb.png"
+                  alt="YouTube"
+                  class="social-icon"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script type="module" src="/js/client/dashboard.js"></script>
+  </body>
 </html>

@@ -1,0 +1,479 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  position: relative;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header-bg {
+  background-color: #a5bfcc;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+.header-text {
+  font-size: 70px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 4px 4px 6px #000000;
+}
+.header-logo img {
+  width: 100px;
+  height: 100px;
+}
+
+.navbar {
+  padding: 0;
+  background-color: #e7f2f8;
+  position: fixed;
+  top: 130px; /* Adjusted based on header height */
+  left: 0;
+  width: 100%;
+  z-index: 999;
+}
+.nav-item {
+  padding: 8px;
+  margin-right: 20px;
+  font-size: 16px;
+  font-weight: bold;
+}
+.nav-item img {
+  margin-left: 10px;
+  width: 23px;
+  height: 23px;
+}
+.navbar-nav .nav-item.active-menu-item .nav-link {
+  color: white;
+}
+.navbar-nav .nav-item.active-menu-item {
+  background-color: #a5bfcc;
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+.content {
+  position: relative;
+  /* Adjusted top padding based on fixed header and nav height */
+  padding-top: calc(
+    130px + 56px + 20px
+  ); /* header height + approx nav height + margin */
+  flex: 1;
+}
+.content::before {
+  content: "";
+  position: fixed;
+  /* Adjusted top position */
+  top: calc(130px + 56px); /* Position background below header and nav */
+  left: 0;
+  width: 100%;
+  /* Adjusted height */
+  height: calc(100% - (130px + 56px));
+  background-image: url("../../assets/logo_no_text.png");
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center center;
+  background-size: 700px;
+  opacity: 0.1;
+  z-index: -3; /* Ensure it's behind content */
+}
+
+/* Keep styles for potential future use in client view if needed */
+.rooms-tab-title,
+.amenities-tab-title,
+.utilities-tab-title,
+.contracts-tab-title,
+.invoices-tab-title,
+.expenses-tab-title,
+.users-tab-title,
+.occupants-tab-title {
+  border-radius: 5px;
+  font-size: 32px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 4px 4px 6px #000000;
+  color: white;
+  background-color: #a5bfcc;
+  padding: 10px;
+  border-bottom: 2px solid #4da1a9;
+  margin-bottom: 10px;
+}
+
+.filter-container {
+  border: 2px solid #a5bfcc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+.filter-heading {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+.filter-group {
+  margin-bottom: 1rem;
+}
+.filter-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+.form-select,
+.form-range,
+.form-control {
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #4da1a9;
+  border-radius: 0.25rem;
+  margin-bottom: 0.3rem;
+}
+.form-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #4da1a9;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.form-range::-moz-range-thumb {
+  width: 20px;
+  background: #4da1a9;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.apply-filters-btn,
+#applyFilters,
+#addNewRoomBtn,
+#addNewAmenityBtn,
+#addNewUtilityBtn,
+#applyContractFilters,
+#applyInvoiceFilters,
+#addNewContractBtn,
+#searchContractBtn,
+#addNewInvoiceBtn,
+#searchInvoiceBtn,
+#applyExpenseFilters,
+#addNewExpenseBtn,
+#searchExpenseBtn,
+#applyUserFilters,
+#searchUserBtn,
+#addNewUserBtn,
+#applyOccupantFilters,
+#searchOccupantBtn,
+#addNewOccupantBtn {
+  color: white;
+  background-color: #4da1a9;
+}
+
+.room-table,
+.amenity-table,
+.utility-table,
+.contract-table,
+.invoice-table,
+.expense-table,
+.user-table,
+.occupant-table {
+  margin-bottom: 0;
+  border-radius: 10px;
+  border: 2px solid #a5bfcc;
+}
+.room-table thead.table-header-bg,
+.amenity-table thead.table-header-bg,
+.utility-table thead.table-header-bg,
+.contract-table thead.table-header-bg,
+.invoice-table thead.table-header-bg,
+.expense-table thead.table-header-bg,
+.user-table thead.table-header-bg,
+.occupant-table thead.table-header-bg {
+  background-color: #a5bfcc;
+  color: white;
+  font-weight: bold;
+  vertical-align: middle;
+}
+.room-table th,
+.amenity-table th,
+.utility-table th {
+  border-bottom-width: 2px;
+}
+.amenity-table tbody tr,
+.utility-table tbody tr,
+.contract-table tbody tr,
+.invoice-table tbody tr,
+.expense-table tbody tr,
+.user-table tbody tr,
+.occupant-table tbody tr {
+  cursor: default;
+}
+.room-table tbody tr:hover,
+.amenity-table tbody tr:hover,
+.utility-table tbody tr:hover,
+.contract-table tbody tr:hover,
+.invoice-table tbody tr:hover,
+.expense-table tbody tr:hover,
+.user-table tbody tr:hover,
+.occupant-table tbody tr:hover {
+  background-color: #e7f2f8;
+}
+.room-table td,
+.room-table th,
+.amenity-table td,
+.amenity-table th,
+.utility-table td,
+.utility-table th,
+.contract-table td,
+.contract-table th,
+.invoice-table td,
+.invoice-table th,
+.expense-table td,
+.user-table td,
+.user-table th,
+.occupant-table td,
+.occupant-table th {
+  vertical-align: middle;
+  padding: 0.75rem;
+}
+.room-table .text-end,
+.amenity-table .text-end,
+.utility-table .text-end,
+.contract-table .text-end,
+.invoice-table .text-end,
+.user-table .text-end,
+.occupant-table .text-end {
+  text-align: right;
+}
+.room-table .text-center,
+.amenity-table .text-center,
+.utility-table .text-center,
+.contract-table .text-center,
+.invoice-table .text-center,
+.expense-table .text-center,
+.user-table .text-center,
+.occupant-table .text-center {
+  text-align: center;
+}
+.status-vacant,
+.status-paid,
+.status-active {
+  color: green;
+  font-weight: bold;
+}
+.status-occupied,
+.status-pending,
+.status-expired {
+  color: orange;
+  font-weight: bold;
+}
+.status-unavailable,
+.status-overdue,
+.status-terminated {
+  color: red;
+  font-weight: bold;
+}
+
+.table-responsive {
+  border-radius: 5px; /* Keep radius for container */
+  overflow-x: auto;
+}
+.page-item.active .page-link {
+  background-color: #4da1a9;
+  border-color: #4da1a9;
+  color: white;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Removed duplicate definition */
+  margin-bottom: 20px;
+  justify-content: center; /* Center pagination */
+  margin-top: 1rem; /* Added top margin */
+}
+/* Removed duplicate pagination img style */
+
+.checklist-container {
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  padding: 10px;
+  border-radius: 0.25rem;
+  background-color: #fff;
+}
+.checklist-container .form-check {
+  margin-bottom: 0.5rem;
+}
+.image-preview-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border: 1px dashed #ccc;
+  padding: 10px;
+  min-height: 60px;
+  border-radius: 0.25rem;
+}
+.image-preview-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.remove-image-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  line-height: 18px; /* Adjusted for better centering */
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+.remove-image-btn:hover {
+  opacity: 1;
+}
+.modal-body .alert {
+  /* áp dụng cho tất cả các alert trong modal body */
+  margin-bottom: 1rem;
+  display: none; /* giữ nguyên logic ẩn ban đầu nếu cần */
+}
+.save-btn .spinner-border {
+  margin-right: 5px;
+  vertical-align: text-bottom;
+  display: none;
+}
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+  border-color: #dc3545;
+}
+.was-validated .form-select:invalid,
+.form-select.is-invalid {
+  border-color: #dc3545;
+}
+.invalid-feedback {
+  display: none;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #dc3545;
+}
+.was-validated .form-control:invalid ~ .invalid-feedback,
+.form-control.is-invalid ~ .invalid-feedback,
+.was-validated .form-select:invalid ~ .invalid-feedback,
+.form-select.is-invalid ~ .invalid-feedback {
+  display: block;
+}
+#cancelRoomBtn,
+#cancelAmenityBtn,
+#cancelUtilityBtn,
+#cancelContractBtn,
+#cancelInvoiceBtn,
+#cancelExpenseBtn,
+#cancelUserBtn,
+#cancelOccupantBtn {
+  color: white;
+  background-color: #dc3545;
+}
+#saveNewRoomBtn,
+#saveNewAmenityBtn,
+#saveNewUtilityBtn,
+#saveNewContractBtn,
+#saveNewInvoiceBtn,
+#saveNewExpenseBtn,
+#saveNewUserBtn,
+#saveNewOccupantBtn {
+  color: white;
+  background-color: #4da1a9;
+}
+
+.password-input-container {
+  position: relative;
+  display: flex; /* Optional: helps if input needs specific alignment */
+  align-items: center; /* Optional: Vertically center icon with input */
+}
+.password-input-container .form-control,
+.password-input-container .password-input {
+  /* Target the input inside */
+  padding-right: 40px; /* Make space for the icon */
+  width: 100%; /* Ensure input takes full width */
+}
+.password-toggle-icon {
+  position: absolute;
+  right: 10px; /* Adjust as needed */
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  width: 20px; /* Adjust size as needed */
+  height: auto;
+  opacity: 0.7; /* Optional: slightly transparent */
+  transition: opacity 0.2s;
+}
+.password-toggle-icon:hover {
+  opacity: 1; /* Optional: full opacity on hover */
+}
+
+.footer-bg {
+  background-color: #a5bfcc;
+  color: white;
+  padding: 20px 0;
+  clear: both;
+}
+.footer-copyright,
+.footer-contact,
+.footer-policy {
+  margin-bottom: 0.5rem;
+  font-size: 16px;
+}
+.footer-social a {
+  margin-left: 1rem;
+  display: inline-block;
+}
+.social-icon {
+  width: 30px;
+  height: 30px;
+  transition: transform 0.2s ease-in-out;
+}
+.social-icon:hover {
+  transform: scale(1.1);
+}
+.footer-policy a {
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+}
+
+/* ### ADD ANY CLIENT-SPECIFIC STYLES BELOW IF NEEDED ### */
+/* Example: Styling for the request form */
+/*
+.requests-tab-container form {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+*/
