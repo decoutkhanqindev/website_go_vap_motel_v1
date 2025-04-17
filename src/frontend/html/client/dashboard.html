@@ -54,14 +54,14 @@
               >
             </li>
             <li
-              class="contracts-tab nav-item d-flex justify-content-center align-items-center"
+              class="contract-tab nav-item d-flex justify-content-center align-items-center"
             >
               <img
                 class="nav-img"
                 src="/assets/logo_contract.png"
                 alt="Hợp đồng"
               />
-              <a class="nav-link" href="#" data-target="contracts-tab-container"
+              <a class="nav-link" href="#" data-target="contract-tab-container"
                 >Hợp đồng</a
               >
             </li>
@@ -299,15 +299,156 @@
           </div>
         </div>
 
-        <!-- contracts-tab-container (Initially hidden) -->
+        <!-- contract-tab-container (Initially hidden) -->
+        <!-- contract-tab-container (Initially hidden) -->
         <div
-          id="contracts-tab-container"
-          class="contracts-tab-container"
+          id="contract-tab-container"
+          class="contract-tab-container"
           style="display: none"
         >
-          <h2>Hợp đồng thuê phòng</h2>
-          <p>Nội dung chi tiết về hợp đồng thuê phòng của bạn...</p>
-          <!-- Content specific to the client's contract details will go here -->
+          <div
+            class="contract-details-title d-flex justify-content-center align-items-center"
+          >
+            THÔNG TIN CHI TIẾT HỢP ĐỒNG
+          </div>
+          <div class="contract-details">
+            <div class="modal-content">
+              <div class="modal-body">
+                <div class="view-contract-form">
+                  <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                      <!-- Contract Code -->
+                      <div class="mb-3">
+                        <label for="client-contractCode" class="form-label"
+                          >Mã hợp đồng:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="client-contractCode"
+                          disabled
+                        />
+                      </div>
+
+                      <!-- Room Selection -->
+                      <div class="mb-3">
+                        <label for="client-contractRoomInfo" class="form-label"
+                          >Phòng:</label
+                        >
+                        <!-- Display as text, not a select dropdown -->
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="client-contractRoomInfo"
+                          disabled
+                          placeholder="Đang tải thông tin phòng..."
+                        />
+                      </div>
+
+                      <!-- Rent Price -->
+                      <div class="mb-3">
+                        <label for="client-contractRentPrice" class="form-label"
+                          >Giá thuê (VNĐ):</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="client-contractRentPrice"
+                          disabled
+                        />
+                      </div>
+
+                      <!-- Deposit -->
+                      <div class="mb-3">
+                        <label for="client-contractDeposit" class="form-label"
+                          >Tiền cọc (VNĐ):</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="client-contractDeposit"
+                          disabled
+                        />
+                      </div>
+
+                      <!-- Amenities -->
+                      <div class="mb-3">
+                        <label class="form-label"
+                          >Tiện nghi bao gồm (tính vào tiền cọc):</label
+                        >
+                        <div
+                          id="client-contractAmenitiesList"
+                          class="checklist-container view-only-checklist"
+                        >
+                          <!-- Checkboxes will be loaded here (DISABLED) -->
+                          <p class="text-muted">Đang tải tiện nghi...</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                      <!-- Start Date -->
+                      <div class="mb-3">
+                        <label for="client-contractStartDate" class="form-label"
+                          >Ngày bắt đầu:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="client-contractStartDate"
+                          disabled
+                        />
+                      </div>
+
+                      <!-- End Date -->
+                      <div class="mb-3">
+                        <label for="client-contractEndDate" class="form-label"
+                          >Ngày kết thúc:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="client-contractEndDate"
+                          disabled
+                        />
+                      </div>
+
+                      <!-- Status -->
+                      <div class="mb-3">
+                        <label for="client-contractStatus" class="form-label"
+                          >Trạng thái:</label
+                        >
+                        <!-- Display as text, not a select dropdown -->
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="client-contractStatus"
+                          disabled
+                        />
+                      </div>
+
+                      <!-- Utilities -->
+                      <div class="mb-3">
+                        <label class="form-label"
+                          >Tiện ích bao gồm (tính theo tháng vào hóa
+                          đơn):</label
+                        >
+                        <div
+                          id="client-contractUtilitiesList"
+                          class="checklist-container view-only-checklist"
+                        >
+                          <!-- Checkboxes will be loaded here (DISABLED) -->
+                          <p class="text-muted">Đang tải tiện ích...</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- ... other tab containers also initially hidden ... -->

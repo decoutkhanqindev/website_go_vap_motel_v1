@@ -36,8 +36,43 @@ document.addEventListener("DOMContentLoaded", () => {
   const clientImageList = document.querySelector(
     "#room-tab-container .image-list"
   );
-  const clientPrevButton = document.getElementById("prevButton"); // Assuming IDs are unique
+  const clientPrevButton = document.getElementById("prevButton");
   const clientNextButton = document.getElementById("nextButton");
+
+  // --- Selectors: Contract Tab (Client View) UI ---
+  const clientContractTabContainer = document.getElementById(
+    "contract-tab-container" // Container chính của tab hợp đồng
+  );
+  const clientContractDetailsDiv = clientContractTabContainer?.querySelector(
+    ".contract-details" // Div chứa nội dung chi tiết
+  );
+  const clientContractCodeInput = document.getElementById(
+    "client-contractCode"
+  );
+  const clientContractRoomInfoInput = document.getElementById(
+    "client-contractRoomInfo"
+  );
+  const clientContractRentPriceInput = document.getElementById(
+    "client-contractRentPrice"
+  );
+  const clientContractDepositInput = document.getElementById(
+    "client-contractDeposit"
+  );
+  const clientContractAmenitiesListDiv = document.getElementById(
+    "client-contractAmenitiesList"
+  );
+  const clientContractUtilitiesListDiv = document.getElementById(
+    "client-contractUtilitiesList"
+  );
+  const clientContractStartDateInput = document.getElementById(
+    "client-contractStartDate"
+  );
+  const clientContractEndDateInput = document.getElementById(
+    "client-contractEndDate"
+  );
+  const clientContractStatusInput = document.getElementById(
+    "client-contractStatus"
+  );
 
   // --- Core UI Functions ---
 
@@ -61,6 +96,38 @@ document.addEventListener("DOMContentLoaded", () => {
     if (activeNavItem && activeNavItem.parentElement) {
       activeNavItem.parentElement.classList.add("active-menu-item");
     }
+  }
+
+  // Function: Format Date to DD/MM/YYYY (Vietnamese Standard)
+  function formatVietnameseDate(dateStringOrObject) {
+    if (!dateStringOrObject) return "N/A";
+    try {
+      const date = new Date(dateStringOrObject);
+      if (isNaN(date.getTime())) return "Ngày không hợp lệ";
+
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Month is 0-indexed
+      const year = date.getFullYear();
+      // const hours = date.getHours().toString().padStart(2, "0");
+      // const minutes = date.getMinutes().toString().padStart(2, "0");
+      // const seconds = date.getSeconds().toString().padStart(2, "0");
+
+      return `${day}/${month}/${year}`;
+    } catch (e) {
+      console.error(e);
+      return "Lỗi định dạng";
+    }
+  }
+
+  // Function: Format Currency to VND
+  function formatVND(amount) {
+    if (typeof amount !== "number") {
+      amount = parseFloat(amount) || 0;
+    }
+    return amount.toLocaleString("vi-VN", {
+      style: "currency",
+      currency: "VND"
+    });
   }
 
   // --- Room Tab (Client View): Display Logic ---
@@ -448,6 +515,230 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // --- Contract Tab (Client View): Display Logic ---
+
+  // Function: Renders the included amenities list (Read-only)
+  function renderClientContractAmenities(includedAmenityIds, allAmenitiesData) {
+    if (!clientContractAmenitiesListDiv) return;
+    clientContractAmenitiesListDiv.innerHTML = ""; // Clear previous
+
+    // Map all amenities by ID for quick lookup
+    const amenityMap = new Map(
+      allAmenitiesData.map((amenity) => [amenity._id, amenity])
+    );
+
+    const includedAmenities = includedAmenityIds
+      .map((id) => amenityMap.get(id))
+      .filter(Boolean); // Get details and filter out any not found
+
+    if (includedAmenities.length === 0) {
+      clientContractAmenitiesListDiv.innerHTML =
+        '<p class="text-muted m-0 small">Không có tiện nghi nào được bao gồm trong hợp đồng.</p>';
+      return;
+    }
+
+    const listFragment = document.createDocumentFragment();
+    includedAmenities.forEach((amenity) => {
+      const amenityNameMap = {
+        // Reuse or define map here
+        bed: "Giường",
+        refrigerator: "Tủ lạnh",
+        air_conditioner: "Máy lạnh",
+        water_heater: "Vòi nước nóng",
+        table_and_chairs: "Bàn ghế",
+        electric_stove: "Bếp điện",
+        gas_stove: "Bếp ga"
+      };
+      const displayName =
+        amenityNameMap[amenity.name] ||
+        (amenity.name
+          ? amenity.name.charAt(0).toUpperCase() + amenity.name.slice(1)
+          : "Tiện nghi");
+      const priceDisplay = formatVND(amenity.price);
+
+      const p = document.createElement("p");
+      p.classList.add("mb-1", "small"); // Styling for list items
+      p.innerHTML = `✓ ${displayName} <span class="text-muted">(${priceDisplay})</span>`;
+      listFragment.appendChild(p);
+    });
+    clientContractAmenitiesListDiv.appendChild(listFragment);
+  }
+
+  // Function: Renders the included utilities list (Read-only)
+  function renderClientContractUtilities(includedUtilityIds, allUtilitiesData) {
+    if (!clientContractUtilitiesListDiv) return;
+    clientContractUtilitiesListDiv.innerHTML = ""; // Clear previous
+
+    // Map all utilities by ID for quick lookup
+    const utilityMap = new Map(
+      allUtilitiesData.map((utility) => [utility._id, utility])
+    );
+
+    const includedUtilities = includedUtilityIds
+      .map((id) => utilityMap.get(id))
+      .filter(Boolean); // Get details and filter out any not found
+
+    if (includedUtilities.length === 0) {
+      clientContractUtilitiesListDiv.innerHTML =
+        '<p class="text-muted m-0 small">Không có tiện ích nào được bao gồm trong hợp đồng.</p>';
+      return;
+    }
+
+    const listFragment = document.createDocumentFragment();
+    includedUtilities.forEach((utility) => {
+      const utilityNameMap = {
+        // Reuse or define map here
+        wifi: "Wifi",
+        parking: "Đỗ xe",
+        cleaning: "Dọn vệ sinh"
+      };
+      const displayName =
+        utilityNameMap[utility.name] ||
+        (utility.name
+          ? utility.name.charAt(0).toUpperCase() + utility.name.slice(1)
+          : "Tiện ích");
+      const priceUnit = utility.name === "parking" ? "Xe" : "Phòng";
+      const priceDisplay = `${formatVND(utility.price)} / ${priceUnit}`;
+
+      const p = document.createElement("p");
+      p.classList.add("mb-1", "small"); // Styling for list items
+      p.innerHTML = `✓ ${displayName} <span class="text-muted">(${priceDisplay})</span>`;
+      listFragment.appendChild(p);
+    });
+    clientContractUtilitiesListDiv.appendChild(listFragment);
+  }
+
+  // Function: Fetches and populates the contract details for the client view
+  async function loadClientContractDetails(contractCode) {
+    if (!contractCode) {
+      console.warn("Không có ID hợp đồng để tải.");
+      if (clientContractTabContainer)
+        clientContractTabContainer.innerHTML =
+          "<p class='alert alert-warning'>Không tìm thấy thông tin hợp đồng.</p>";
+      return;
+    }
+
+    console.log(`Đang tải chi tiết hợp đồng ID: ${contractCode}`);
+    // --- Show Loading State ---
+    if (clientContractDetailsDiv)
+      clientContractDetailsDiv.style.opacity = "0.5"; // Dim content while loading
+    if (clientContractCodeInput) clientContractCodeInput.value = "Đang tải...";
+    // Clear other fields briefly
+    const fieldsToClear = [
+      clientContractRoomInfoInput,
+      clientContractRentPriceInput,
+      clientContractDepositInput,
+      clientContractStartDateInput,
+      clientContractEndDateInput,
+      clientContractStatusInput
+    ];
+    fieldsToClear.forEach((input) => {
+      if (input) input.value = "";
+    });
+    if (clientContractAmenitiesListDiv)
+      clientContractAmenitiesListDiv.innerHTML =
+        '<p class="text-muted m-0 small">Đang tải tiện nghi...</p>';
+    if (clientContractUtilitiesListDiv)
+      clientContractUtilitiesListDiv.innerHTML =
+        '<p class="text-muted m-0 small">Đang tải tiện ích...</p>';
+
+    try {
+      // Fetch all necessary data in parallel
+      const [contractData, allAmenitiesData, allUtilitiesData] =
+        await Promise.all([
+          ContractService.getContractByContractCode(contractCode),
+          AmenityService.getAllAmenities(), // Get all amenities for lookup
+          UtilityService.getAllUtilities() // Get all utilities for lookup
+        ]);
+
+      if (!contractData) {
+        throw new Error("Không tìm thấy dữ liệu hợp đồng.");
+      }
+
+      // Fetch room details separately (needed for room info)
+      let roomData = null;
+      if (contractData.roomId) {
+        try {
+          roomData = await RoomService.getRoomById(contractData.roomId);
+        } catch (roomError) {
+          console.error(
+            `Lỗi tải thông tin phòng (${contractData.roomId}):`,
+            roomError
+          );
+          // Continue without room info if it fails
+        }
+      }
+
+      // --- Populate Basic Info ---
+      if (clientContractCodeInput)
+        clientContractCodeInput.value = contractData.contractCode || "N/A";
+      if (clientContractRentPriceInput)
+        clientContractRentPriceInput.value = formatVND(contractData.rentPrice);
+      if (clientContractDepositInput)
+        clientContractDepositInput.value = formatVND(contractData.deposit);
+      if (clientContractStartDateInput)
+        clientContractStartDateInput.value = formatVietnameseDate(
+          contractData.startDate
+        ); // Use Vietnamese format
+      if (clientContractEndDateInput)
+        clientContractEndDateInput.value = formatVietnameseDate(
+          contractData.endDate
+        ); // Use Vietnamese format
+      if (clientContractStatusInput) {
+        const statusMap = {
+          active: "Còn hiệu lực",
+          expired: "Hết hạn",
+          terminated: "Đã hủy"
+        };
+        // Get the translated text from the map, or use the original status if not found
+        clientContractStatusInput.value =
+          statusMap[contractData.status] || contractData.status;
+      }
+
+      // --- Populate Room Info ---
+      if (clientContractRoomInfoInput) {
+        clientContractRoomInfoInput.value = roomData
+          ? `Phòng ${roomData.roomNumber || "N/A"} - ${
+              roomData.address || "N/A"
+            }`
+          : "Không tìm thấy thông tin phòng";
+      }
+
+      // --- Render Included Amenities/Utilities ---
+      const includedAmenityIds = contractData.amenities || [];
+      const includedUtilityIds = contractData.utilities || [];
+
+      renderClientContractAmenities(includedAmenityIds, allAmenitiesData || []);
+      renderClientContractUtilities(includedUtilityIds, allUtilitiesData || []);
+    } catch (error) {
+      console.error("Lỗi khi tải chi tiết hợp đồng:", error);
+      const errorMessage =
+        error?.response?.data?.message || error.message || "Lỗi không xác định";
+      // Display error within the contract tab container
+      if (clientContractTabContainer) {
+        // Clear potential loading states first
+        if (clientContractCodeInput) clientContractCodeInput.value = "Lỗi";
+        if (clientContractAmenitiesListDiv)
+          clientContractAmenitiesListDiv.innerHTML = "";
+        if (clientContractUtilitiesListDiv)
+          clientContractUtilitiesListDiv.innerHTML = "";
+        // Show error message
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "alert alert-danger";
+        errorDiv.textContent = `Không thể tải thông tin hợp đồng: ${errorMessage}. Vui lòng thử làm mới trang.`;
+        // Prepend error inside the main container, before the details div
+        clientContractTabContainer.insertBefore(
+          errorDiv,
+          clientContractDetailsDiv
+        );
+      }
+    } finally {
+      // --- Restore Opacity ---
+      if (clientContractDetailsDiv)
+        clientContractDetailsDiv.style.opacity = "1";
+    }
+  }
+
   // --- Event Listener Setup ---
   // Event Listeners: Navigation
   navItems.forEach((navItem) => {
@@ -540,6 +831,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // User is an occupant
         const userOccupantData = occupants[0]; // Get the first occupancy record
         const userRoomId = userOccupantData.roomId;
+        const userContractCode = userOccupantData.contractCode;
 
         occupantStatusMessageDiv.style.display = "none";
         occupantStatusMessageDiv.textContent = "";
@@ -557,6 +849,18 @@ document.addEventListener("DOMContentLoaded", () => {
           if (clientRoomInfoContainer) {
             clientRoomInfoContainer.innerHTML =
               "<p class='text-danger text-center p-5'>Không thể xác định phòng của bạn.</p>";
+          }
+        }
+
+        if (userContractCode) {
+          loadClientContractDetails(userContractCode);
+        } else {
+          console.warn(
+            "Dữ liệu người thuê không chứa ID hợp đồng. Không thể tải chi tiết hợp đồng."
+          );
+          if (clientContractTabContainer) {
+            clientContractTabContainer.innerHTML =
+              "<p class='alert alert-warning m-3'>Không tìm thấy ID hợp đồng liên kết với tài khoản của bạn.</p>";
           }
         }
 

@@ -91,7 +91,7 @@ body {
 .cost-living-title,
 .amenity-list-title,
 .utility-list-title,
-.contracts-tab-title,
+.contract-details-title,
 .invoices-tab-title,
 .expenses-tab-title,
 .users-tab-title,
@@ -108,7 +108,8 @@ body {
   margin-bottom: 10px;
 }
 
-.room-details {
+.room-details,
+.contract-details {
   padding: 10px;
   border: 2px solid #a5bfcc;
   border-radius: 5px;
@@ -299,6 +300,21 @@ body {
 
 strong {
   color: red;
+}
+
+.form-label {
+  font-weight: bold;
+}
+.checklist-container {
+  max-height: 150px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  padding: 10px;
+  border-radius: 0.25rem;
+  background-color: #fff;
+}
+.checklist-container .form-check {
+  margin-bottom: 0.5rem;
 }
 
 .footer-bg {
