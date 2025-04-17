@@ -26,7 +26,17 @@ class ContractService {
   static async getContractById(id) {
     try {
       // Không cần headers thủ công
-      const response = await api.get(`/contract/${id}`);
+      const response = await api.get(`/contract/id/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getContractByContractCode(contractCode) {
+    try {
+      // Không cần headers thủ công
+      const response = await api.get(`/contract/contractCode/${contractCode}`);
       return response.data;
     } catch (error) {
       throw error;
