@@ -43,6 +43,25 @@ class ContractService {
     }
   }
 
+  static async getContractByContractCode(contractCode) {
+    try {
+      logger.info(`ContractService.getContractByContractCode() is called.`);
+      const contract = await Contract.findOne({ contractCode: contractCode });
+      if (!contract) {
+        throw new ApiError(
+          404,
+          `No contract found matching contractCode ${contractCode}.`
+        );
+      }
+      return contract;
+    } catch (error) {
+      logger.info(
+        `ContractService.getContractByContractCode() have error:\n${error}`
+      );
+      throw error;
+    }
+  }
+
   static async isExsits(roomId, startDate, dueDate) {
     try {
       logger.info(`ContractService.isExsits() is called.`);
@@ -50,7 +69,7 @@ class ContractService {
       if (room.status === "occupied") {
         throw new ApiError(400, "Room is already occupied.");
       }
-      
+
       const contract = await Contract.findOne({
         roomId: roomId,
         startDate: startDate,

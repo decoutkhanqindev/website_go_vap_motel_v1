@@ -214,7 +214,12 @@ router.delete(
 // contract routes
 // =======================================
 // Logged in user routes (any role)
-router.get("/contract/:id", verifyToken, ContractController.getContractById);
+router.get("/contract/id/:id", verifyToken, ContractController.getContractById);
+router.get(
+  "/contract/contractCode/:contractCode",
+  verifyToken,
+  ContractController.getContractByContractCode
+);
 
 // Landlord only routes
 router.get(
@@ -429,7 +434,11 @@ router.delete(
 
 // Logged in user routes (any role, usually for 'self' actions)
 router.get("/user/current/me", verifyToken, UserController.getMe);
-router.get("/user/usename/:username", verifyToken, UserController.getUserByUsername);
+router.get(
+  "/user/usename/:username",
+  verifyToken,
+  UserController.getUserByUsername
+);
 router.get("/user/id/:id", verifyToken, UserController.getUserById);
 
 // Logged in user routes (Self or Landlord? Check controller logic)

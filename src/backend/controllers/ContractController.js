@@ -42,6 +42,23 @@ class ContractController {
     }
   }
 
+  static async getContractByContractCode(req, res, next) {
+    try {
+      logger.info("ContractController.getContractByContractCode() is called.");
+      const contractCode = req.params.contractCode;
+      if (!contractCode) {
+        return next(new ApiError(400, "Param contractCode must be provided."));
+      }
+      const contract = await ContractService.getContractByContractCode(contractCode);
+      res.status(200).json(contract);
+    } catch (error) {
+      logger.error(
+        `ContractController.getContractByContractCode() have error:\n${error}`
+      );
+      next(error);
+    }
+  }
+
   static async addNewContract(req, res, next) {
     try {
       logger.info("ContractController.addNewContract() is called.");
