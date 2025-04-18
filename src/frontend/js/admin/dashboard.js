@@ -60,6 +60,7 @@ let currentInvoiceData = [];
 let allOccupiedRoomsForInvoiceFilter = [];
 let activeContractUtilities = [];
 let activeContractRentPrice = 0;
+let activeContractCode = 0;
 
 // --- Store mapping for Payment Method name ---
 const paymentMethodMap = {
@@ -2648,6 +2649,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const invoiceData = {
       roomId: newInvoiceRoomIdSelect.value,
+      contractCode: activeContractCode,
       issueDate: newInvoiceIssueDateInput.value,
       dueDate: newInvoiceDueDateInput.value,
       rentAmount: activeContractRentPrice,
@@ -4704,6 +4706,7 @@ document.addEventListener("DOMContentLoaded", () => {
             activeContractUtilities = contractUtilities.map((u) =>
               typeof u === "object" ? u._id : u
             ); // Store IDs
+            activeContractCode = activeContract.contractCode;
           } else {
             // No active contract
             activeContractUtilities = [];
