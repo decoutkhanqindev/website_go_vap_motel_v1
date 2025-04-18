@@ -47,6 +47,7 @@ class InvoiceController {
 
       if (
         !data.roomId ||
+        !data.contractCode ||
         !data.rentAmount ||
         !data.issueDate ||
         !data.dueDate ||

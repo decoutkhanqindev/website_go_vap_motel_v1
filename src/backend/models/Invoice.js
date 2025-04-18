@@ -37,11 +37,11 @@ const invoiceSchema = new Schema(
       index: true,
       ref: "Room"
     },
-    // contractCode: {
-    //   type: String,
-    //   required: true,
-    //   ref: "Contract"
-    // },
+    contractCode: {
+      type: String,
+      required: true,
+      ref: "Contract"
+    },
     issueDate: {
       type: Date,
       index: true,

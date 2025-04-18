@@ -1,9 +1,11 @@
 const ApiError = require("../utils/ApiError");
 const logger = require("../utils/logger");
 const moment = require("moment-timezone");
+const ContractService = require("../services/ContractService");
 const RoomService = require("../services/RoomService");
 const UtilityService = require("../services/UtilityService");
 const Invoice = require("../models/Invoice");
+
 
 class InvoiceService {
   static async getAllInvoices(filter = {}) {
@@ -96,8 +98,9 @@ class InvoiceService {
   static async addNewInvoice(data) {
     try {
       logger.info("InvoiceService.addNewInvoice() is called.");
-      const { roomId, invoiceCode, issueDate, dueDate, electricity, water } =
+      const { roomId, contractCode, invoiceCode, issueDate, dueDate, electricity, water } =
         data;
+      const contract = await ContractService.getContractByContractCode(contractCode);
       const room = await RoomService.getRoomById(roomId);
 
       let totalAmount = 0;
@@ -113,7 +116,7 @@ class InvoiceService {
         );
       }
 
-      totalAmount += room.rentPrice;
+      totalAmount += contract.rentPrice;
 
       if (
         electricity?.oldIndex !== undefined &&
@@ -138,15 +141,15 @@ class InvoiceService {
         data.water.amount = waterAmount;
       }
 
-      if (room.utilities && room.utilities.length > 0) {
-        for (const utilityId of room.utilities) {
+      if (contract.utilities && contract.utilities.length > 0) {
+        for (const utilityId of contract.utilities) {
           const utilityAmount = await UtilityService.getUtilityById(utilityId);
           totalAmount += utilityAmount.price;
         }
       }
 
-      data.rentAmount = room.rentPrice;
-      data.utilities = room.utilities;
+      data.rentAmount = contract.rentPrice;
+      data.utilities = contract.utilities;
       data.totalAmount = totalAmount;
 
       const newInvoice = new Invoice(data);
