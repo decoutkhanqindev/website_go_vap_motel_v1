@@ -349,7 +349,6 @@ strong {
   width: 100%;
   padding: 0.375rem 0.75rem;
   font-size: 1rem;
-  border: 1px solid #4da1a9;
   border-radius: 0.25rem;
   margin-bottom: 0.3rem; /* Adjusted from admin CSS */
 }
@@ -366,6 +365,7 @@ strong {
 .search-container .form-control {
   /* Inherited from admin styles */
   /* Uses the .form-control style above */
+  border: 1px solid #4da1a9;
   border-right: none; /* Example adjustment if needed */
 }
 .search-container .btn {

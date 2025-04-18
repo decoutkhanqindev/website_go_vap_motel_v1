@@ -410,7 +410,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const utilityNameMap = {
       wifi: "Wifi",
       parking: "Đỗ xe",
-      cleaning: "Dọn vệ sinh"
+      cleaning: "Vệ sinh hàng tuần"
     };
     const utilityName =
       utilityNameMap[utility.name] ||
@@ -637,7 +637,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Reuse or define map here
         wifi: "Wifi",
         parking: "Đỗ xe",
-        cleaning: "Dọn vệ sinh"
+        cleaning: "Vệ sinh hàng tuần"
       };
       const displayName =
         utilityNameMap[utility.name] ||
@@ -915,7 +915,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.target.closest(".action-cell")) {
           return;
         }
-        window.location.href = `/client/invoice/details/${userRoomId}`;
+        window.location.href = `/client/invoice/details/${row.dataset.id}`; // Redirect to invoice details page
       });
 
       clientInvoiceTableBody.appendChild(row);
