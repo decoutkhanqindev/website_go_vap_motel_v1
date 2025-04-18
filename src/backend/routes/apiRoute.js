@@ -225,7 +225,7 @@ router.get(
 router.get(
   "/contracts",
   verifyToken,
-  verifyIsLandlord,
+  // verifyIsLandlord,
   formatDateMiddleware(["startDate", "endDate"]),
   ContractController.getAllContracts
 );
