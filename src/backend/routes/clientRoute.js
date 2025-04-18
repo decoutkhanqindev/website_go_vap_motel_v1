@@ -76,4 +76,10 @@ router.get("/client/room/details/:id", (req, res) => {
   );
 });
 
+router.get("/client/invoice/details/:id", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "../../frontend/html/client/invoiceDetails.html")
+  );
+});
+
 module.exports = router;
