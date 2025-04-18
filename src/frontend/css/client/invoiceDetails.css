@@ -1,0 +1,159 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  position: relative;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header-bg {
+  background-color: #a5bfcc;
+  position: fixed; /* Keep header fixed */
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+.header-text {
+  font-size: 70px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 4px 4px 6px #000000;
+}
+.header-logo img {
+  width: 100px;
+  height: 100px;
+}
+
+.content {
+  position: relative;
+  padding-top: 150px; /* Adjust based on header height */
+  flex: 1;
+}
+.content::before {
+  content: "";
+  position: fixed;
+  top: calc(
+    50px + 2 * 1rem + 1rem
+  ); /* Adjust based on header height if needed */
+  left: 0;
+  width: 100%;
+  height: calc(
+    100% - (130px + 2 * 1rem + 1rem)
+  ); /* Adjust based on header height if needed */
+  background-image: url("../../assets/logo_no_text.png");
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center center;
+  background-size: 700px;
+  opacity: 0.1;
+  z-index: -3;
+}
+
+.invoice-details-title {
+  border-radius: 5px;
+  font-size: 32px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 4px 4px 6px #000000;
+  color: white;
+  background-color: #a5bfcc;
+  padding: 10px;
+  border-bottom: 2px solid #4da1a9;
+  margin-bottom: 10px;
+}
+.invoice-details {
+  padding: 10px;
+  border: 2px solid #a5bfcc;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+/* Remove requirement styling */
+.form-label.required::after {
+  content: ""; /* Remove the asterisk */
+}
+
+.form-label {
+  font-weight: bold;
+}
+
+/* Style disabled inputs/textareas to look more like static text */
+.form-control:disabled,
+.form-select:disabled, /* Keep style for selects if any remain */
+textarea.form-control:disabled {
+  background-color: white; /* Default Bootstrap disabled color */
+  opacity: 1; /* Ensure text is fully opaque */
+  cursor: default; /* Indicate non-interactive */
+  border: 1px solid #ced4da; /* Optional: Make border less prominent */
+  /* color: #212529; /* Ensure text color is standard */
+}
+
+/* Remove specific styles for admin buttons and validation */
+/* Removed: #editInvoiceModalFeedback, .was-validated, .is-invalid, .invalid-feedback */
+/* Removed: #saveChangesBtn, #markIsPaidBtn, #cancelChangesBtn, #saveChangesBtn, #markAsPaidBtn */
+/* Removed spinner styles */
+
+/* Keep checklist container style but maybe remove max-height */
+.checklist-container {
+  /* max-height: 150px; /* Removed or adjusted for client view */
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  padding: 10px;
+  border-radius: 0.25rem;
+  background-color: #fff; /* Keep background */
+}
+.checklist-container.read-only-list {
+  background-color: white; /* Match disabled input background */
+}
+.checklist-container .utility-item {
+  /* Style for list items */
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+/* Style for the new Back button if needed (Bootstrap default is fine) */
+#backBtn {
+  color: white;
+  background-color: #4da1a9;
+}
+
+.footer-bg {
+  background-color: #a5bfcc;
+  color: white;
+  padding: 20px 0;
+  /* Removed clear: both; Flexbox handles footer positioning */
+  /* Ensure footer stays at bottom */
+  /* margin-top: auto; Added via body flex properties */
+}
+.footer-copyright,
+.footer-contact,
+.footer-policy {
+  margin-bottom: 0.5rem;
+  font-size: 16px;
+}
+.footer-social a {
+  margin-left: 1rem;
+  display: inline-block;
+}
+.social-icon {
+  width: 30px;
+  height: 30px;
+  transition: transform 0.2s ease-in-out;
+}
+.social-icon:hover {
+  transform: scale(1.1);
+}
+.footer-policy a {
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+}
