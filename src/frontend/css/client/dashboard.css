@@ -317,6 +317,139 @@ strong {
   margin-bottom: 0.5rem;
 }
 
+/* These rules style the filter area on the left */
+.filter-container {
+  /* Inherited from admin styles - Assuming it exists in client CSS */
+  border: 2px solid #a5bfcc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+.filter-heading {
+  /* Inherited from admin styles */
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+.filter-group {
+  /* Inherited from admin styles */
+  margin-bottom: 1rem;
+}
+.filter-label {
+  /* Inherited from admin styles */
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+.form-select,
+/* .form-range, */ /* Likely not used in client invoice filter */
+.form-control {
+  /* Inherited from admin styles */
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #4da1a9;
+  border-radius: 0.25rem;
+  margin-bottom: 0.3rem; /* Adjusted from admin CSS */
+}
+/* Apply Filter Button Style (assuming a generic button style is used) */
+#applyInvoiceFilters,
+.apply-filters-btn {
+  /* Inherited from admin styles */
+  color: white;
+  background-color: #4da1a9;
+  /* Add other btn styles like padding, border-radius if needed */
+}
+
+/* Styles for the search input and button */
+.search-container .form-control {
+  /* Inherited from admin styles */
+  /* Uses the .form-control style above */
+  border-right: none; /* Example adjustment if needed */
+}
+.search-container .btn {
+  /* Inherited from admin styles */
+  /* Assuming a generic button style is used */
+  color: white;
+  background-color: #4da1a9;
+  border: 1px solid #4da1a9; /* Match input border */
+  /* Adjust height/padding if needed */
+}
+
+/* These rules style the table on the right */
+.invoice-list-container .table-responsive {
+  /* Inherited from admin styles */
+  border-radius: 5px; /* Keep radius for container */
+  overflow-x: auto;
+}
+.invoice-table {
+  /* Inherited from admin styles */
+  margin-bottom: 0;
+  border-radius: 10px; /* Applied within responsive container */
+  border: 2px solid #a5bfcc;
+  /* Assuming .table, .table-hover, .table-striped, .align-middle are from Bootstrap */
+}
+.invoice-table thead.table-header-bg {
+  /* Inherited from admin styles */
+  background-color: #a5bfcc;
+  color: white;
+  font-weight: bold;
+  vertical-align: middle;
+}
+.invoice-table th,
+.invoice-table td {
+  /* Inherited from admin styles */
+  vertical-align: middle;
+  padding: 0.75rem;
+}
+.invoice-table th {
+  /* Inherited from admin styles */
+  border-bottom-width: 2px;
+}
+.invoice-table tbody tr:hover {
+  /* Inherited from admin styles */
+  background-color: #e7f2f8;
+}
+.invoice-table .text-center {
+  /* Inherited from admin styles */
+  text-align: center;
+}
+/* Status text colors */
+.status-paid {
+  /* Inherited from admin styles */
+  color: green;
+  font-weight: bold;
+}
+.status-pending {
+  /* Inherited from admin styles */
+  color: orange;
+  font-weight: bold;
+}
+.status-overdue {
+  /* Inherited from admin styles */
+  color: red;
+  font-weight: bold;
+}
+
+/* These rules style the pagination below the table */
+.pagination {
+  /* Inherited from admin styles */
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 20px;
+  justify-content: center; /* Center pagination */
+  margin-top: 1rem; /* Added top margin */
+}
+.page-item.active .page-link {
+  /* Inherited from admin styles */
+  background-color: #4da1a9;
+  border-color: #4da1a9;
+  color: white;
+}
+/* Assuming .page-item, .page-link styles are from Bootstrap */
+
 .footer-bg {
   background-color: #a5bfcc;
   color: white;

@@ -4,10 +4,31 @@ import UserService from "../services/UserService.js";
 import OccupantService from "../services/OccupantService.js";
 import AmenityService from "../services/AmenityService.js";
 import UtilityService from "../services/UtilityService.js";
+import InvoiceService from "../services/InvoiceService.js";
 
 // --- State for Room Tab (Client View) ---
 let clientRoomCurrentImageIndex = 0;
 let clientRoomImageElements = [];
+
+// --- State for Invoice Tab (Client View) ---
+let clientInvoiceCurrentPage = 1;
+let clientTotalInvoices = 0;
+const clientInvoicesPerPage = 10;
+let clientCurrentInvoiceData = [];
+let userRoomId = null;
+
+// --- Store mapping for Payment Method name ---
+const paymentMethodMap = {
+  all: "Tất cả",
+  cash: "Tiền mặt",
+  banking: "Chuyển khoản"
+};
+// --- Store mapping for Invoice Payment Status name ---
+const invoicePaymentStatusMap = {
+  pending: "Đang chờ",
+  paid: "Đã thanh toán",
+  overdue: "Đã quá hạn"
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- DOM Element Selectors ---
@@ -72,6 +93,32 @@ document.addEventListener("DOMContentLoaded", () => {
   );
   const clientContractStatusInput = document.getElementById(
     "client-contractStatus"
+  );
+
+  // --- Selectors: Invoice Tab (Client View) UI ---
+  const clientInvoiceTableBody = document.getElementById("invoiceTableBody");
+  const clientInvoicePaginationContainer =
+    document.getElementById("invoicePagination");
+  const clientSearchInvoiceInput =
+    document.getElementById("searchInvoiceInput");
+  const clientSearchInvoiceBtn = document.getElementById("searchInvoiceBtn");
+  const clientInvoiceIssueDateFilter = document.getElementById(
+    "invoiceIssueDateFilter"
+  );
+  const clientInvoiceDueDateFilter = document.getElementById(
+    "invoiceDueDateFilter"
+  );
+  const clientInvoicePaymentMethodFilter = document.getElementById(
+    "invoicePaymentMethodFilter"
+  );
+  const clientInvoicePaymentDateFilter = document.getElementById(
+    "invoicePaymentDateFilter"
+  );
+  const clientInvoicePaymentStatusFilter = document.getElementById(
+    "invoicePaymentStatusFilter"
+  );
+  const clientApplyInvoiceFiltersBtn = document.getElementById(
+    "applyInvoiceFilters"
   );
 
   // --- Core UI Functions ---
@@ -739,6 +786,181 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // --- Invoices Tab (Client View): Data Fetching & Filtering Logic ---
+
+  // Function: Fetches invoice data for the specific client's room based on filters/search.
+  async function fetchAndRenderUiForClientInvoicesTab() {
+    if (!userRoomId) {
+      console.warn("User Room ID not available. Cannot fetch invoices.");
+      if (clientInvoiceTableBody)
+        clientInvoiceTableBody.innerHTML = `<tr><td colspan="7" class="text-center">Không thể xác định phòng của bạn để tải hóa đơn.</td></tr>`; // Colspan 7
+      if (clientInvoicePaginationContainer)
+        clientInvoicePaginationContainer.innerHTML = "";
+      return;
+    }
+
+    // Display loading state
+    if (clientInvoiceTableBody) {
+      clientInvoiceTableBody.innerHTML = `<tr><td colspan="7" class="text-center">Đang tải dữ liệu hóa đơn...</td></tr>`; // Colspan 7
+    }
+    if (clientInvoicePaginationContainer) {
+      clientInvoicePaginationContainer.innerHTML = "";
+    }
+
+    try {
+      // Get filter values from UI elements (excluding room filter)
+      const searchTerm = clientSearchInvoiceInput?.value.trim() || "";
+      const issueDate = clientInvoiceIssueDateFilter?.value || "";
+      const dueDate = clientInvoiceDueDateFilter?.value || "";
+      const paymentMethod = clientInvoicePaymentMethodFilter?.value || "all";
+      const paymentDate = clientInvoicePaymentDateFilter?.value || "";
+      const paymentStatus = clientInvoicePaymentStatusFilter?.value || "all";
+
+      // Build filter object, ALWAYS including the user's roomId
+      const filter = {
+        roomId: userRoomId
+      };
+      if (searchTerm) filter.invoiceCode = searchTerm; // Assuming search by invoiceCode
+      if (issueDate) filter.issueDate = issueDate;
+      if (dueDate) filter.dueDate = dueDate;
+      if (paymentMethod !== "all") filter.paymentMethod = paymentMethod;
+      if (paymentDate) filter.paymentDate = paymentDate;
+      if (paymentStatus !== "all") filter.paymentStatus = paymentStatus;
+
+      // Fetch invoices using the service and the constructed filter
+      const allMatchingInvoices = await InvoiceService.getAllInvoices(filter); // Use the same service function
+
+      // Update state variables specific to client invoices
+      clientCurrentInvoiceData = allMatchingInvoices || [];
+      clientTotalInvoices = clientCurrentInvoiceData.length;
+
+      // Render the UI components
+      renderClientInvoiceTableUI();
+    } catch (error) {
+      console.error(error);
+      if (clientInvoiceTableBody) {
+        const errorMsg =
+          error?.response?.data?.message ||
+          error.message ||
+          "Lỗi không xác định";
+        clientInvoiceTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Lỗi khi tải dữ liệu hóa đơn.</td></tr>`; // Colspan 7
+      }
+      // Reset state on error
+      clientCurrentInvoiceData = [];
+      clientTotalInvoices = 0;
+      renderClientInvoicePaginationUI(); // Render empty pagination on error
+    }
+  }
+
+  // --- Invoices Tab (Client View): UI Rendering Logic ---
+
+  // Function: Renders the invoice table for the client view (no Room, no Delete button).
+  function renderClientInvoiceTableUI() {
+    if (!clientInvoiceTableBody) return;
+    clientInvoiceTableBody.innerHTML = ""; // Clear previous rows
+
+    // Handle case where no invoices match filters (or user has no invoices)
+    if (clientCurrentInvoiceData.length === 0) {
+      clientInvoiceTableBody.innerHTML = `<tr><td colspan="7" class="text-center">Không tìm thấy hóa đơn nào.</td></tr>`; // Colspan 7
+      renderClientInvoicePaginationUI(); // Still render pagination (will be empty)
+      return;
+    }
+
+    // Calculate pagination start/end indices
+    const startIndex = (clientInvoiceCurrentPage - 1) * clientInvoicesPerPage;
+    const endIndex = Math.min(
+      startIndex + clientInvoicesPerPage,
+      clientTotalInvoices
+    );
+    const invoicesToDisplay = clientCurrentInvoiceData.slice(
+      startIndex,
+      endIndex
+    );
+
+    invoicesToDisplay.forEach((invoice, index) => {
+      const row = document.createElement("tr");
+      row.dataset.id = invoice._id; // Keep ID for potential future detail view
+      const sequentialNumber = startIndex + index + 1;
+
+      // Format data for display
+      const formattedIssueDate = formatVietnameseDate(invoice.issueDate);
+      const formattedDueDate = formatVietnameseDate(invoice.dueDate);
+      const formattedPaymentDate = invoice.paymentDate
+        ? formatVietnameseDate(invoice.paymentDate)
+        : "Chưa thanh toán";
+      const paymentMethodText =
+        paymentMethodMap[invoice.paymentMethod] ||
+        invoice.paymentMethod ||
+        "Không rõ";
+      const statusText =
+        invoicePaymentStatusMap[invoice.paymentStatus] ||
+        invoice.paymentStatus ||
+        "Không xác định";
+      const statusClass = `status-${invoice.paymentStatus || "unknown"}`; // CSS class for styling
+
+      // Populate table cells
+      row.innerHTML = `
+              <td>${sequentialNumber}</td>
+              <td>${invoice.invoiceCode || "N/A"}</td>
+              <td class="text-center">${formattedIssueDate}</td>
+              <td class="text-center">${formattedDueDate}</td>
+              <td class="text-center">${paymentMethodText}</td>
+              <td class="text-center">${formattedPaymentDate}</td>
+              <td class="text-center">
+                  <span class="${statusClass}">${statusText}</span>
+              </td>
+            `;
+
+      row.addEventListener("click", (event) => {
+        if (event.target.closest(".action-cell")) {
+          return;
+        }
+        window.location.href = `/client/invoice/details/${userRoomId}`;
+      });
+
+      clientInvoiceTableBody.appendChild(row);
+    });
+
+    renderClientInvoicePaginationUI(); // Render pagination controls
+  }
+
+  // Function: Renders pagination controls for the client's invoice table.
+  function renderClientInvoicePaginationUI() {
+    if (!clientInvoicePaginationContainer) return;
+    clientInvoicePaginationContainer.innerHTML = ""; // Clear previous pagination
+
+    const totalPages = Math.ceil(clientTotalInvoices / clientInvoicesPerPage);
+
+    if (totalPages <= 1) {
+      return; // No pagination needed
+    }
+
+    // Create page number links
+    for (let i = 1; i <= totalPages; i++) {
+      const pageNumberItem = document.createElement("li");
+      pageNumberItem.classList.add("page-item");
+      if (i === clientInvoiceCurrentPage) {
+        pageNumberItem.classList.add("active");
+      }
+
+      const pageNumberLink = document.createElement("a");
+      pageNumberLink.classList.add("page-link");
+      pageNumberLink.href = "#";
+      pageNumberLink.textContent = i;
+
+      pageNumberLink.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (i !== clientInvoiceCurrentPage) {
+          clientInvoiceCurrentPage = i;
+          renderClientInvoiceTableUI(); // Re-render the table for the new page
+        }
+      });
+
+      pageNumberItem.appendChild(pageNumberLink);
+      clientInvoicePaginationContainer.appendChild(pageNumberItem);
+    }
+  }
+
   // --- Event Listener Setup ---
   // Event Listeners: Navigation
   navItems.forEach((navItem) => {
@@ -806,6 +1028,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // --- Event Listeners: Invoice Tab (Client View) Actions ---
+  if (clientSearchInvoiceBtn) {
+    clientSearchInvoiceBtn.addEventListener("click", () => {
+      clientInvoiceCurrentPage = 1; // Reset page on new search/filter
+      fetchAndRenderUiForClientInvoicesTab(); // Call client-specific fetch function
+    });
+  }
+
+  if (clientSearchInvoiceInput) {
+    clientSearchInvoiceInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        clientInvoiceCurrentPage = 1;
+        fetchAndRenderUiForClientInvoicesTab(); // Call client-specific fetch function
+      }
+    });
+  }
+
+  if (clientApplyInvoiceFiltersBtn) {
+    clientApplyInvoiceFiltersBtn.addEventListener("click", () => {
+      clientInvoiceCurrentPage = 1;
+      fetchAndRenderUiForClientInvoicesTab(); // Call client-specific fetch function
+    });
+  }
+
   // --- Initial Page Load Logic ---
   async function initializePage() {
     // Display a loading message initially
@@ -830,7 +1076,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (occupants && occupants.length > 0) {
         // User is an occupant
         const userOccupantData = occupants[0]; // Get the first occupancy record
-        const userRoomId = userOccupantData.roomId;
+        userRoomId = userOccupantData.roomId;
         const userContractCode = userOccupantData.contractCode;
 
         occupantStatusMessageDiv.style.display = "none";
@@ -844,12 +1090,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (userRoomId) {
           loadClientRoomDetails(userRoomId);
+          fetchAndRenderUiForClientInvoicesTab();
         } else {
           console.error("Occupant data missing room ID.");
-          if (clientRoomInfoContainer) {
+          if (clientRoomInfoContainer)
             clientRoomInfoContainer.innerHTML =
               "<p class='text-danger text-center p-5'>Không thể xác định phòng của bạn.</p>";
-          }
+          if (clientInvoiceTableBody)
+            clientInvoiceTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Không thể tải hóa đơn do thiếu thông tin phòng.</td></tr>`;
         }
 
         if (userContractCode) {
@@ -875,7 +1123,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ) {
         // User is NOT an occupant (API returned 404 Not Found)
         occupantStatusMessageDiv.textContent =
-          "Bạn hiện không phải là người thuê phòng trong hệ thống. Vui lòng liên hệ quản lý.";
+          "Bạn hiện không phải là người thuê phòng trong hệ thống. Vui lòng liên hệ chủ trọ.";
         occupantStatusMessageDiv.className = "alert alert-warning";
         occupantStatusMessageDiv.style.display = "block";
         contentDivs.forEach((div) => (div.style.display = "none"));
